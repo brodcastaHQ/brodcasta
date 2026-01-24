@@ -5,7 +5,7 @@ from nexios.routing import Router
 from tortoise.exceptions import IntegrityError
 from ._schema import UserCreate, UserLogin, UserResponse, TokenResponse
 from models.accounts import Account
-from utils.auth import create_access_token
+from utils.auth import create_access_token, create_refresh_token, verify_token
 
 
 router = Router(prefix="/accounts", tags=["authentication"])
@@ -41,6 +41,9 @@ async def signup(request: Request,response: Response):
     # Create access token
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     
+    # Create refresh token
+    refresh_token = create_refresh_token(data={"sub": str(user.id), "email": user.email})
+    
     user_response = UserResponse(
         id=str(user.id),
         name=user.name,
@@ -53,15 +56,25 @@ async def signup(request: Request,response: Response):
         "access_token", 
         access_token, 
         max_age=3600, 
-        httponly=os.getenv("ENV") == "production"
+        httponly=os.getenv("ENV") == "production",
+        secure=os.getenv("ENV") == "production",
+        samesite="lax"
+    )
+    
+    response.set_cookie(
+        "refresh_token", 
+        refresh_token, 
+        max_age=7 * 24 * 3600,  # 7 days
+        httponly=True,
+        secure=os.getenv("ENV") == "production",
+        samesite="strict"
     )
     
 
-    return TokenResponse(
-            access_token=access_token,
-            token_type="bearer",
-            user=user_response
-        )
+    return {
+        "user": user_response,
+        "message": "Account created successfully"
+        }
       
     
   
@@ -94,6 +107,9 @@ async def login(request: Request,response: Response):
     # Create access token
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     
+    # Create refresh token
+    refresh_token = create_refresh_token(data={"sub": str(user.id), "email": user.email})
+    
     user_response = UserResponse(
         id=str(user.id),
         name=user.name,
@@ -102,11 +118,83 @@ async def login(request: Request,response: Response):
         plan=user.plan
     )
     
-    return TokenResponse(
-            access_token=access_token,
-            token_type="bearer",
-            user=user_response
-        )
+    response.set_cookie(
+        "access_token", 
+        access_token, 
+        max_age=3600, 
+        httponly=os.getenv("ENV") == "production",
+        secure=os.getenv("ENV") == "production",
+        samesite="lax"
+    )
+    
+    response.set_cookie(
+        "refresh_token", 
+        refresh_token, 
+        max_age=7 * 24 * 3600,  # 7 days
+        httponly=True,
+        secure=os.getenv("ENV") == "production",
+        samesite="strict"
+    )
+    
+    return {
+        "user": user_response,
+        "message": "Login successful"
+        }
     
         
+
+@router.post("/refresh", 
+            summary="Refresh access token using refresh token",
+            responses=TokenResponse)
+async def refresh_token(request: Request, response: Response):
+    """Refresh access token using refresh token from cookie"""
+    refresh_token_cookie = request.cookies.get("refresh_token")
+    
+    if not refresh_token_cookie:
+        return response.json(
+            {"detail": "Refresh token not found"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Verify refresh token
+    payload = verify_token(refresh_token_cookie)
+    if not payload or payload.get("type") != "refresh":
+        return response.json(
+            {"detail": "Invalid refresh token"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Get user from database
+    user = await Account.get_or_none(id=payload.get("sub"))
+    if not user:
+        return response.json(
+            {"detail": "User not found"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Create new access token
+    access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    
+    user_response = UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        company=user.company,
+        plan=user.plan
+    )
+    
+    response.set_cookie(
+        "access_token", 
+        access_token, 
+        max_age=3600, 
+        httponly=os.getenv("ENV") == "production",
+        secure=os.getenv("ENV") == "production",
+        samesite="lax"
+    )
+    
+    return {
+        "user": user_response,
+        "message": "Token refreshed successfully"
+    }
+
  
