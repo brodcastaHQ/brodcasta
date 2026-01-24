@@ -49,3 +49,7 @@ class Account(BaseModel,SimpleUser):
     @property
     def display_name(self):
         return self.name
+
+    @property
+    def identity(self):
+        return self.id

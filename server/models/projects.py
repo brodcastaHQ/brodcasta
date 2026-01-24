@@ -50,3 +50,16 @@ class Project(BaseModel):
         self.project_secret = new_secret
         await self.save()
         return new_secret
+
+    async def detail(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "project_secret": self.project_secret,
+            "account_id": str(self.account_id),
+            "history_enabled": self.history_enabled,
+            "auth_type": self.auth_type,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+
+        }

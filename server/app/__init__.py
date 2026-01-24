@@ -3,6 +3,7 @@ from nexios_contrib.tortoise import init_tortoise
 from nexios.routing.grouping import Group
 import config
 from api.accounts.routes import router as auth_router
+from api.projects.routes import router as projects_router
 from nexios import MakeConfig
 from nexios.middleware.cors import CORSMiddleware,CorsConfig
 from app.core.auth_backend import JWTAuthBackend
@@ -27,7 +28,8 @@ app = NexiosApp(
     ),
     routes=[
         Group("/api", routes=[
-            Group(auth_router.prefix,auth_router)
+            Group(auth_router.prefix,auth_router),
+            Group(projects_router.prefix, projects_router)
         ])
     ]
 )
