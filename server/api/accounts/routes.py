@@ -198,3 +198,23 @@ async def refresh_token(request: Request, response: Response):
     }
 
  
+@router.get("/me", summary="Get user details")
+async def get_user(request: Request,response: Response):
+    """Get user details"""
+    user = request.user
+    print(user)
+    if not user.is_authenticated:
+        return response.json(
+            {"detail": "User not found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    user_response = UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        company=user.company,
+        plan=user.plan
+    )
+    return user_response
+
+

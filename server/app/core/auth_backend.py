@@ -23,12 +23,10 @@ class JWTAuthBackend(AuthenticationBackend):
         self.secret = app_config.secret_key
         self.algorithms = app_config.jwt_algorithms or ["HS256"]
 
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            response.set_header("WWW-Authenticate", 'Bearer realm="Access to the API"')
+        token = request.cookies.get("access_token")
+        if not token:
             return AuthResult(success=False, identity="", scope="")
 
-        token = auth_header.split(" ")[1]
         try:
             payload = verify_token(token)
         except ValueError as _:
