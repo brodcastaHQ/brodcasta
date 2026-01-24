@@ -1,0 +1,51 @@
+[project]
+name = "server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aerich==0.9.2",
+    "aiosqlite==0.19.0",
+    "annotated-types==0.7.0",
+    "anyio==4.12.1",
+    "asyncclick==8.3.0.7",
+    "asyncpg==0.31.0",
+    "bcrypt>=5.0.0",
+    "click==8.3.1",
+    "colorama==0.4.6",
+    "dictdiffer==0.9.0",
+    "dotenv==0.9.9",
+    "email-validator>=2.3.0",
+    "granian==2.6.1",
+    "h11==0.16.0",
+    "httptools==0.7.1",
+    "idna==3.11",
+    "iso8601==2.1.0",
+    "itsdangerous==2.2.0",
+    "jinja2==3.1.6",
+    "markupsafe==3.0.3",
+    "nexios-contrib[tortoise]==0.3.2",
+    "nexios[all]==3.7.1",
+    "pydantic==2.12.5",
+    "pydantic-core==2.41.5",
+    "pyjwt==2.10.1",
+    "pypika-tortoise==0.6.3",
+    "python-dotenv==1.2.1",
+    "python-multipart==0.0.21",
+    "pytz==2025.2",
+    "pyyaml==6.0.3",
+    "tortoise-orm==0.25.3",
+    "typing-extensions==4.15.0",
+    "typing-inspection==0.4.2",
+    "ulid-py==1.1.0",
+    "uvicorn[all,standard]==0.40.0",
+    "watchfiles==1.1.1",
+    "websockets==16.0",
+]
+
+
+[tool.aerich]
+tortoise_orm = "config.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."

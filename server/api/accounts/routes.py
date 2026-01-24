@@ -1,0 +1,103 @@
+from nexios import status
+from nexios.http import Request, Response
+from nexios.routing import Router
+from tortoise.exceptions import IntegrityError
+from ._schema import UserCreate, UserLogin, UserResponse, TokenResponse
+from models.accounts import Account
+from utils.auth import create_access_token
+
+
+router = Router(prefix="/accounts", tags=["authentication"])
+
+
+@router.post("/signup", 
+            summary="Create a new user account",
+            request_model=UserCreate,
+            responses=TokenResponse,
+            status_code=status.HTTP_201_CREATED)
+async def signup(request: Request,response: Response):
+    """Create a new user account"""
+    data = await request.json
+    user_data = UserCreate(**data)
+    
+    # Check if user already exists
+    existing_user = await Account.get_or_none(email=user_data.email)
+    if existing_user:
+        return response.json(
+            {"detail": "Email already registered"},
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create new user
+    user = await Account.create_user(
+        name=user_data.name,
+        email=user_data.email,
+        password=user_data.password,
+        company=user_data.company,
+        plan=user_data.plan
+    )
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    
+    user_response = UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        company=user.company,
+        plan=user.plan
+    )
+    
+    return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user=user_response
+        )
+      
+    
+  
+
+
+@router.post("/login",  
+            summary="Authenticate user and return access token",
+            request_model=UserLogin,
+            responses=TokenResponse)
+async def login(request: Request,response: Response):
+    """Authenticate user and return access token"""
+    data = await request.json
+    login_data = UserLogin(**data)
+    
+    # Find user by email
+    user = await Account.get_or_none(email=login_data.email)
+    if not user:
+        return Response.json(
+            {"detail": "Invalid credentials"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Check password
+    if not await user.check_password(login_data.password):
+        return Response.json(
+            {"detail": "Invalid credentials"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    
+    user_response = UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        company=user.company,
+        plan=user.plan
+    )
+    
+    return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user=user_response
+        )
+    
+        
+ 
