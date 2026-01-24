@@ -2,6 +2,7 @@ from tortoise import fields
 from ._base import BaseModel
 from enum import Enum
 import bcrypt
+from nexios.auth.users.simple import SimpleUser
 
 class Plan(str, Enum):
     FREE = "free"
@@ -9,7 +10,7 @@ class Plan(str, Enum):
     PRO = "pro"
     ENTERPRISE = "enterprise"
 
-class Account(BaseModel):
+class Account(BaseModel,SimpleUser):
     name = fields.CharField(max_length=100)
     company = fields.CharField(max_length=100, null=True)
     plan = fields.CharEnumField(Plan, default=Plan.FREE)
@@ -41,3 +42,10 @@ class Account(BaseModel):
         hashed_pw = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
         self.password = hashed_pw.decode("utf-8")
         await self.save()
+    @classmethod
+    async def load_user(cls, identity: str):
+        return await cls.get_or_none(id=identity)
+
+    @property
+    def display_name(self):
+        return self.name

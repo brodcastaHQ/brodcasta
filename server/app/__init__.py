@@ -5,6 +5,9 @@ import config
 from api.accounts.routes import router as auth_router
 from nexios import MakeConfig
 from nexios.middleware.cors import CORSMiddleware,CorsConfig
+from app.core.auth_backend import JWTAuthBackend
+from nexios.auth.middleware import AuthenticationMiddleware
+from models.accounts import Account
 app = NexiosApp(
     title="Pingly",
     version="0.1.0",
@@ -35,5 +38,8 @@ init_tortoise(app,
         add_exception_handlers=True,
         generate_schemas=True
     )
-
-# Include auth routes
+app.add_middleware(CORSMiddleware())
+app.add_middleware(AuthenticationMiddleware(
+    backend=JWTAuthBackend(),
+    user_model=Account
+))
