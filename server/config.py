@@ -30,3 +30,5 @@ TORTOISE_ORM = {
     "use_tz": False,
     "timezone": "UTC"
 }
+
+SECRET_KEY = os.getenv("SECRET_KEY")

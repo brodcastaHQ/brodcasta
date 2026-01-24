@@ -1,3 +1,4 @@
+import os
 from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
@@ -47,7 +48,15 @@ async def signup(request: Request,response: Response):
         company=user.company,
         plan=user.plan
     )
+
+    response.set_cookie(
+        "access_token", 
+        access_token, 
+        max_age=3600, 
+        httponly=os.getenv("ENV") == "production"
+    )
     
+
     return TokenResponse(
             access_token=access_token,
             token_type="bearer",
