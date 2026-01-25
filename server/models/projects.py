@@ -2,7 +2,6 @@ from tortoise import fields
 from ._base import BaseModel
 from enum import Enum
 import secrets
-import string
 
 
 class AuthType(str, Enum):
@@ -13,7 +12,7 @@ class AuthType(str, Enum):
 
 class Project(BaseModel):
     name = fields.CharField(max_length=100)
-    project_secret = fields.CharField(max_length=64, unique=True)
+    project_secret = fields.CharField(max_length=64, unique=True, index=True)
     account = fields.ForeignKeyField("models.Account", related_name="projects", on_delete=fields.CASCADE)
     history_enabled = fields.BooleanField(default=True)
     auth_type = fields.CharEnumField(AuthType, default=AuthType.NONE)
@@ -22,11 +21,14 @@ class Project(BaseModel):
         table = "projects"
 
     @classmethod
-    async def create_project(cls, name: str, account_id: str, history_enabled: bool = True, auth_type: AuthType = AuthType.NONE):
-        # Generate a secure project secret
-        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-        project_secret = ''.join(secrets.choice(alphabet) for _ in range(32))
-        
+    async def create_project(
+        cls,
+        name: str,
+        account_id: str,
+        history_enabled: bool = True,
+        auth_type: AuthType = AuthType.NONE
+    ):
+        project_secret = secrets.token_urlsafe(32)
         return await cls.create(
             name=name,
             project_secret=project_secret,
@@ -44,12 +46,9 @@ class Project(BaseModel):
         return await cls.get_or_none(project_secret=secret)
 
     async def regenerate_secret(self):
-        # Generate a new secure project secret
-        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-        new_secret = ''.join(secrets.choice(alphabet) for _ in range(32))
-        self.project_secret = new_secret
-        await self.save()
-        return new_secret
+        self.project_secret = secrets.token_urlsafe(32)
+        await self.save(update_fields=["project_secret"])
+        return self.project_secret
 
     async def detail(self):
         return {
@@ -61,5 +60,4 @@ class Project(BaseModel):
             "auth_type": self.auth_type,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat()
-
         }
