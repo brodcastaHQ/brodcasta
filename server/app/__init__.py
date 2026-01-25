@@ -4,11 +4,13 @@ from nexios.routing.grouping import Group
 import config
 from api.accounts.routes import router as auth_router
 from api.projects.routes import router as projects_router
+from ws.gateway import router as ws_router
 from nexios import MakeConfig
 from nexios.middleware.cors import CORSMiddleware,CorsConfig
 from app.core.auth_backend import JWTAuthBackend
 from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
+from socketify import ASGI
 app = NexiosApp(
     title="Pingly",
     version="0.1.0",
@@ -30,6 +32,9 @@ app = NexiosApp(
         Group("/api", routes=[
             Group(auth_router.prefix,auth_router),
             Group(projects_router.prefix, projects_router)
+        ]),
+        Group("/ws", routes=[
+            Group(ws_router.prefix, ws_router)
         ])
     ]
 )
