@@ -24,5 +24,5 @@ class ClientEvent(str, Enum):
     ACK = "ack"
     ERROR = "error"
 
-    PING = "ping"
-    PONG = "pong"
+    PING = "client.ping"
+    PONG = "client.pong"

@@ -4,6 +4,7 @@ from models import Project
 from nexios.logging import create_logger
 from .events import emitter
 from nexios.websockets.base import WebSocketDisconnect
+from .enums import ClientEvent
 router = Router(prefix="", tags=["websocket"])
 
 
@@ -31,7 +32,12 @@ async def ws_gateway(websocket: WebSocket):
                 continue
             
             event_type = data.get("event_type")
-            emitter.emit(event_type, websocket,project_id)
+            try:
+                event_type = ClientEvent(event_type)
+            except ValueError:
+                continue
+            event_data = data.get("data")
+            emitter.emit(event_type.value, websocket,project_id,event_data)
             
     except WebSocketDisconnect:
         emitter.emit("client.disconnected", websocket,project_id)
