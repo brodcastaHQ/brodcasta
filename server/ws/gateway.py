@@ -29,4 +29,5 @@ async def ws_gateway(websocket: WebSocket):
             data = await websocket.receive_text()
             await websocket.send_text(f"Message text was: {data}")
     except WebSocketDisconnect:
+        print("Client disconnected")
         emitter.emit("client.disconnected", websocket,project_id)

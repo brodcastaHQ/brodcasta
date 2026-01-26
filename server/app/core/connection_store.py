@@ -68,6 +68,7 @@ class ConnectionStore(ChannelBox):
 
         target_rooms = [room_id] if room_id else list(cls.CHANNEL_GROUPS[tenant_id].keys())
         for r in target_rooms:
+            print(cls.CHANNEL_GROUPS[tenant_id].get(r) , channel)
             removed = cls.CHANNEL_GROUPS[tenant_id].get(r, {}).pop(channel, None)
             if removed:
                 cls.logger.info(f"Channel {channel.uuid} removed from {tenant_id}/{r}")
