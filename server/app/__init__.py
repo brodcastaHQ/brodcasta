@@ -11,6 +11,9 @@ from app.core.auth_backend import JWTAuthBackend
 from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
 from socketify import ASGI
+from app.core.redis_service import redis_service
+import asyncio
+
 app = NexiosApp(
     title="Pingly",
     version="0.1.0",
@@ -50,3 +53,21 @@ app.add_middleware(AuthenticationMiddleware(
     backend=JWTAuthBackend(),
     user_model=Account
 ))
+
+# Initialize Redis service
+@app.on_startup
+async def startup():
+    await redis_service.connect()
+    redis_service._listener_task = asyncio.create_task(
+        redis_service.start_listening()
+    )
+        # Continue without Redis - events will fail gracefully
+
+@app.on_shutdown
+async def shutdown_event():
+    """Cleanup Redis connections on shutdown"""
+    try:
+        await redis_service.disconnect()
+        print("✅ Redis service stopped")
+    except Exception as e:
+        print(f"❌ Error stopping Redis service: {e}")

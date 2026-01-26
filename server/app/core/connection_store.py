@@ -95,7 +95,10 @@ class ConnectionStore(ChannelBox):
             cls.logger.debug(f"Message stored in history: {tenant_id}/{room_id} -> {payload}")
 
         status = GroupSendStatusEnum.NO_SUCH_GROUP
+        print(f"All channels for {tenant_id}/{room_id}",cls.CHANNEL_GROUPS.get(tenant_id, {}).get(room_id, {}))
+        print("ALL ROOMS",cls.CHANNEL_GROUPS.get(tenant_id, {}))
         for channel in cls.CHANNEL_GROUPS.get(tenant_id, {}).get(room_id, {}):
+            
             await channel._send(payload)
             status = GroupSendStatusEnum.GROUP_SEND
         cls.logger.info(f"Message sent to group: {tenant_id}/{room_id} -> {payload}")

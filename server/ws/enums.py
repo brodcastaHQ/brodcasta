@@ -21,6 +21,11 @@ class ClientEvent(str, Enum):
     PUBLISH = "message.publish"
     MESSAGE = "message"
 
+    # Message events
+    MESSAGE_SEND = "message.send"
+    MESSAGE_BROADCAST = "message.broadcast"
+    MESSAGE_DIRECT = "message.direct"
+
     ACK = "ack"
     ERROR = "error"
 
