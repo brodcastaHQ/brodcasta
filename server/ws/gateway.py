@@ -1,11 +1,11 @@
 from nexios.routing import Router
 from nexios.websockets import WebSocket
-from nexios.events import AsyncEventEmitter
 from models import Project
 from nexios.logging import create_logger
+from .events import emitter
+from nexios.websockets.base import WebSocketDisconnect
 router = Router(prefix="", tags=["websocket"])
 
-emitter = AsyncEventEmitter()
 
 logger = create_logger(__name__)
 @router.ws_route("/{project_id}")
@@ -23,6 +23,10 @@ async def ws_gateway(websocket: WebSocket):
         return
 
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+    emitter.emit("client.connected", websocket,project_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
+    except WebSocketDisconnect:
+        emitter.emit("client.disconnected", websocket,project_id)
