@@ -1,9 +1,7 @@
-from nexios.events import AsyncEventEmitter
 from nexios.websockets import WebSocket
 from nexios.websockets.channels import Channel
 from app.core.connection_store import ConnectionStore 
-
-emitter = AsyncEventEmitter()
+from .emitter import emitter
 
 
 @emitter.on("client.connected")

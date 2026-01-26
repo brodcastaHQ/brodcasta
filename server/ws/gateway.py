@@ -26,8 +26,11 @@ async def ws_gateway(websocket: WebSocket):
     emitter.emit("client.connected", websocket,project_id)
     try:
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
+            data = await websocket.receive_json()
+            if data.get("event_type") == "ping":
+                print("Ping received")
+                emitter.emit("client.ping", websocket)
+            
     except WebSocketDisconnect:
         print("Client disconnected")
         emitter.emit("client.disconnected", websocket,project_id)
