@@ -550,7 +550,7 @@ wheels = [
 
 [[package]]
 name = "nexios"
-version = "3.7.1"
+version = "3.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -559,9 +559,9 @@ dependencies = [
     { name = "python-multipart" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/2e/54a211fec89fbbf0eb842942fc3fb72afdbe5bcbc2a020ed636510595772/nexios-3.7.1.tar.gz", hash = "sha256:d7d71c06d28a6977438fe58c4b4276e00b44cfa3f028aaf43bfb4aa5eed30c1e", size = 3704695, upload-time = "2026-01-24T09:41:56.186Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/07/05840f7100a7b0e9861729810f27e27098d08acc2f031dcb37d7a848777f/nexios-3.7.2.tar.gz", hash = "sha256:032fbd5ae2377544e2946dbb80a9c97e86d74c4afde6c6c71bd8a6848d24d40b", size = 3705018, upload-time = "2026-01-26T13:14:32.118Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/2c/a429dd50a88674ceefdad0fb071b3e942aad55cac2e3e7ed0a332eaf2fb4/nexios-3.7.1-py3-none-any.whl", hash = "sha256:1dce2e29cf3180400be5df3d7c46722d34677210eee29d0d61e9664e11d7fd4e", size = 203317, upload-time = "2026-01-24T09:41:58.075Z" },
+    { url = "https://files.pythonhosted.org/packages/a3/28/fac95750b0ef8509b048d2ca90c24353a8e9cf2c71f945889efab9ff9479/nexios-3.7.2-py3-none-any.whl", hash = "sha256:08a45c8845f4f15d27d02d64c6cc5759c82985e945179319190a7a28f2283e2c", size = 203320, upload-time = "2026-01-26T13:14:34.22Z" },
 ]
 
 [package.optional-dependencies]
@@ -882,7 +882,7 @@ requires-dist = [
     { name = "itsdangerous", specifier = "==2.2.0" },
     { name = "jinja2", specifier = "==3.1.6" },
     { name = "markupsafe", specifier = "==3.0.3" },
-    { name = "nexios", extras = ["all"], specifier = "==3.7.1" },
+    { name = "nexios", extras = ["all"], specifier = "==3.7.2" },
     { name = "nexios-contrib", extras = ["tortoise"], specifier = "==0.3.2" },
     { name = "pydantic", specifier = "==2.12.5" },
     { name = "pydantic-core", specifier = "==2.41.5" },
@@ -904,11 +904,11 @@ requires-dist = [
 
 [[package]]
 name = "setuptools"
-version = "80.10.1"
+version = "80.10.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/86/ff/f75651350db3cf2ef767371307eb163f3cc1ac03e16fdf3ac347607f7edb/setuptools-80.10.1.tar.gz", hash = "sha256:bf2e513eb8144c3298a3bd28ab1a5edb739131ec5c22e045ff93cd7f5319703a", size = 1229650, upload-time = "2026-01-21T09:42:03.061Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/95/faf61eb8363f26aa7e1d762267a8d602a1b26d4f3a1e758e92cb3cb8b054/setuptools-80.10.2.tar.gz", hash = "sha256:8b0e9d10c784bf7d262c4e5ec5d4ec94127ce206e8738f29a437945fbc219b70", size = 1200343, upload-time = "2026-01-25T22:38:17.252Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/76/f963c61683a39084aa575f98089253e1e852a4417cb8a3a8a422923a5246/setuptools-80.10.1-py3-none-any.whl", hash = "sha256:fc30c51cbcb8199a219c12cc9c281b5925a4978d212f84229c909636d9f6984e", size = 1099859, upload-time = "2026-01-21T09:42:00.688Z" },
+    { url = "https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl", hash = "sha256:95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173", size = 1064234, upload-time = "2026-01-25T22:38:15.216Z" },
 ]
 
 [[package]]
