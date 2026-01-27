@@ -1,11 +1,9 @@
 from .emitter import emitter
-from nexios.websockets import WebSocket
 from app.core.redis_publisher import redis_publisher
-from app.core.channels.base import BaseChannel
 
 
 @emitter.on("message.send")
-async def handle_message_send(channel: BaseChannel, project_id: str, data: dict[str, str]):
+async def handle_message_send(channel, project_id: str, data: dict[str, str]):
     """Handle sending a message to a room"""
     if not data:
         await channel._send({
@@ -51,10 +49,10 @@ async def handle_message_send(channel: BaseChannel, project_id: str, data: dict[
 
 
 @emitter.on("message.broadcast")
-async def handle_message_broadcast(websocket: WebSocket, project_id: str, data: dict[str, str]):
+async def handle_message_broadcast(channel, project_id: str, data: dict[str, str]):
     """Handle broadcasting a message to all clients in a tenant"""
     if not data:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.broadcast.error", 
             "message": "Invalid data"
         })
@@ -63,7 +61,7 @@ async def handle_message_broadcast(websocket: WebSocket, project_id: str, data: 
     message_content = data.get("message")
     
     if not message_content:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.broadcast.error", 
             "message": "message is required"
         })
@@ -75,30 +73,30 @@ async def handle_message_broadcast(websocket: WebSocket, project_id: str, data: 
             "event_type": "broadcast.received",
             "data": {
                 "message": message_content,
-                "sender_id": str(websocket.channel.uuid)
+                "sender_id": str(channel.uuid)
             }
         }
         
         # Publish to Redis - fanout will handle actual delivery
         await redis_publisher.publish_broadcast(project_id, payload)
         
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.broadcast.ok",
             "message": "Broadcast sent successfully"
         })
         
     except Exception as e:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.broadcast.error",
             "message": f"Failed to broadcast message: {str(e)}"
         })
 
 
 @emitter.on("message.direct")
-async def handle_message_direct(websocket: WebSocket, project_id: str, data: dict[str, str]):
+async def handle_message_direct(channel, project_id: str, data: dict[str, str]):
     """Handle sending a direct message to a specific client"""
     if not data:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.direct.error", 
             "message": "Invalid data"
         })
@@ -108,7 +106,7 @@ async def handle_message_direct(websocket: WebSocket, project_id: str, data: dic
     message_content = data.get("message")
     
     if not target_client_id or not message_content:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.direct.error", 
             "message": "target_client_id and message are required"
         })
@@ -120,7 +118,7 @@ async def handle_message_direct(websocket: WebSocket, project_id: str, data: dic
             "event_type": "direct.received",
             "data": {
                 "message": message_content,
-                "sender_id": str(websocket.channel.uuid),
+                "sender_id": str(channel.uuid),
                 "target_client_id": target_client_id
             }
         }
@@ -128,13 +126,13 @@ async def handle_message_direct(websocket: WebSocket, project_id: str, data: dic
         # Publish to Redis - fanout will handle actual delivery
         await redis_publisher.publish_direct_message(project_id, payload)
         
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.direct.ok",
             "message": "Direct message sent successfully"
         })
         
     except Exception as e:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.direct.error",
             "message": f"Failed to send direct message: {str(e)}"
         })

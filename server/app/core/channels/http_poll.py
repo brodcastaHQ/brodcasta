@@ -1,10 +1,12 @@
 # http_channel.py
 import asyncio
 import time
+from typing import Optional
 from nexios.http import Response
+from .base import BaseChannel
 
-class HTTPChannel:
-    def __init__(self, response: Response, payload_type: str = "json", expires: int = 30):
+class HTTPChannel(BaseChannel):
+    def __init__(self, response: Response, payload_type: str = "json", expires: Optional[int] = None):
         self.response = response
         self.payload_type = payload_type
         self.expires = expires
@@ -13,6 +15,7 @@ class HTTPChannel:
         self._payload = None
         self._sent = False
         self.created = time.time()
+        super().__init__(payload_type, expires)
 
     async def wait_and_send(self):
         """
@@ -39,6 +42,8 @@ class HTTPChannel:
         """
         Event just calls this — the channel takes care of sending response.
         """
+        if "message" not in payload.get("event_type") :
+            return
         if not self._sent:
             self._payload = payload
             self._event.set()
