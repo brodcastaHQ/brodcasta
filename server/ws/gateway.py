@@ -4,7 +4,7 @@ from models import Project
 from nexios.logging import create_logger
 
 from app.core.channels.websocket import WebSocketChannel
-from .events import emitter
+from events import emitter
 from nexios.websockets.base import WebSocketDisconnect
 from .enums import ClientEvent
 

@@ -14,6 +14,7 @@ from socketify import ASGI
 from app.core.redis_fanout import redis_fanout
 from app.core.redis_publisher import redis_publisher
 import asyncio
+from events import emitter as _
 
 app = NexiosApp(
     title="Pingly",
