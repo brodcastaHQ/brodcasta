@@ -1,13 +1,14 @@
 from .emitter import emitter
 from nexios.websockets import WebSocket
 from app.core.redis_publisher import redis_publisher
+from app.core.channels.base import BaseChannel
 
 
 @emitter.on("message.send")
-async def handle_message_send(websocket: WebSocket, project_id: str, data: dict[str, str]):
+async def handle_message_send(channel: BaseChannel, project_id: str, data: dict[str, str]):
     """Handle sending a message to a room"""
     if not data:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.send.error", 
             "message": "Invalid data"
         })
@@ -17,7 +18,7 @@ async def handle_message_send(websocket: WebSocket, project_id: str, data: dict[
     message_content = data.get("message")
     
     if not room_id or not message_content:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.send.error", 
             "message": "room_id and message are required"
         })
@@ -30,20 +31,20 @@ async def handle_message_send(websocket: WebSocket, project_id: str, data: dict[
             "data": {
                 "room_id": room_id,
                 "message": message_content,
-                "sender_id": str(websocket.channel.uuid)
+                "sender_id": str(channel.uuid)
             }
         }
         
         # Publish to Redis - fanout will handle actual delivery
         await redis_publisher.publish_room_message(project_id, room_id, payload)
         
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.send.ok",
             "message": "Message sent successfully"
         })
         
     except Exception as e:
-        await websocket.send_json({
+        await channel._send({
             "event_type": "message.send.error",
             "message": f"Failed to send message: {str(e)}"
         })

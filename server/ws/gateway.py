@@ -2,9 +2,12 @@ from nexios.routing import Router
 from nexios.websockets import WebSocket
 from models import Project
 from nexios.logging import create_logger
+
+from app.core.channels.websocket import WebSocketChannel
 from .events import emitter
 from nexios.websockets.base import WebSocketDisconnect
 from .enums import ClientEvent
+
 router = Router(prefix="", tags=["websocket"])
 
 
@@ -24,7 +27,8 @@ async def ws_gateway(websocket: WebSocket):
         return
 
     await websocket.accept()
-    emitter.emit("client.connected", websocket,project_id)
+    channel = WebSocketChannel(websocket,payload_type="json")
+    emitter.emit("client.connected", channel,project_id)
     try:
         while True:
             data = await websocket.receive_json()
@@ -37,7 +41,7 @@ async def ws_gateway(websocket: WebSocket):
             except ValueError:
                 continue
             event_data = data.get("data")
-            emitter.emit(event_type.value, websocket,project_id,event_data)
+            emitter.emit(event_type.value, channel,project_id,event_data)
             
     except WebSocketDisconnect:
-        emitter.emit("client.disconnected", websocket,project_id)
+        emitter.emit("client.disconnected", channel,project_id)
