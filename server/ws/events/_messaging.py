@@ -1,6 +1,6 @@
 from .emitter import emitter
 from nexios.websockets import WebSocket
-from app.core.redis_service import redis_service
+from app.core.redis_publisher import redis_publisher
 
 
 @emitter.on("message.send")
@@ -30,12 +30,12 @@ async def handle_message_send(websocket: WebSocket, project_id: str, data: dict[
             "data": {
                 "room_id": room_id,
                 "message": message_content,
-                "sender_id": str(websocket.channel.uuid),
+                "sender_id": str(websocket.channel.uuid)
             }
         }
         
-        # Publish to Redis - listener will handle actual delivery
-        await redis_service.publish_room_message(project_id, room_id, payload)
+        # Publish to Redis - fanout will handle actual delivery
+        await redis_publisher.publish_room_message(project_id, room_id, payload)
         
         await websocket.send_json({
             "event_type": "message.send.ok",
@@ -74,13 +74,12 @@ async def handle_message_broadcast(websocket: WebSocket, project_id: str, data: 
             "event_type": "broadcast.received",
             "data": {
                 "message": message_content,
-                "sender_id": str(websocket.channel.uuid),
-                "timestamp": websocket.channel.created_at.timestamp() if websocket.channel.created_at else None
+                "sender_id": str(websocket.channel.uuid)
             }
         }
         
-        # Publish to Redis - listener will handle actual delivery
-        await redis_service.publish_broadcast(project_id, payload)
+        # Publish to Redis - fanout will handle actual delivery
+        await redis_publisher.publish_broadcast(project_id, payload)
         
         await websocket.send_json({
             "event_type": "message.broadcast.ok",
@@ -121,13 +120,12 @@ async def handle_message_direct(websocket: WebSocket, project_id: str, data: dic
             "data": {
                 "message": message_content,
                 "sender_id": str(websocket.channel.uuid),
-                "target_client_id": target_client_id,
-                "timestamp": websocket.channel.created_at.timestamp() if websocket.channel.created_at else None
+                "target_client_id": target_client_id
             }
         }
         
-        # Publish to Redis - listener will handle actual delivery
-        await redis_service.publish_direct_message(project_id, payload)
+        # Publish to Redis - fanout will handle actual delivery
+        await redis_publisher.publish_direct_message(project_id, payload)
         
         await websocket.send_json({
             "event_type": "message.direct.ok",
