@@ -150,7 +150,7 @@ class ConnectionStore(ChannelBox):
                     cls.logger.info(f"Closed connection {channel.uuid}")
         cls.CHANNEL_GROUPS = {}
         cls.CHANNEL_GROUPS_HISTORY = {}
-        cls.logger.info("All connections closed and cleared")
+        cls.logger.info("All connections closed and cleared !")
 
 
 
