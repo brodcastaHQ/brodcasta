@@ -33,6 +33,7 @@ dependencies = [
     "pypika-tortoise==0.6.3",
     "python-dotenv==1.2.1",
     "python-multipart==0.0.21",
+    "python-socketio[asgi]>=5.16.0",
     "pytz==2025.2",
     "pyyaml==6.0.3",
     "redis>=7.1.0",
