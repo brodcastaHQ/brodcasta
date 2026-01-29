@@ -11,12 +11,11 @@ from events import emitter
 router = Router(prefix="/poll", tags=["poll"])
 
 
-@router.post("/{project_id}/connect")
+@router.get("/{project_id}/connect")
 async def poll_connect(request: Request, response: Response):
     """Start a long-polling connection"""
     project_id = request.path_params["project_id"]
     secret = request.query_params.get("secret")
-    room_id = request.query_params.get("room_id")
     
     # Validate project
     project = await Project.get_or_none(id=project_id)
@@ -28,7 +27,7 @@ async def poll_connect(request: Request, response: Response):
     channel = HTTPChannel(response, payload_type="json")
     
     # Add to connection store
-    await ConnectionStore.add_channel_to_group(project_id, channel, room_id)
+    await ConnectionStore.add_channel_to_group(project_id, channel)
     
     # Emit connection event
     emitter.emit("client.connected", channel, project_id)
@@ -38,10 +37,10 @@ async def poll_connect(request: Request, response: Response):
         await channel.wait_and_send()
     except Exception as e:
         print(f"Long poll error: {e}")
-    finally:
-        # Clean up connection
-        await ConnectionStore.remove_channel(channel, project_id, room_id)
-        emitter.emit("client.disconnected", channel, project_id)
+    # finally:
+    #     # Clean up connection
+    #     await ConnectionStore.remove_channel(channel, project_id)
+    #     emitter.emit("client.disconnected", channel, project_id)
 
 
 @router.post("/{project_id}/send")
