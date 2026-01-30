@@ -5,7 +5,7 @@ import config
 from api.accounts.routes import router as auth_router
 from api.projects.routes import router as projects_router
 from ws.gateway import router as ws_router
-from poll.routes import router as poll_router
+from sse.routes import router as sse_router
 from nexios import MakeConfig
 from nexios.middleware.cors import CORSMiddleware,CorsConfig
 from app.core.auth_backend import JWTAuthBackend
@@ -39,7 +39,7 @@ app = NexiosApp(
             Group(auth_router.prefix,auth_router),
             Group(projects_router.prefix, projects_router),
         ]),
-        Group(poll_router.prefix, poll_router),
+        Group(sse_router.prefix, sse_router),
         Group("/ws", routes=[
             Group(ws_router.prefix, ws_router)
         ])
