@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from collections import deque
 from nexios.events import AsyncEventEmitter
 from nexios.websockets import WebSocket
@@ -150,6 +151,16 @@ class ConnectionStore(ChannelBox):
             if channel in channels:
                 rooms.append(room_id)
         return rooms
+
+    @classmethod
+    async def get_channel_by_id(cls, tenant_id: str, client_id: str) -> Optional[Channel]:
+        """Find a channel by its UUID string within a tenant"""
+        tenant_rooms = cls.CHANNEL_GROUPS.get(tenant_id, {})
+        for channels in tenant_rooms.values():
+            for channel in channels:
+                if str(channel.uuid) == client_id:
+                    return channel
+        return None
 
     @classmethod
     async def close_all_connections(cls):

@@ -6,6 +6,7 @@ from app.core.channels.sse import SSEChannel
 from app.core.connection_store import ConnectionStore
 from models import Project
 from events import emitter
+from utils.client_token import validate_hmac_token
 
 
 router = Router(prefix="/sse", tags=["poll"])
@@ -52,30 +53,44 @@ async def poll_send(request: Request, response: Response):
     # Validate project
     project = await Project.get_or_none(id=project_id)
     if not project or project.project_secret != secret:
-        response.status_code = 401
+        response.status(401)
         return {"error": "Invalid credentials"}
     
     try:
         data = await request.json
+        client_token = data.get("client_token")
         event_type = data.get("event_type")
         event_data = data.get("data")
         
+        if not client_token:
+            response.status(401)
+            return {"error": "client_token required"}
+
         if not event_type:
             response.status_code = 400
             return {"error": "event_type required"}
+
+        # Validate token and get client_id
+        try:
+            client_id = validate_hmac_token(client_token)
+        except ValueError:
+            response.status_code = 401
+            return {"error": "Invalid client_token"}
+
+        # Get the actual channel from connection store
+        channel = await ConnectionStore.get_channel_by_id(project_id, client_id)
+        if not channel:
+            response.status(404)
+            return {"error": "Client session not found"}
         
-        # Emit the event - this will be handled by existing event handlers
-        # Create a dummy channel for the sender
-        from app.core.channels.http_poll import HTTPChannel
-        dummy_channel = HTTPChannel(response, payload_type="json", expires=1)
-        
-        emitter.emit(event_type, dummy_channel, project_id, event_data)
+        # Emit the event using the REAL channel
+        emitter.emit(event_type, channel, project_id, event_data)
         
         return {"status": "sent", "event_type": event_type}
         
     except Exception as e:
         print(f"Poll send error: {e}")
-        response.status_code = 500
+        response.status(500)
         return {"error": "Send failed"}
 
 
