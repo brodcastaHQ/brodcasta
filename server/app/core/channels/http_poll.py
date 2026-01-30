@@ -72,9 +72,7 @@ class HTTPChannel(BaseChannel):
         if not payload or "event_type" not in payload:
             return None
             
-        # Filter for message events like the original HTTP polling
-        if "message" not in payload.get("event_type", ""):
-            return None
+       
 
         event_type = payload.get("event_type", "message")
         data = payload.get("data", payload)

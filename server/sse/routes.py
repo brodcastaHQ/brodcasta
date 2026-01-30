@@ -8,7 +8,7 @@ from models import Project
 from events import emitter
 
 
-router = Router(prefix="/poll", tags=["poll"])
+router = Router(prefix="/sse", tags=["poll"])
 
 
 @router.get("/{project_id}/connect")
