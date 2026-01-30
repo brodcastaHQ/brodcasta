@@ -2,6 +2,7 @@ from .emitter import emitter
 from nexios.websockets import WebSocket
 from app.core.connection_store import ConnectionStore
 from app.core.channels.base import BaseChannel
+from app.core.redis_publisher import redis_publisher
 
 @emitter.on("room.subscribe")
 async def handle_room_subscribe(channel: BaseChannel, project_id: str, data: dict[str, str]):
@@ -14,6 +15,20 @@ async def handle_room_subscribe(channel: BaseChannel, project_id: str, data: dic
         await channel._send({"event_type": "room.subscribe.error", "message": "room_id is required"})
         return
     await ConnectionStore.add_channel_to_group(project_id, channel, room_id)
+    
+    # Publish presence.joined to the room
+    await redis_publisher.publish_room_message(
+        project_id, 
+        room_id,
+        {
+            "event_type": "presence.joined",
+            "data": {
+                "client_id": str(channel.uuid),
+                "room_id": room_id
+            }
+        }
+    )
+
     await channel._send({"event_type": "room.subscribe.ok", "message": "Subscribed to room"})
 
 
@@ -27,5 +42,18 @@ async def handle_room_unsubscribe(channel: BaseChannel, project_id: str, data: d
     if not room_id:
         await channel._send({"event_type": "room.subscribe.error", "message": "room_id is required"})
         return
+    # Publish presence.leave to the room BEFORE removing
+    await redis_publisher.publish_room_message(
+        project_id, 
+        room_id,
+        {
+            "event_type": "presence.leave",
+            "data": {
+                "client_id": str(channel.uuid),
+                "room_id": room_id
+            }
+        }
+    )
+    
     await ConnectionStore.remove_channel(channel, project_id, room_id)
     await channel._send({"event_type": "room.subscribe.ok", "message": "Unsubscribed from room"})
