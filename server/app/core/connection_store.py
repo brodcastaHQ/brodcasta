@@ -142,6 +142,16 @@ class ConnectionStore(ChannelBox):
         return count
 
     @classmethod
+    async def get_rooms_for_channel(cls, tenant_id: str, channel: Channel) -> list[str]:
+        """Find all rooms in a tenant that this channel is part of"""
+        rooms = []
+        tenant_rooms = cls.CHANNEL_GROUPS.get(tenant_id, {})
+        for room_id, channels in tenant_rooms.items():
+            if channel in channels:
+                rooms.append(room_id)
+        return rooms
+
+    @classmethod
     async def close_all_connections(cls):
         for tenant_rooms in cls.CHANNEL_GROUPS.values():
             for room_channels in tenant_rooms.values():
