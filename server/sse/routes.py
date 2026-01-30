@@ -24,7 +24,7 @@ async def poll_connect(request: Request, response: Response):
         return {"error": "Invalid credentials"}
     
     # Create HTTP channel for long polling
-    channel = HTTPChannel(response, payload_type="json")
+    channel = SSEChannel(response, payload_type="json")
     
     # Add to connection store
     await ConnectionStore.add_channel_to_group(project_id, channel)
