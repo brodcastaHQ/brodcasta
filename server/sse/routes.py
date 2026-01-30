@@ -2,7 +2,7 @@ from nexios.http import Request, Response
 from nexios.routing import Router
 import json
 import asyncio
-from app.core.channels.http_poll import HTTPChannel
+from app.core.channels.sse import SSEChannel
 from app.core.connection_store import ConnectionStore
 from models import Project
 from events import emitter

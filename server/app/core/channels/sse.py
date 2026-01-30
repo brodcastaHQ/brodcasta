@@ -16,57 +16,63 @@ class SSEChannel(BaseChannel):
         self.created = time.time()
         super().__init__(payload_type, expires)
 
-    async def stream_events(self) -> AsyncGenerator[str, None]:
+    async def wait_and_send(self):
         """
-        Stream SSE events to the client.
-        This replaces wait_and_send() from HTTP polling.
+        Stream SSE events to the client using response.stream().
+        This replaces the polling mechanism with real-time streaming.
         """
         # Set SSE headers
         self.response.status(200)
-        self.response.set_header("Content-Type", "text/event-stream")
         self.response.set_header("Cache-Control", "no-cache")
         self.response.set_header("Connection", "keep-alive")
-        self.response.set_header("Access-Control-Allow-Origin", "*")
 
-        # Send initial connection event
-        yield "event: connect\ndata: {\"status\": \"connected\"}\n\n"
+        # Use response.stream() to send SSE events
+        async def event_stream():
+            # Send initial connection event
+            yield "event: connect\ndata: {\"status\": \"connected\"}\n\n"
 
-        try:
-            while not self._closed and not self.is_expired():
-                try:
-                    # Wait for event with timeout
-                    payload = await asyncio.wait_for(
-                        self._event_queue.get(), 
-                        timeout=1.0  # Check expiration every second
-                    )
-                    
-                    # Format as SSE event
-                    event_data = self._format_sse_event(payload)
-                    if event_data:
-                        yield event_data
-                        
-                except asyncio.TimeoutError:
-                    # Send heartbeat to keep connection alive
-                    yield ": heartbeat\n\n"
-                    continue
-                except Exception as e:
-                    yield f"event: error\ndata: {{\"error\": \"{str(e)}\"}}\n\n"
-                    break
+            try:
+                while not self._closed and not self.is_expired():
+                    try:
+                        # Wait for event with timeout
+                        payload = await asyncio.wait_for(
+                            self._event_queue.get(), 
+                            timeout=None # Check expiration every second
+                        )
+                        print("Received event:", payload)
+                        # Format and send SSE event
+                        event_data = self._format_sse_event(payload)
+                        print("Formatted event:", event_data)
+                        if event_data:
+                            yield event_data
+                            
+                    except asyncio.TimeoutError:
+                        # Send heartbeat to keep connection alive
+                        yield ": heartbeat\n\n"
+                        continue
+                    except Exception as e:
+                        yield f"event: error\ndata: {{\"error\": \"{str(e)}\"}}\n\n"
+                        break
 
-        except asyncio.CancelledError:
-            pass
-        finally:
-            self._closed = True
-            yield "event: disconnect\ndata: {\"status\": \"disconnected\"}\n\n"
+            except asyncio.CancelledError:
+                print("Connection cancelled")
+                pass
+            finally:
+                self._closed = True
+                yield "event: disconnect\ndata: {\"status\": \"disconnected\"}\n\n"
+
+        # Stream the events
+        await self.response.stream(event_stream(), content_type="text/event-stream")
 
     def _format_sse_event(self, payload: dict) -> Optional[str]:
+
         """Format payload as SSE event."""
+
+        print("Formatting event:", payload)
         if not payload or "event_type" not in payload:
             return None
             
-        # Filter for message events like the original HTTP polling
-        if "message" not in payload.get("event_type", ""):
-            return None
+       
 
         event_type = payload.get("event_type", "message")
         data = payload.get("data", payload)
@@ -86,7 +92,7 @@ class SSEChannel(BaseChannel):
         """
         if self._closed:
             return
-            
+        print("Sending payload:", payload)
         try:
             await self._event_queue.put(payload)
         except asyncio.QueueFull:
