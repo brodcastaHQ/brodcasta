@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import './index.css'
 import DashboardLayout from './layout/DashboardLayout'
 import Dashboard from './pages/dashboard'
+import NewProject from './pages/dashboard/new'
 import Login from './pages/login'
 import Signup from './pages/signup'
 
@@ -18,7 +19,7 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
-            {/* Add other dashboard routes here as placeholders for now */}
+            <Route path="new" element={<NewProject />} />
             <Route path="*" element={<div className="p-8">Page not found or under construction.</div>} />
           </Route>
         </Route>

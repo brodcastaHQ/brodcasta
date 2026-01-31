@@ -57,10 +57,10 @@ const Dashboard = () => {
             <div>
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-bold text-base-content">Your apps</h1>
-                    <button className="btn btn-neutral text-white gap-2 shadow-lg shadow-neutral/20">
+                    <a href="/dashboard/new" className="btn btn-neutral text-white gap-2 shadow-lg shadow-neutral/20">
                         <Plus size={18} />
                         Create new app
-                    </button>
+                    </a>
                 </div>
 
                 {error && (
@@ -73,7 +73,7 @@ const Dashboard = () => {
                 {projects.length === 0 && !error ? (
                     <div className="text-center py-12 border-2 border-dashed border-base-200 rounded-xl bg-base-50/50">
                         <p className="text-base-content/50 font-medium">You don't have any apps yet.</p>
-                        <button className="btn btn-link btn-sm text-primary mt-2">Create your first app</button>
+                        <a href="/dashboard/new" className="btn btn-link btn-sm text-primary mt-2">Create your first app</a>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
