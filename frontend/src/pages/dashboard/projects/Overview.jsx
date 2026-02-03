@@ -57,10 +57,10 @@ const ProjectOverview = () => {
     }
 
     const StatCard = ({ title, value, icon: Icon, description, color }) => (
-        <div className="bg-base-100 border border-base-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-base-100 border border-base-200/60 p-6 rounded-2xl shadow-none hover:border-primary/30 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${color} bg-opacity-10`}>
-                    <Icon className={color.replace('bg-', 'text-')} size={20} />
+                <div className={`p-2.5 rounded-xl ${color} bg-opacity-5`}>
+                    <Icon className={color.replace('bg-', 'text-')} size={20} strokeWidth={1.5} />
                 </div>
                 <span className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Real-time</span>
             </div>
@@ -74,9 +74,9 @@ const ProjectOverview = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold">{project.name}</h1>
-                <p className="text-base-content/60">Manage your application's real-time communication.</p>
+            <div className="flex flex-col gap-1">
+                <h1 className="text-4xl font-extrabold tracking-tight">{project.name}</h1>
+                <p className="text-base-content/50 text-sm font-medium">Real-time communication dashboard & metrics</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -111,20 +111,26 @@ const ProjectOverview = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-base-100 border border-base-200 rounded-2xl p-6">
-                    <h2 className="text-xl font-bold mb-6">Quick Integration</h2>
-                    <div className="mockup-code bg-base-200 text-base-content border-none">
-                        <pre data-prefix="1"><code>{`// Connect to Pingly`}</code></pre>
-                        <pre data-prefix="2"><code>{`const socket = new WebSocket('ws://.../${projectId}?secret=...');`}</code></pre>
-                        <pre data-prefix="3"><code>{``}</code></pre>
-                        <pre data-prefix="4"><code>{`socket.onmessage = (event) => {`}</code></pre>
-                        <pre data-prefix="5"><code>{`  console.log('Message received:', event.data);`}</code></pre>
-                        <pre data-prefix="6"><code>{`};`}</code></pre>
+                <div className="lg:col-span-2 bg-base-100 border border-base-200/60 rounded-2xl p-8 shadow-none">
+                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                        Quick Integration
+                    </h2>
+                    <div className="bg-neutral/5 rounded-xl p-6 font-mono text-sm relative border border-base-200/40">
+                        <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
+                        <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
+                        <div className="my-2"></div>
+                        <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
+                        <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
+                        <div className="text-base-content">{'}'};</div>
                     </div>
                 </div>
 
-                <div className="bg-base-100 border border-base-200 rounded-2xl p-6">
-                    <h2 className="text-xl font-bold mb-4">Project Settings</h2>
+                <div className="bg-base-100 border border-base-200/60 rounded-2xl p-8 shadow-none">
+                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+                        App Settings
+                    </h2>
                     <div className="space-y-4">
                         <div>
                             <p className="text-xs font-bold text-base-content/40 uppercase mb-1">Auth Type</p>
@@ -139,8 +145,8 @@ const ProjectOverview = () => {
                             <p className="text-sm font-medium">{new Date(project.created_at).toLocaleDateString()}</p>
                         </div>
                     </div>
-                    <div className="divider"></div>
-                    <button className="btn btn-outline btn-sm w-full">View Documentation</button>
+                    <div className="divider opacity-50"></div>
+                    <button className="btn btn-ghost border border-base-200 hover:border-primary/30 btn-sm w-full font-bold">View Documentation</button>
                 </div>
             </div>
         </div>
