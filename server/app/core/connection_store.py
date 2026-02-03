@@ -163,6 +163,35 @@ class ConnectionStore(ChannelBox):
         return None
 
     @classmethod
+    async def get_stats(cls, tenant_id: str):
+        """Get project statistics including rooms and connection types"""
+        tenant_rooms = cls.CHANNEL_GROUPS.get(tenant_id, {})
+        
+        rooms_count = len(tenant_rooms)
+        unique_channels = set()
+        ws_count = 0
+        sse_count = 0
+        
+        from app.core.channels.websocket import WebSocketChannel
+        from app.core.channels.sse import SSEChannel
+
+        for room_channels in tenant_rooms.values():
+            for channel in room_channels:
+                if channel not in unique_channels:
+                    unique_channels.add(channel)
+                    if isinstance(channel, WebSocketChannel):
+                        ws_count += 1
+                    elif isinstance(channel, SSEChannel):
+                        sse_count += 1
+        
+        return {
+            "rooms_count": rooms_count,
+            "total_connections": len(unique_channels),
+            "websocket_connections": ws_count,
+            "sse_connections": sse_count
+        }
+
+    @classmethod
     async def close_all_connections(cls):
         for tenant_rooms in cls.CHANNEL_GROUPS.values():
             for room_channels in tenant_rooms.values():

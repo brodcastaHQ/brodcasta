@@ -2,8 +2,9 @@ from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.auth.decorator import auth
-from ._schema import ProjectCreate, ProjectUpdate, ProjectResponse, SecretResponse
+from ._schema import ProjectCreate, ProjectUpdate, ProjectResponse, SecretResponse, ProjectStatsResponse
 from models.projects import Project, AuthType
+from app.core.connection_store import ConnectionStore
 
 
 router = Router(prefix="/projects", tags=["projects"])
@@ -52,7 +53,7 @@ async def get_user_projects(request: Request, response: Response):
     ]
 
 
-@router.get("/{project_id}", 
+@router.get("/{project_id}/", 
            summary="Get project by ID",
            responses=ProjectResponse)
 @auth()
@@ -188,3 +189,27 @@ async def get_project_secret(request: Request, response: Response):
         project_secret=project.project_secret,
         message="This is your project secret. Store it securely."
     )
+
+
+@router.get("/{project_id}/stats", 
+           summary="Get project connection statistics",
+           responses=ProjectStatsResponse)
+@auth()
+async def get_project_stats(request: Request, response: Response):
+    """Get real-time statistics for a project"""
+    project_id = request.path_params.project_id
+    
+    project = await Project.get_or_none(
+        id=project_id, 
+        account_id=request.user.identity, 
+        deleted_at__isnull=True
+    )
+    
+    if not project:
+        return response.json(
+            {"detail": "Project not found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    
+    stats = await ConnectionStore.get_stats(project_id)
+    return ProjectStatsResponse(**stats)

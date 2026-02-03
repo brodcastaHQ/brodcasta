@@ -30,3 +30,10 @@ class ProjectResponse(BaseModel):
 class SecretResponse(BaseModel):
     project_secret: str
     message: str
+
+
+class ProjectStatsResponse(BaseModel):
+    rooms_count: int
+    total_connections: int
+    websocket_connections: int
+    sse_connections: int

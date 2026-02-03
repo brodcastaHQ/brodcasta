@@ -2,8 +2,10 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import './index.css'
 import DashboardLayout from './layout/DashboardLayout'
+import ProjectDashboardLayout from './layout/ProjectDashboardLayout'
 import Dashboard from './pages/dashboard'
 import NewProject from './pages/dashboard/new'
+import ProjectOverview from './pages/dashboard/projects/Overview'
 import Login from './pages/login'
 import Signup from './pages/signup'
 
@@ -21,6 +23,14 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewProject />} />
             <Route path="*" element={<div className="p-8">Page not found or under construction.</div>} />
+          </Route>
+        </Route>
+
+        {/* Project Dashboard Routes */}
+        <Route path="/dashboard/projects/:projectId" element={<ProtectedRoute />}>
+          <Route element={<ProjectDashboardLayout />}>
+            <Route index element={<ProjectOverview />} />
+            <Route path="*" element={<div className="p-8">Feature under construction.</div>} />
           </Route>
         </Route>
       </Routes>
