@@ -6,9 +6,9 @@ const Navbar = () => {
       <div className="flex-1">
         <Link to="/" className="flex items-center gap-2">
           <div className="">
-            <img src="./logo.svg" alt="logo" className='w-16 h-16' />
+            <img src="/logo.svg" alt="logo" className='w-16 h-16' />
           </div>
-          <span className='text-xl font-bold'>Brocasta</span>
+          <span className='text-xl font-bold'>Pingly</span>
         </Link>
       </div>
       <div className="flex gap-4">

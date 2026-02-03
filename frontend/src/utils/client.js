@@ -14,7 +14,7 @@ export const createClient = (prefix = '') => {
     // For now, let's assume relative path /api is proxied or we just use the prefix.
     // If the user didn't specify a base URL, we might default to '' and let the browser resolve it (same origin).
 
-    const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:6491') + prefix;
+    const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:6494') + prefix;
 
     const client = axios.create({
         baseURL,

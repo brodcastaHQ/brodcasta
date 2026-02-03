@@ -40,12 +40,10 @@ const Sidebar = () => {
         <aside className="w-64 border-r border-base-200 min-h-screen bg-base-100 flex flex-col fixed left-0 top-0 bottom-0 z-20">
             {/* Logo Area */}
             <div className="h-16 flex items-center px-6 border-b border-base-200">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl">
-                        P
-                    </div>
+                <Link to="/" className="flex items-center gap-2">
+                    <img src="/logo.svg" alt="Pingly Logo" className="w-8 h-8 object-contain" />
                     <span className="font-bold text-lg">Pingly</span>
-                </div>
+                </Link>
             </div>
 
             {/* Navigation */}
