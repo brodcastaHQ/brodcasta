@@ -6,6 +6,7 @@ import ProjectDashboardLayout from './layout/ProjectDashboardLayout'
 import Dashboard from './pages/dashboard'
 import NewProject from './pages/dashboard/new'
 import ProjectOverview from './pages/dashboard/projects/Overview'
+import ProjectPlayground from './pages/dashboard/projects/Playground'
 import Login from './pages/login'
 import Signup from './pages/signup'
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/dashboard/projects/:projectId" element={<ProtectedRoute />}>
           <Route element={<ProjectDashboardLayout />}>
             <Route index element={<ProjectOverview />} />
+            <Route path="playground" element={<ProjectPlayground />} />
             <Route path="*" element={<div className="p-8">Feature under construction.</div>} />
           </Route>
         </Route>
