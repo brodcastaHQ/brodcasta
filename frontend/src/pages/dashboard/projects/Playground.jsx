@@ -1,4 +1,4 @@
-﻿import { Check, PlugZap, RefreshCcw, Send, ShieldAlert, Terminal } from 'lucide-react';
+import { PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PinglyClient } from 'brodcasta-sdk';
@@ -8,27 +8,69 @@ import { createClient } from '../../../utils/client';
 const DEFAULT_ROOM = 'global';
 const MAX_LOGS = 200;
 
+// Hide low-signal connection bootstrap events from the log list.
+const HIDDEN_EVENTS = new Set(['client.identity', 'connection.established']);
+
+const formatTime = (date) => {
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  const ms = String(date.getMilliseconds()).padStart(3, '0');
+  return `${hh}:${mm}:${ss}.${ms}`;
+};
+
+const safeJson = (value) => {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+};
+
+const summarize = (eventName, payload) => {
+  if (payload == null) return '';
+  if (typeof payload !== 'object') return String(payload);
+
+  const data = payload;
+
+  if (eventName === 'message.received' && typeof data.message === 'string') {
+    return data.message;
+  }
+
+  if (eventName === 'broadcast.received' && typeof data.message === 'string') {
+    return data.message;
+  }
+
+  if (eventName === 'direct.received' && typeof data.message === 'string') {
+    return data.message;
+  }
+
+  const raw = safeJson(data);
+  if (raw.length <= 140) return raw;
+  return `${raw.slice(0, 140)}...`;
+};
+
 const ProjectPlayground = () => {
   const { projectId } = useParams();
+
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [secret, setSecret] = useState('');
-  const [secretLoading, setSecretLoading] = useState(false);
   const [secretError, setSecretError] = useState('');
 
   const [state, setState] = useState('idle');
   const [transport, setTransport] = useState(null);
-  const [clientId, setClientId] = useState('');
-  const [clientToken, setClientToken] = useState('');
   const [prefer, setPrefer] = useState('ws');
+  const [connectionError, setConnectionError] = useState('');
 
-  const [roomId, setRoomId] = useState(DEFAULT_ROOM);
+  const [room, setRoom] = useState(DEFAULT_ROOM);
   const [rooms, setRooms] = useState([DEFAULT_ROOM]);
-  const [message, setMessage] = useState('');
-  const [directId, setDirectId] = useState('');
+
   const [eventType, setEventType] = useState('message.send');
+  const [message, setMessage] = useState('');
+  const [targetClientId, setTargetClientId] = useState('');
 
   const [logs, setLogs] = useState([]);
 
@@ -41,46 +83,28 @@ const ProjectPlayground = () => {
   );
   const sdkBaseUrl = useMemo(() => apiBaseUrl.replace(/\/api\/?$/, ''), [apiBaseUrl]);
 
-  useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const client = createClient(`/api/projects/${projectId}`);
-        const [projectRes, secretRes] = await Promise.all([
-          client.get('/'),
-          client.get('/secret'),
-        ]);
-        setProject(projectRes.data);
-        setSecret(secretRes.data?.project_secret || '');
-        pushLog({
-          type: 'system',
-          level: 'info',
-          message: 'Project secret loaded',
-          time: new Date(),
-        });
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load project.');
-        setSecretError('Failed to load project secret.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const connected = state === 'open';
+  const busy = state === 'connecting' || state === 'reconnecting';
 
-    fetchProject();
-  }, [projectId]);
-
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const pushLog = (entry) => {
+  const pushEventLog = (eventName, payload) => {
     setLogs((prev) => {
-      const next = [entry, ...prev];
+      const next = [{ time: new Date(), event: eventName, data: payload }, ...prev];
       return next.slice(0, MAX_LOGS);
     });
+  };
+
+  const disconnect = () => {
+    cleanupRef.current.forEach((fn) => fn?.());
+    cleanupRef.current = [];
+
+    if (clientRef.current) {
+      clientRef.current.disconnect();
+      clientRef.current = null;
+    }
+
+    setTransport(null);
+    setState('closed');
+    setConnectionError('');
   };
 
   const connect = async () => {
@@ -91,6 +115,7 @@ const ProjectPlayground = () => {
 
     disconnect();
     setSecretError('');
+    setConnectionError('');
     setState('connecting');
 
     const client = new PinglyClient({
@@ -99,207 +124,351 @@ const ProjectPlayground = () => {
       projectSecret: secret,
       prefer,
       fallbackToSse: true,
-      room: roomId || undefined,
-      onLog: (level, message, meta) => {
-        pushLog({ type: 'sdk', level, message, meta, time: new Date() });
-      },
+      autoConnect: false,
     });
 
     clientRef.current = client;
     cleanupRef.current = [
       client.on('state', ({ state: nextState }) => setState(nextState)),
       client.on('transport', ({ transport }) => setTransport(transport)),
-      client.on('open', ({ transport }) =>
-        pushLog({ type: 'system', level: 'info', message: `Connected via ${transport}`, time: new Date() })
-      ),
-      client.on('close', ({ transport, code, reason }) =>
-        pushLog({
-          type: 'system',
-          level: 'warn',
-          message: `Closed (${transport})`,
-          meta: { code, reason },
-          time: new Date(),
-        })
-      ),
-      client.on('error', ({ transport, error }) =>
-        pushLog({
-          type: 'system',
-          level: 'error',
-          message: `Error on ${transport}`,
-          meta: error,
-          time: new Date(),
-        })
-      ),
-      client.on('identity', ({ clientId, clientToken }) => {
-        setClientId(clientId);
-        setClientToken(clientToken);
-        pushLog({
-          type: 'system',
-          level: 'info',
-          message: 'Client identity issued',
-          meta: { clientId },
-          time: new Date(),
-        });
+      client.on('error', ({ error }) => {
+        setConnectionError(error?.message || 'Connection error');
       }),
-      client.on('connection', ({ connectionId, projectId }) => {
-        pushLog({
-          type: 'system',
-          level: 'info',
-          message: 'Connection established',
-          meta: { connectionId, projectId },
-          time: new Date(),
-        });
+      client.on('message', ({ event, data }) => {
+        const eventName = String(event);
+        if (HIDDEN_EVENTS.has(eventName)) return;
+        pushEventLog(eventName, data);
       }),
-      client.on('message', ({ event, data }) =>
-        pushLog({
-          type: 'event',
-          level: 'info',
-          message: String(event),
-          meta: data,
-          time: new Date(),
-        })
-      ),
     ];
 
     try {
       await client.connect();
     } catch (err) {
       console.error(err);
-      pushLog({
-        type: 'system',
-        level: 'error',
-        message: 'Failed to connect',
-        meta: err?.message || err,
-        time: new Date(),
-      });
+      setConnectionError(err?.message || 'Failed to connect');
       setState('error');
     }
   };
 
-  const disconnect = () => {
-    cleanupRef.current.forEach((fn) => fn?.());
-    cleanupRef.current = [];
-    if (clientRef.current) {
-      clientRef.current.disconnect();
-      clientRef.current = null;
-    }
-    setTransport(null);
-  };
+  const attachRoom = async () => {
+    const roomId = room.trim();
+    if (!clientRef.current || !connected || !roomId) return;
 
-  const fetchSecret = async () => {
     try {
-      setSecretLoading(true);
-      setSecretError('');
-      const client = createClient(`/api/projects/${projectId}`);
-      const response = await client.get('/secret');
-      setSecret(response.data?.project_secret || '');
-      pushLog({
-        type: 'system',
-        level: 'info',
-        message: 'Fetched project secret',
-        time: new Date(),
-      });
+      await clientRef.current.join(roomId);
+      setRooms((prev) => (prev.includes(roomId) ? prev : [roomId, ...prev]));
+      setRoom(roomId);
     } catch (err) {
       console.error(err);
-      setSecretError('Failed to fetch project secret.');
-    } finally {
-      setSecretLoading(false);
+      setConnectionError(err?.message || 'Failed to attach room');
     }
   };
 
-  const joinRoom = async () => {
-    if (!clientRef.current) return;
-    await clientRef.current.join(roomId);
-    setRooms((prev) => (prev.includes(roomId) ? prev : [roomId, ...prev]));
-    pushLog({ type: 'action', level: 'info', message: `Joined ${roomId}`, time: new Date() });
+  const detachRoom = async () => {
+    const roomId = room.trim();
+    if (!clientRef.current || !connected || !roomId) return;
+
+    try {
+      await clientRef.current.leave(roomId);
+      setRooms((prev) => prev.filter((item) => item !== roomId));
+    } catch (err) {
+      console.error(err);
+      setConnectionError(err?.message || 'Failed to detach room');
+    }
   };
 
-  const leaveRoom = async () => {
-    if (!clientRef.current) return;
-    await clientRef.current.leave(roomId);
-    setRooms((prev) => prev.filter((room) => room !== roomId));
-    pushLog({ type: 'action', level: 'info', message: `Left ${roomId}`, time: new Date() });
+  const publish = async () => {
+    if (!clientRef.current || !connected) return;
+
+    const text = message.trim();
+    if (!text) return;
+
+    try {
+      if (eventType === 'message.send') {
+        const roomId = room.trim();
+        if (!roomId) return;
+        if (!rooms.includes(roomId)) {
+          setConnectionError('Attach the room before publishing.');
+          return;
+        }
+        await clientRef.current.sendMessage(roomId, text);
+      }
+
+      if (eventType === 'message.broadcast') {
+        await clientRef.current.broadcast(text);
+      }
+
+      if (eventType === 'message.direct') {
+        const target = targetClientId.trim();
+        if (!target) return;
+        await clientRef.current.direct(target, text);
+      }
+
+      setMessage('');
+    } catch (err) {
+      console.error(err);
+      setConnectionError(err?.message || 'Publish failed');
+    }
   };
 
-  const sendPayload = async () => {
-    if (!clientRef.current || !message) return;
+  useEffect(() => {
+    let cancelled = false;
 
-    if (eventType === 'message.send') {
-      await clientRef.current.sendMessage(roomId, message);
-      pushLog({ type: 'action', level: 'info', message: `Sent to ${roomId}`, meta: message, time: new Date() });
-    }
+    const fetchProject = async () => {
+      disconnect();
+      setLogs([]);
+      setRooms([DEFAULT_ROOM]);
+      setRoom(DEFAULT_ROOM);
 
-    if (eventType === 'message.broadcast') {
-      await clientRef.current.broadcast(message);
-      pushLog({ type: 'action', level: 'info', message: 'Broadcast sent', meta: message, time: new Date() });
-    }
+      setLoading(true);
+      setError('');
+      setSecretError('');
+      setConnectionError('');
 
-    if (eventType === 'message.direct') {
-      if (!directId) return;
-      await clientRef.current.direct(directId, message);
-      pushLog({
-        type: 'action',
-        level: 'info',
-        message: `Direct to ${directId}`,
-        meta: message,
-        time: new Date(),
-      });
-    }
+      try {
+        const client = createClient(`/api/projects/${projectId}`);
+        const [projectRes, secretRes] = await Promise.allSettled([
+          client.get('/'),
+          client.get('/secret'),
+        ]);
 
-    setMessage('');
-  };
+        if (cancelled) return;
+
+        if (projectRes.status === 'fulfilled') {
+          setProject(projectRes.value.data);
+        } else {
+          setError('Failed to load project.');
+        }
+
+        if (secretRes.status === 'fulfilled') {
+          setSecret(secretRes.value.data?.project_secret || '');
+          if (!secretRes.value.data?.project_secret) {
+            setSecretError('Project secret is missing. Paste it below.');
+          }
+        } else {
+          setSecret('');
+          setSecretError('Could not fetch project secret. Paste it below.');
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setError('Failed to load project.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void fetchProject();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) return <Loading fullScreen />;
 
   if (error) {
     return (
-      <div role="alert" className="alert alert-error shadow-lg">
+      <div role="alert" className="alert alert-error shadow-none">
         <span>{error}</span>
       </div>
     );
   }
 
+  const statusTone = connected
+    ? 'border-success/20 bg-success/5 text-success'
+    : busy
+      ? 'border-warning/20 bg-warning/5 text-warning'
+      : 'border-base-200 bg-base-200/40 text-base-content/60';
+
+  const statusDot = connected
+    ? 'bg-success'
+    : busy
+      ? 'bg-warning'
+      : 'bg-base-content/30';
+
+  const statusText = connected ? 'Connected' : busy ? 'Connecting' : 'Disconnected';
+
+  const canDetach = rooms.includes(room.trim());
+
+  const publishDisabled =
+    !connected ||
+    !message.trim() ||
+    (eventType === 'message.direct' && !targetClientId.trim()) ||
+    (eventType === 'message.send' && (!room.trim() || !rooms.includes(room.trim())));
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="card bg-base-100 border border-base-200 shadow-none">
-        <div className="card-body p-8 space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3">
-                <Terminal size={20} />
-                <h1 className="text-2xl font-bold">Project Playground</h1>
-              </div>
-              <p className="text-sm text-base-content/60 mt-1">
-                Live sandbox for {project?.name || projectId}. Attach rooms and publish events in real-time.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="btn btn-primary btn-sm" onClick={state === 'open' ? disconnect : connect}>
-                <PlugZap size={14} />
-                {state === 'open' ? 'Disconnect' : 'Connect'}
-              </button>
-            </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <Terminal size={18} />
+            <h1 className="text-2xl font-bold">Playground</h1>
+          </div>
+          <p className="text-sm text-base-content/60 mt-1">
+            Rooms sandbox for <span className="font-semibold">{project?.name || 'Project'}</span>.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${statusTone}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
+            <span>{statusText}</span>
+            {connected && transport ? (
+              <span className="font-mono text-[11px] opacity-70">({String(transport).toUpperCase()})</span>
+            ) : null}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Rooms</div>
-                <div className="text-xs text-base-content/50">
-                  State: <span className="font-semibold">{state}</span>
-                </div>
+          <div className="join">
+            <select
+              className="select select-bordered select-sm join-item shadow-none"
+              value={prefer}
+              onChange={(event) => setPrefer(event.target.value)}
+              disabled={connected || busy}
+            >
+              <option value="ws">WS</option>
+              <option value="sse">SSE</option>
+            </select>
+            <button
+              className="btn btn-primary btn-sm join-item shadow-none"
+              onClick={connected ? disconnect : connect}
+              disabled={(!connected && !secret) || busy}
+            >
+              {connected ? (
+                <>
+                  <RefreshCcw size={14} />
+                  Disconnect
+                </>
+              ) : (
+                <>
+                  <PlugZap size={14} />
+                  Connect
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {connectionError ? (
+        <div role="alert" className="alert alert-error shadow-none">
+          <span>{connectionError}</span>
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
+        <div className="card bg-base-100 border border-base-200 shadow-none">
+          <div className="card-body p-0">
+            <div className="px-6 py-4 border-b border-base-200 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Logs</div>
+                <div className="text-[11px] text-base-content/50">Realtime events only.</div>
               </div>
-              <div className="flex flex-col md:flex-row gap-3">
+              <button className="btn btn-ghost btn-xs shadow-none" onClick={() => setLogs([])}>
+                Clear
+              </button>
+            </div>
+
+            <div className="overflow-auto max-h-[640px]">
+              <table className="table table-sm text-xs">
+                <thead className="sticky top-0 z-10 bg-base-100">
+                  <tr>
+                    <th className="w-[130px]">Time</th>
+                    <th className="w-[240px]">Event</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="text-base-content/40">
+                        No events yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    logs.map((entry, index) => (
+                      <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
+                        <td className="font-mono whitespace-nowrap text-[11px]">
+                          {entry.time ? formatTime(entry.time) : '--:--:--.---'}
+                        </td>
+                        <td className="font-mono text-[11px]">{entry.event}</td>
+                        <td className="text-[11px]">
+                          <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
+                          {entry.data && typeof entry.data === 'object' ? (
+                            <details className="mt-2">
+                              <summary className="cursor-pointer text-base-content/60 select-none">JSON</summary>
+                              <pre className="mt-2 p-3 rounded-lg bg-base-200/40 border border-base-200 whitespace-pre-wrap text-[11px] text-base-content/70">
+                                {safeJson(entry.data)}
+                              </pre>
+                            </details>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {!secret ? (
+            <div className="rounded-2xl border border-warning/20 bg-warning/5 p-5">
+              <div className="text-xs font-bold text-warning uppercase tracking-widest">Secret Required</div>
+              <p className="text-xs text-base-content/60 mt-1">
+                {secretError || 'Paste your project secret to connect.'}
+              </p>
+              <input
+                type="password"
+                className="input input-bordered input-sm w-full mt-3 font-mono shadow-none"
+                value={secret}
+                onChange={(event) => {
+                  setSecret(event.target.value);
+                  setSecretError('');
+                }}
+                placeholder="Project secret"
+              />
+            </div>
+          ) : null}
+
+          <div className="card bg-base-100 border border-base-200 shadow-none">
+            <div className="card-body p-6 space-y-4">
+              <div>
+                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Rooms</div>
+                <div className="text-[11px] text-base-content/50 mt-1">Attach rooms to receive events.</div>
+              </div>
+
+              <div className="join w-full">
                 <input
-                  className="input input-bordered input-sm flex-1 font-mono"
-                  value={roomId}
-                  onChange={(event) => setRoomId(event.target.value)}
+                  className="input input-bordered input-sm join-item w-full font-mono shadow-none"
+                  value={room}
+                  onChange={(event) => setRoom(event.target.value)}
                   placeholder="Enter a room name"
                 />
-                <button className="btn btn-primary btn-sm" onClick={joinRoom}>
-                  Attach to room
+                <button
+                  className="btn btn-primary btn-sm join-item shadow-none"
+                  onClick={attachRoom}
+                  disabled={!connected || !room.trim()}
+                >
+                  Attach
                 </button>
-                <button className="btn btn-ghost btn-sm" onClick={leaveRoom}>
+                <button
+                  className="btn btn-ghost btn-sm join-item shadow-none"
+                  onClick={detachRoom}
+                  disabled={!connected || !room.trim() || !canDetach}
+                >
                   Detach
                 </button>
               </div>
@@ -308,142 +477,99 @@ const ProjectPlayground = () => {
                 {rooms.length === 0 ? (
                   <div className="text-xs text-base-content/40">No rooms attached yet.</div>
                 ) : (
-                  rooms.map((room) => (
+                  rooms.map((item) => (
                     <button
-                      key={room}
-                      className="badge badge-ghost badge-lg font-mono text-[11px] gap-2"
-                      onClick={() => setRoomId(room)}
+                      key={item}
+                      className={`px-3 py-1 rounded-full border text-[11px] font-mono transition-colors shadow-none ${
+                        item === room.trim()
+                          ? 'border-primary/30 bg-primary/10 text-primary'
+                          : 'border-base-200 bg-base-200/40 text-base-content/70 hover:bg-base-200'
+                      }`}
+                      onClick={() => setRoom(item)}
+                      type="button"
                     >
-                      {room}
+                      {item}
                     </button>
                   ))
                 )}
               </div>
-            </div>
 
-            <div className="border border-base-200 rounded-2xl p-4 bg-base-100">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Connection</div>
-                <div className="text-[11px] text-base-content/50">
-                  {clientId ? (
-                    <span className="inline-flex items-center gap-1">
-                      <Check size={12} /> Identity ready
-                    </span>
-                  ) : (
-                    'Waiting for identity'
-                  )}
-                </div>
+              {!connected ? (
+                <div className="text-[11px] text-base-content/40">Connect to attach rooms.</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="card bg-base-100 border border-base-200 shadow-none">
+            <div className="card-body p-6 space-y-4">
+              <div>
+                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Publish</div>
+                <div className="text-[11px] text-base-content/50 mt-1">Send clean messages using the SDK.</div>
               </div>
-              <div className="mt-4 space-y-3 text-xs text-base-content/60">
-                <div className="flex items-center justify-between">
-                  <span>Preferred</span>
-                  <select
-                    className="select select-bordered select-sm"
-                    value={prefer}
-                    onChange={(event) => setPrefer(event.target.value)}
-                  >
-                    <option value="ws">WebSocket</option>
-                    <option value="sse">SSE</option>
-                  </select>
+
+              <div className="border border-base-200 rounded-2xl overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr_1fr_0.7fr] bg-base-200/40 text-xs font-semibold text-base-content/60">
+                  <div className="px-4 py-3">Event</div>
+                  <div className="px-4 py-3">Message</div>
+                  <div className="px-4 py-3">Target</div>
+                  <div className="px-4 py-3 text-right">Action</div>
                 </div>
-                {secretError ? (
-                  <div className="text-xs text-error flex items-center gap-2">
-                    <ShieldAlert size={14} />
-                    {secretError}
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr_1fr_0.7fr] gap-3 p-4">
+                  <select
+                    className="select select-bordered select-sm shadow-none"
+                    value={eventType}
+                    onChange={(event) => setEventType(event.target.value)}
+                    disabled={!connected}
+                  >
+                    <option value="message.send">message.send</option>
+                    <option value="message.broadcast">message.broadcast</option>
+                    <option value="message.direct">message.direct</option>
+                  </select>
+
+                  <input
+                    className="input input-bordered input-sm shadow-none"
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    placeholder={eventType === 'message.send' ? `Message to ${room.trim() || 'room'}` : 'Message'}
+                    disabled={!connected}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        void publish();
+                      }
+                    }}
+                  />
+
+                  <input
+                    className="input input-bordered input-sm font-mono shadow-none"
+                    value={targetClientId}
+                    onChange={(event) => setTargetClientId(event.target.value)}
+                    placeholder={eventType === 'message.direct' ? 'Target client ID' : '--'}
+                    disabled={!connected || eventType !== 'message.direct'}
+                  />
+
+                  <button
+                    className="btn btn-primary btn-sm justify-self-end shadow-none"
+                    onClick={publish}
+                    disabled={publishDisabled}
+                  >
+                    <Send size={14} />
+                    Publish
+                  </button>
+                </div>
+
+                {eventType === 'message.send' ? (
+                  <div className="px-4 pb-4 text-[11px] text-base-content/50">
+                    Room must be attached before publishing.
                   </div>
                 ) : null}
               </div>
-            </div>
-          </div>
 
-          <div className="border border-base-200 rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.1fr_1fr_0.8fr] bg-base-200/50 text-xs font-semibold text-base-content/60">
-              <div className="px-4 py-3">Event name</div>
-              <div className="px-4 py-3">Message data</div>
-              <div className="px-4 py-3">Client ID</div>
-              <div className="px-4 py-3 text-right">Action</div>
+              {!connected ? (
+                <div className="text-[11px] text-base-content/40">Connect to publish events.</div>
+              ) : null}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.1fr_1fr_0.8fr] gap-3 p-4">
-              <select
-                className="select select-bordered select-sm"
-                value={eventType}
-                onChange={(event) => setEventType(event.target.value)}
-              >
-                <option value="message.send">message.send</option>
-                <option value="message.broadcast">message.broadcast</option>
-                <option value="message.direct">message.direct</option>
-              </select>
-              <input
-                className="input input-bordered input-sm"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="Message data"
-              />
-              <input
-                className="input input-bordered input-sm font-mono"
-                value={eventType === 'message.direct' ? directId : ''}
-                onChange={(event) => setDirectId(event.target.value)}
-                placeholder={eventType === 'message.direct' ? 'Target client ID' : '—'}
-                disabled={eventType !== 'message.direct'}
-              />
-              <button className="btn btn-primary btn-sm justify-self-end" onClick={sendPayload}>
-                <Send size={14} />
-                Publish message
-              </button>
-            </div>
-            <div className="px-4 pb-4 text-[11px] text-base-content/50">
-              Uses rooms instead of channels. Attach a room and publish events cleanly.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card bg-base-100 border border-base-200 shadow-none">
-        <div className="card-body p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Event Log</div>
-            <button className="btn btn-ghost btn-xs" onClick={() => setLogs([])}>
-              Clear
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="table table-zebra text-xs">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Type</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="text-base-content/40">
-                      No events yet.
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((entry, index) => (
-                    <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
-                      <td className="font-mono">
-                        {entry.time ? entry.time.toLocaleTimeString() : '--'}
-                      </td>
-                      <td>
-                        <span className="badge badge-ghost text-[10px] uppercase">{entry.type}</span>
-                      </td>
-                      <td className="text-[11px]">
-                        <div className="font-semibold">{entry.message}</div>
-                        {entry.meta ? (
-                          <pre className="text-[11px] text-base-content/60 whitespace-pre-wrap">
-                            {JSON.stringify(entry.meta, null, 2)}
-                          </pre>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
