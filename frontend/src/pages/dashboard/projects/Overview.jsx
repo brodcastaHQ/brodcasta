@@ -57,26 +57,53 @@ const ProjectOverview = () => {
     }
 
     const StatCard = ({ title, value, icon: Icon, description, color }) => (
-        <div className="bg-base-100 border border-base-200/60 p-6 rounded-2xl shadow-none hover:border-primary/30 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-2.5 rounded-xl ${color} bg-opacity-5`}>
-                    <Icon className={color.replace('bg-', 'text-')} size={20} strokeWidth={1.5} />
+        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-sm group">
+            <div className="card-body p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className={`p-2.5 rounded-xl ${color} bg-opacity-10`}>
+                        <Icon className={color.replace('bg-', 'text-')} size={20} strokeWidth={2} />
+                    </div>
+                    <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Live Status</span>
                 </div>
-                <span className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Real-time</span>
-            </div>
-            <div className="flex flex-col">
-                <span className="text-3xl font-bold mb-1">{value}</span>
-                <span className="text-sm font-semibold text-base-content/70">{title}</span>
-                <p className="text-xs text-base-content/40 mt-2">{description}</p>
+                <div className="flex flex-col">
+                    <span className="text-3xl font-bold mb-1 text-base-content">{value}</span>
+                    <span className="text-sm font-semibold text-base-content/60">{title}</span>
+                    <p className="text-xs text-base-content/40 mt-3 leading-relaxed">{description}</p>
+                </div>
+                <div className="h-1 w-full bg-base-200 mt-4 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary/20 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
+                </div>
             </div>
         </div>
     );
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-4xl font-extrabold tracking-tight">{project.name}</h1>
-                <p className="text-base-content/50 text-sm font-medium">Real-time communication dashboard & metrics</p>
+            {/* Banner matching the main dashboard */}
+            <div className="w-full h-48 rounded-2xl bg-neutral text-neutral-content relative overflow-hidden flex items-center p-8 shadow-lg">
+                <div className="absolute inset-0 bg-linear-to-r from-black/80 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-linear-to-br from-primary/30 via-neutral to-secondary/30 z-0"></div>
+
+                <div className="relative z-20 max-w-xl">
+                    <div className="flex items-center gap-3 mb-2">
+                        <h1 className="text-3xl font-bold text-white">{project.name}</h1>
+                        <span className="badge badge-success text-[10px] font-bold text-white border-none px-2.5">ACTIVE</span>
+                    </div>
+                    <p className="text-white/70 mb-0 text-sm leading-relaxed max-w-md">
+                        Real-time ecosystem broadcasting from <span className="text-primary-content font-mono font-bold">{projectId.split('-')[0]}...</span>
+                    </p>
+                    <div className="flex items-center gap-4 mt-6">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Total Clients</span>
+                            <span className="text-xl font-bold text-white">{stats.total_connections}</span>
+                        </div>
+                        <div className="divider divider-horizontal mx-0 opacity-20"></div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Active Rooms</span>
+                            <span className="text-xl font-bold text-white">{stats.rooms_count}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -111,42 +138,46 @@ const ProjectOverview = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-base-100 border border-base-200/60 rounded-2xl p-8 shadow-none">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                        Quick Integration
-                    </h2>
-                    <div className="bg-neutral/5 rounded-xl p-6 font-mono text-sm relative border border-base-200/40">
-                        <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
-                        <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
-                        <div className="my-2"></div>
-                        <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
-                        <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
-                        <div className="text-base-content">{'}'};</div>
+                <div className="lg:col-span-2 card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors">
+                    <div className="card-body p-8">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            Quick Integration
+                        </h2>
+                        <div className="bg-neutral/5 rounded-xl p-6 font-mono text-sm relative border border-base-200/40">
+                            <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
+                            <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
+                            <div className="my-2"></div>
+                            <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
+                            <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
+                            <div className="text-base-content">{'}'};</div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-base-100 border border-base-200/60 rounded-2xl p-8 shadow-none">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
-                        App Settings
-                    </h2>
-                    <div className="space-y-4">
-                        <div>
-                            <p className="text-xs font-bold text-base-content/40 uppercase mb-1">Auth Type</p>
-                            <p className="text-sm font-medium capitalize">{project.auth_type.replace('_', ' ')}</p>
+                <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors">
+                    <div className="card-body p-8">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            App Settings
+                        </h2>
+                        <div className="space-y-5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Auth Type</span>
+                                <span className="badge badge-ghost font-bold text-[10px] capitalize">{project.auth_type.replace('_', ' ')}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">History</span>
+                                <span className="text-sm font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Created</span>
+                                <span className="text-sm font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-base-content/40 uppercase mb-1">History</p>
-                            <p className="text-sm font-medium">{project.history_enabled ? 'Enabled' : 'Disabled'}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-base-content/40 uppercase mb-1">Created At</p>
-                            <p className="text-sm font-medium">{new Date(project.created_at).toLocaleDateString()}</p>
-                        </div>
+                        <div className="divider my-4"></div>
+                        <button className="btn btn-neutral btn-sm w-full text-white font-bold tracking-tight">
+                            Documentation &rarr;
+                        </button>
                     </div>
-                    <div className="divider opacity-50"></div>
-                    <button className="btn btn-ghost border border-base-200 hover:border-primary/30 btn-sm w-full font-bold">View Documentation</button>
                 </div>
             </div>
         </div>
