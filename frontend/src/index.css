@@ -2,6 +2,7 @@
 @plugin "daisyui";
 
 
+
 @plugin "daisyui/theme" {
   name: "softdonut";
   default: true;
@@ -12,7 +13,7 @@
   --color-base-300: oklch(92% 0.003 48.717);
   --color-base-content: oklch(21% 0.006 56.043);
   --color-primary: oklch(35% 0.144 278.697);
-  --color-primary-content: oklch(29% 0.149 302.717);
+  --color-primary-content: oklch(98% 0.003 247.858);
   --color-secondary: oklch(78% 0.115 274.713);
   --color-secondary-content: oklch(25% 0.09 281.288);
   --color-accent: oklch(86% 0.005 56.366);

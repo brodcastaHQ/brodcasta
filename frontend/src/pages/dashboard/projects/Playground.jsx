@@ -1,4 +1,4 @@
-import { Bolt, PlugZap, RefreshCcw, Send, ShieldAlert, Terminal } from 'lucide-react';
+﻿import { Check, PlugZap, RefreshCcw, Send, ShieldAlert, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PinglyClient } from 'brodcasta-sdk';
@@ -25,8 +25,10 @@ const ProjectPlayground = () => {
   const [prefer, setPrefer] = useState('ws');
 
   const [roomId, setRoomId] = useState(DEFAULT_ROOM);
+  const [rooms, setRooms] = useState([DEFAULT_ROOM]);
   const [message, setMessage] = useState('');
   const [directId, setDirectId] = useState('');
+  const [eventType, setEventType] = useState('message.send');
 
   const [logs, setLogs] = useState([]);
 
@@ -43,11 +45,22 @@ const ProjectPlayground = () => {
     const fetchProject = async () => {
       try {
         const client = createClient(`/api/projects/${projectId}`);
-        const response = await client.get('/');
-        setProject(response.data);
+        const [projectRes, secretRes] = await Promise.all([
+          client.get('/'),
+          client.get('/secret'),
+        ]);
+        setProject(projectRes.data);
+        setSecret(secretRes.data?.project_secret || '');
+        pushLog({
+          type: 'system',
+          level: 'info',
+          message: 'Project secret loaded',
+          time: new Date(),
+        });
       } catch (err) {
         console.error(err);
         setError('Failed to load project.');
+        setSecretError('Failed to load project secret.');
       } finally {
         setLoading(false);
       }
@@ -197,39 +210,42 @@ const ProjectPlayground = () => {
   const joinRoom = async () => {
     if (!clientRef.current) return;
     await clientRef.current.join(roomId);
+    setRooms((prev) => (prev.includes(roomId) ? prev : [roomId, ...prev]));
     pushLog({ type: 'action', level: 'info', message: `Joined ${roomId}`, time: new Date() });
   };
 
   const leaveRoom = async () => {
     if (!clientRef.current) return;
     await clientRef.current.leave(roomId);
+    setRooms((prev) => prev.filter((room) => room !== roomId));
     pushLog({ type: 'action', level: 'info', message: `Left ${roomId}`, time: new Date() });
   };
 
-  const sendMessage = async () => {
+  const sendPayload = async () => {
     if (!clientRef.current || !message) return;
-    await clientRef.current.sendMessage(roomId, message);
-    pushLog({ type: 'action', level: 'info', message: `Sent to ${roomId}`, meta: message, time: new Date() });
-    setMessage('');
-  };
 
-  const broadcast = async () => {
-    if (!clientRef.current || !message) return;
-    await clientRef.current.broadcast(message);
-    pushLog({ type: 'action', level: 'info', message: 'Broadcast sent', meta: message, time: new Date() });
-    setMessage('');
-  };
+    if (eventType === 'message.send') {
+      await clientRef.current.sendMessage(roomId, message);
+      pushLog({ type: 'action', level: 'info', message: `Sent to ${roomId}`, meta: message, time: new Date() });
+    }
 
-  const direct = async () => {
-    if (!clientRef.current || !directId || !message) return;
-    await clientRef.current.direct(directId, message);
-    pushLog({
-      type: 'action',
-      level: 'info',
-      message: `Direct to ${directId}`,
-      meta: message,
-      time: new Date(),
-    });
+    if (eventType === 'message.broadcast') {
+      await clientRef.current.broadcast(message);
+      pushLog({ type: 'action', level: 'info', message: 'Broadcast sent', meta: message, time: new Date() });
+    }
+
+    if (eventType === 'message.direct') {
+      if (!directId) return;
+      await clientRef.current.direct(directId, message);
+      pushLog({
+        type: 'action',
+        level: 'info',
+        message: `Direct to ${directId}`,
+        meta: message,
+        time: new Date(),
+      });
+    }
+
     setMessage('');
   };
 
@@ -245,196 +261,189 @@ const ProjectPlayground = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-6">
-        <div className="card bg-base-100 border border-base-200 shadow-none">
-          <div className="card-body p-8 space-y-6">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-3">
-                  <Terminal size={20} />
-                  <h1 className="text-2xl font-bold">Project Playground</h1>
-                </div>
-                <p className="text-sm text-base-content/60 mt-1">
-                  Live sandbox for {project?.name || projectId}. Connect, join rooms, and test realtime events.
-                </p>
+      <div className="card bg-base-100 border border-base-200 shadow-none">
+        <div className="card-body p-8 space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <Terminal size={20} />
+                <h1 className="text-2xl font-bold">Project Playground</h1>
               </div>
-              <div className="badge badge-neutral badge-lg font-mono text-[11px]">{projectId}</div>
+              <p className="text-sm text-base-content/60 mt-1">
+                Live sandbox for {project?.name || projectId}. Attach rooms and publish events in real-time.
+              </p>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="card bg-base-100 border border-base-200 shadow-none">
-                <div className="card-body p-6 space-y-4">
-                  <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Credentials</div>
-                  <div className="space-y-3">
-                    <label className="form-control w-full">
-                      <span className="label-text text-xs font-semibold">Project Secret</span>
-                      <input
-                        type="password"
-                        className="input input-bordered input-sm font-mono"
-                        placeholder="project secret"
-                        value={secret}
-                        onChange={(event) => setSecret(event.target.value)}
-                      />
-                    </label>
-                    <button
-                      className="btn btn-outline btn-sm w-full"
-                      onClick={fetchSecret}
-                      disabled={secretLoading}
-                    >
-                      {secretLoading ? 'Fetching...' : 'Fetch Secret'}
-                    </button>
-                    {secretError ? (
-                      <div className="text-xs text-error flex items-center gap-2">
-                        <ShieldAlert size={14} />
-                        {secretError}
-                      </div>
-                    ) : null}
-                    <div className="text-[11px] text-base-content/50">
-                      Secrets are shown once in the backend. Treat them like passwords.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card bg-base-100 border border-base-200 shadow-none">
-                <div className="card-body p-6 space-y-4">
-                  <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Connection</div>
-                  <div className="space-y-3">
-                    <label className="form-control w-full">
-                      <span className="label-text text-xs font-semibold">Preferred Transport</span>
-                      <select
-                        className="select select-bordered select-sm"
-                        value={prefer}
-                        onChange={(event) => setPrefer(event.target.value)}
-                      >
-                        <option value="ws">WebSocket</option>
-                        <option value="sse">SSE</option>
-                      </select>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button className="btn btn-primary btn-sm" onClick={connect}>
-                        <PlugZap size={14} />
-                        Connect
-                      </button>
-                      <button className="btn btn-ghost btn-sm" onClick={disconnect}>
-                        <RefreshCcw size={14} />
-                        Disconnect
-                      </button>
-                    </div>
-                    <div className="text-xs text-base-content/60 space-y-1">
-                      <div>
-                        State: <span className="font-semibold">{state}</span>
-                      </div>
-                      <div>
-                        Transport: <span className="font-semibold">{transport || '—'}</span>
-                      </div>
-                      <div className="break-all">
-                        Client ID: <span className="font-mono">{clientId || '—'}</span>
-                      </div>
-                      <div className="break-all">
-                        Client Token: <span className="font-mono">{clientToken || '—'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card bg-base-100 border border-base-200 shadow-none">
-                <div className="card-body p-6 space-y-4">
-                  <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Room Actions</div>
-                  <div className="space-y-3">
-                    <label className="form-control w-full">
-                      <span className="label-text text-xs font-semibold">Room ID</span>
-                      <input
-                        className="input input-bordered input-sm font-mono"
-                        value={roomId}
-                        onChange={(event) => setRoomId(event.target.value)}
-                      />
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button className="btn btn-outline btn-sm" onClick={joinRoom}>
-                        Join
-                      </button>
-                      <button className="btn btn-ghost btn-sm" onClick={leaveRoom}>
-                        Leave
-                      </button>
-                    </div>
-                    <button className="btn btn-ghost btn-sm w-full" onClick={() => clientRef.current?.ping()}>
-                      <Bolt size={14} />
-                      Ping
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="card bg-base-100 border border-base-200 shadow-none lg:col-span-1">
-            <div className="card-body p-6 space-y-4">
-              <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Send Events</div>
-              <label className="form-control w-full">
-                <span className="label-text text-xs font-semibold">Message</span>
-                <textarea
-                  className="textarea textarea-bordered text-sm min-h-[120px]"
-                  value={message}
-                  onChange={(event) => setMessage(event.target.value)}
-                />
-              </label>
-              <label className="form-control w-full">
-                <span className="label-text text-xs font-semibold">Direct Target (optional)</span>
-                <input
-                  className="input input-bordered input-sm font-mono"
-                  value={directId}
-                  onChange={(event) => setDirectId(event.target.value)}
-                  placeholder="client id"
-                />
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button className="btn btn-primary btn-sm" onClick={sendMessage}>
-                  <Send size={14} />
-                  Room
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={broadcast}>
-                  Broadcast
-                </button>
-                <button className="btn btn-accent btn-sm col-span-2" onClick={direct}>
-                  Direct
-                </button>
-              </div>
+            <div className="flex items-center gap-3">
+              <button className="btn btn-primary btn-sm" onClick={state === 'open' ? disconnect : connect}>
+                <PlugZap size={14} />
+                {state === 'open' ? 'Disconnect' : 'Connect'}
+              </button>
             </div>
           </div>
 
-          <div className="card bg-base-100 border border-base-200 shadow-none lg:col-span-2">
-            <div className="card-body p-6 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Event Log</div>
-                <button className="btn btn-ghost btn-xs" onClick={() => setLogs([])}>
-                  Clear
+                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Rooms</div>
+                <div className="text-xs text-base-content/50">
+                  State: <span className="font-semibold">{state}</span>
+                </div>
+              </div>
+              <div className="flex flex-col md:flex-row gap-3">
+                <input
+                  className="input input-bordered input-sm flex-1 font-mono"
+                  value={roomId}
+                  onChange={(event) => setRoomId(event.target.value)}
+                  placeholder="Enter a room name"
+                />
+                <button className="btn btn-primary btn-sm" onClick={joinRoom}>
+                  Attach to room
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={leaveRoom}>
+                  Detach
                 </button>
               </div>
-              <div className="bg-base-200/40 rounded-xl p-4 h-[360px] overflow-y-auto space-y-2 font-mono text-xs">
-                {logs.length === 0 ? (
-                  <div className="text-base-content/40">No events yet.</div>
+
+              <div className="flex flex-wrap gap-2">
+                {rooms.length === 0 ? (
+                  <div className="text-xs text-base-content/40">No rooms attached yet.</div>
                 ) : (
-                  logs.map((entry, index) => (
-                    <div key={`${entry.time?.getTime?.() || index}-${index}`} className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-base-content/40">
-                        <span>{entry.type}</span>
-                        <span>{entry.time ? entry.time.toLocaleTimeString() : ''}</span>
-                      </div>
-                      <div className="text-base-content">{entry.message}</div>
-                      {entry.meta ? (
-                        <pre className="text-[11px] text-base-content/60 whitespace-pre-wrap">
-                          {JSON.stringify(entry.meta, null, 2)}
-                        </pre>
-                      ) : null}
-                    </div>
+                  rooms.map((room) => (
+                    <button
+                      key={room}
+                      className="badge badge-ghost badge-lg font-mono text-[11px] gap-2"
+                      onClick={() => setRoomId(room)}
+                    >
+                      {room}
+                    </button>
                   ))
                 )}
               </div>
             </div>
+
+            <div className="border border-base-200 rounded-2xl p-4 bg-base-100">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Connection</div>
+                <div className="text-[11px] text-base-content/50">
+                  {clientId ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Check size={12} /> Identity ready
+                    </span>
+                  ) : (
+                    'Waiting for identity'
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 space-y-3 text-xs text-base-content/60">
+                <div className="flex items-center justify-between">
+                  <span>Preferred</span>
+                  <select
+                    className="select select-bordered select-sm"
+                    value={prefer}
+                    onChange={(event) => setPrefer(event.target.value)}
+                  >
+                    <option value="ws">WebSocket</option>
+                    <option value="sse">SSE</option>
+                  </select>
+                </div>
+                {secretError ? (
+                  <div className="text-xs text-error flex items-center gap-2">
+                    <ShieldAlert size={14} />
+                    {secretError}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="border border-base-200 rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.1fr_1fr_0.8fr] bg-base-200/50 text-xs font-semibold text-base-content/60">
+              <div className="px-4 py-3">Event name</div>
+              <div className="px-4 py-3">Message data</div>
+              <div className="px-4 py-3">Client ID</div>
+              <div className="px-4 py-3 text-right">Action</div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.1fr_1fr_0.8fr] gap-3 p-4">
+              <select
+                className="select select-bordered select-sm"
+                value={eventType}
+                onChange={(event) => setEventType(event.target.value)}
+              >
+                <option value="message.send">message.send</option>
+                <option value="message.broadcast">message.broadcast</option>
+                <option value="message.direct">message.direct</option>
+              </select>
+              <input
+                className="input input-bordered input-sm"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="Message data"
+              />
+              <input
+                className="input input-bordered input-sm font-mono"
+                value={eventType === 'message.direct' ? directId : ''}
+                onChange={(event) => setDirectId(event.target.value)}
+                placeholder={eventType === 'message.direct' ? 'Target client ID' : '—'}
+                disabled={eventType !== 'message.direct'}
+              />
+              <button className="btn btn-primary btn-sm justify-self-end" onClick={sendPayload}>
+                <Send size={14} />
+                Publish message
+              </button>
+            </div>
+            <div className="px-4 pb-4 text-[11px] text-base-content/50">
+              Uses rooms instead of channels. Attach a room and publish events cleanly.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card bg-base-100 border border-base-200 shadow-none">
+        <div className="card-body p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Event Log</div>
+            <button className="btn btn-ghost btn-xs" onClick={() => setLogs([])}>
+              Clear
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="table table-zebra text-xs">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-base-content/40">
+                      No events yet.
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((entry, index) => (
+                    <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
+                      <td className="font-mono">
+                        {entry.time ? entry.time.toLocaleTimeString() : '--'}
+                      </td>
+                      <td>
+                        <span className="badge badge-ghost text-[10px] uppercase">{entry.type}</span>
+                      </td>
+                      <td className="text-[11px]">
+                        <div className="font-semibold">{entry.message}</div>
+                        {entry.meta ? (
+                          <pre className="text-[11px] text-base-content/60 whitespace-pre-wrap">
+                            {JSON.stringify(entry.meta, null, 2)}
+                          </pre>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
