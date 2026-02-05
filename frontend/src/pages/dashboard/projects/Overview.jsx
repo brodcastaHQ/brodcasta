@@ -57,7 +57,7 @@ const ProjectOverview = () => {
     }
 
     const StatCard = ({ title, value, icon: Icon, description, color }) => (
-        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-sm group">
+        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-md group">
             <div className="card-body p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className={`p-2.5 rounded-xl ${color} bg-opacity-10`}>
@@ -67,7 +67,7 @@ const ProjectOverview = () => {
                 </div>
                 <div className="flex flex-col">
                     <span className="text-3xl font-bold mb-1 text-base-content">{value}</span>
-                    <span className="text-sm font-semibold text-base-content/60">{title}</span>
+                    <span className="text-md font-semibold text-base-content/60">{title}</span>
                     <p className="text-xs text-base-content/40 mt-3 leading-relaxed">{description}</p>
                 </div>
                 <div className="h-1 w-full bg-base-200 mt-4 rounded-full overflow-hidden">
@@ -89,7 +89,7 @@ const ProjectOverview = () => {
                         <h1 className="text-3xl font-bold text-white">{project.name}</h1>
                         <span className="badge badge-success text-[10px] font-bold text-white border-none px-2.5">ACTIVE</span>
                     </div>
-                    <p className="text-white/70 mb-0 text-sm leading-relaxed max-w-md">
+                    <p className="text-white/70 mb-0 text-md leading-relaxed max-w-md">
                         Real-time ecosystem broadcasting from <span className="text-primary-content font-mono font-bold">{projectId.split('-')[0]}...</span>
                     </p>
                     <div className="flex items-center gap-4 mt-6">
@@ -143,7 +143,7 @@ const ProjectOverview = () => {
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                             Quick Integration
                         </h2>
-                        <div className="bg-neutral/5 rounded-xl p-6 font-mono text-sm relative border border-base-200/40">
+                        <div className="bg-neutral/5 rounded-xl p-6 font-mono text-md relative border border-base-200/40">
                             <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
                             <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
                             <div className="my-2"></div>
@@ -166,15 +166,15 @@ const ProjectOverview = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">History</span>
-                                <span className="text-sm font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
+                                <span className="text-md font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Created</span>
-                                <span className="text-sm font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
+                                <span className="text-md font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
                             </div>
                         </div>
                         <div className="divider my-4"></div>
-                        <button className="btn btn-neutral btn-sm w-full text-white font-bold tracking-tight">
+                        <button className="btn btn-neutral btn-md w-full text-white font-bold tracking-tight">
                             Documentation &rarr;
                         </button>
                     </div>

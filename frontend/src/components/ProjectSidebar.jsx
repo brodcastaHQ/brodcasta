@@ -20,7 +20,7 @@ const ProjectSidebar = () => {
     const NavItem = ({ to, icon: Icon, label, path }) => (
         <Link
             to={`/dashboard/projects/${projectId}${to}`}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors mb-1
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-md transition-colors mb-1
                 ${isActive(path)
                     ? 'bg-primary/10 text-primary font-medium'
                     : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
@@ -35,7 +35,7 @@ const ProjectSidebar = () => {
         <aside className="w-64 border-r border-base-200 min-h-screen bg-base-100 flex flex-col fixed left-0 top-0 bottom-0 z-20">
             {/* Context Switcher / Back */}
             <div className="h-16 flex items-center px-4 border-b border-base-200">
-                <Link to="/dashboard" className="btn btn-ghost btn-sm gap-2 text-base-content/70 font-normal hover:bg-base-200 transition-colors">
+                <Link to="/dashboard" className="btn btn-ghost btn-md gap-2 text-base-content/70 font-normal hover:bg-base-200 transition-colors">
                     <ArrowLeft size={16} />
                     Back to Apps
                 </Link>

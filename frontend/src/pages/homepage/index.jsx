@@ -89,7 +89,7 @@ const Homepage = () => {
             </div>
           </div>
 
-          <div className="pt-20 opacity-50 text-sm font-medium tracking-widest uppercase">
+          <div className="pt-20 opacity-50 text-md font-medium tracking-widest uppercase">
             Powering the next generation of apps
           </div>
         </div>
@@ -231,19 +231,19 @@ const Homepage = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="p-4">
               <div className="text-5xl font-black text-secondary mb-2">99.99%</div>
-              <div className="text-sm uppercase tracking-widest opacity-60">Uptime SLA</div>
+              <div className="text-md uppercase tracking-widest opacity-60">Uptime SLA</div>
             </div>
             <div className="p-4">
               <div className="text-5xl font-black text-primary mb-2">&lt;25ms</div>
-              <div className="text-sm uppercase tracking-widest opacity-60">Global Latency</div>
+              <div className="text-md uppercase tracking-widest opacity-60">Global Latency</div>
             </div>
             <div className="p-4">
               <div className="text-5xl font-black text-accent mb-2">10B+</div>
-              <div className="text-sm uppercase tracking-widest opacity-60">Messages/Day</div>
+              <div className="text-md uppercase tracking-widest opacity-60">Messages/Day</div>
             </div>
             <div className="p-4">
               <div className="text-5xl font-black text-white mb-2">50+</div>
-              <div className="text-sm uppercase tracking-widest opacity-60">Data Centers</div>
+              <div className="text-md uppercase tracking-widest opacity-60">Data Centers</div>
             </div>
           </div>
         </div>
@@ -256,7 +256,7 @@ const Homepage = () => {
       >
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-12">Loved by developers</h2>
-          <div className="bg-gray-50 p-10 rounded-3xl shadow-sm border border-gray-100">
+          <div className="bg-gray-50 p-10 rounded-3xl shadow-md border border-gray-100">
             <div className="flex justify-center mb-6">
               <div className="flex gap-1 text-yellow-400">
                 {"★★★★★"}
@@ -286,7 +286,7 @@ const Homepage = () => {
 
           <div className="divider opacity-20 my-10"></div>
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 opacity-60 text-sm">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 opacity-60 text-md">
             <div className="flex gap-6">
               <a href="#" className="hover:opacity-100 transition-opacity">Documentation</a>
               <a href="#" className="hover:opacity-100 transition-opacity">Pricing</a>

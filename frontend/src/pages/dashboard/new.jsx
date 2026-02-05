@@ -41,7 +41,7 @@ const NewProject = () => {
 
     return (
         <div className="max-w-2xl mx-auto py-8">
-            <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2 mb-6 text-base-content/60 px-0 hover:bg-transparent hover:text-primary">
+            <button onClick={() => navigate(-1)} className="btn btn-ghost btn-md gap-2 mb-6 text-base-content/60 px-0 hover:bg-transparent hover:text-primary">
                 <ChevronLeft size={18} />
                 Back
             </button>
@@ -60,7 +60,7 @@ const NewProject = () => {
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Info */}
-                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -sm">
+                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -md">
                     <h2 className="text-lg font-bold mb-4">General Information</h2>
 
                     <div className="form-control w-full">
@@ -83,7 +83,7 @@ const NewProject = () => {
                 </div>
 
                 {/* Configuration */}
-                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -sm">
+                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -md">
                     <h2 className="text-lg font-bold mb-4">Configuration</h2>
 
                     <div className="form-control w-full mb-6">

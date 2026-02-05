@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { CheckCheck, Clock, Copy, Eye, EyeOff, Key, Shield } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Copy, Eye, EyeOff, CheckCheck, Shield, Clock, Key } from 'lucide-react';
-import { createClient } from '../../utils/client';
 import Loading from '../../components/ui/Loading';
+import { createClient } from '../../utils/client';
 
 const ProjectOverview = () => {
     const { projectId } = useParams();
@@ -54,7 +54,7 @@ const ProjectOverview = () => {
         <div>
             <div className="mb-8 border-b border-base-200 pb-6">
                 <h1 className="text-3xl font-bold mb-2">{project.name}</h1>
-                <div className="flex items-center gap-4 text-sm text-base-content/60">
+                <div className="flex items-center gap-4 text-md text-base-content/60">
                     <span className="flex items-center gap-1">
                         <div className={`w-2 h-2 rounded-full bg-success`}></div>
                         Active
@@ -69,7 +69,7 @@ const ProjectOverview = () => {
                 <div className="lg:col-span-2 space-y-6">
                     
                     {/* API Keys Section */}
-                    <div className="card bg-base-100 border border-base-200 shadow-sm">
+                    <div className="card bg-base-100 border border-base-200 shadow-md">
                         <div className="card-body">
                             <h2 className="card-title text-base flex items-center gap-2 mb-4">
                                 <Key size={18} className="text-primary" />
@@ -85,7 +85,7 @@ const ProjectOverview = () => {
                                         type="text" 
                                         value={project.id} 
                                         readOnly 
-                                        className="input input-bordered join-item w-full font-mono text-sm bg-base-200/50" 
+                                        className="input input-bordered join-item w-full font-mono text-md bg-base-200/50" 
                                     />
                                     <button 
                                         onClick={() => copyToClipboard(project.id)}
@@ -108,7 +108,7 @@ const ProjectOverview = () => {
                                         type={showSecret ? "text" : "password"} 
                                         value={project.project_secret} 
                                         readOnly 
-                                        className="input input-bordered join-item w-full font-mono text-sm bg-base-200/50" 
+                                        className="input input-bordered join-item w-full font-mono text-md bg-base-200/50" 
                                     />
                                     <button 
                                         onClick={() => setShowSecret(!showSecret)}
@@ -131,7 +131,7 @@ const ProjectOverview = () => {
                     </div>
 
                     {/* Usage Placeholder */}
-                     <div className="card bg-base-100 border border-base-200 shadow-sm opacity-60">
+                     <div className="card bg-base-100 border border-base-200 shadow-md opacity-60">
                          <div className="card-body items-center justify-center py-12">
                             <p className="text-base-content/50">Real-time usage analytics coming soon.</p>
                          </div>
@@ -140,23 +140,23 @@ const ProjectOverview = () => {
 
                 {/* Sidebar / details */}
                 <div className="space-y-6">
-                     <div className="card bg-base-100 border border-base-200 shadow-sm p-4">
+                     <div className="card bg-base-100 border border-base-200 shadow-md p-4">
                         <div className="text-xs font-bold text-base-content/40 uppercase tracking-wider mb-4">Configuration</div>
                         
                         <div className="space-y-4">
                             <div className="flex items-start gap-3">
                                 <Shield size={18} className="mt-0.5 text-base-content/70" />
                                 <div>
-                                    <div className="font-medium text-sm">Auth Type</div>
-                                    <div className="text-sm text-base-content/60 capitalize">{project.auth_type}</div>
+                                    <div className="font-medium text-md">Auth Type</div>
+                                    <div className="text-md text-base-content/60 capitalize">{project.auth_type}</div>
                                 </div>
                             </div>
                             
                             <div className="flex items-start gap-3">
                                 <Clock size={18} className="mt-0.5 text-base-content/70" />
                                 <div>
-                                    <div className="font-medium text-sm">History</div>
-                                    <div className="text-sm text-base-content/60">
+                                    <div className="font-medium text-md">History</div>
+                                    <div className="text-md text-base-content/60">
                                         {project.history_enabled ? 'Enabled' : 'Disabled'}
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@ const ProjectOverview = () => {
 
                          <div className="divider my-4"></div>
                          
-                         <button className="btn btn-outline btn-sm w-full">Edit Settings</button>
+                         <button className="btn btn-outline btn-md w-full">Edit Settings</button>
                      </div>
                 </div>
             </div>

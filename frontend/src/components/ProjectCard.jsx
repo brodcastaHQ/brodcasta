@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const ProjectCard = ({ project }) => {
     return (
-        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-colors shadow-none hover:shadow-sm group">
+        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-colors shadow-none hover:shadow-md group">
             <div className="card-body p-5">
                 <div className="flex items-start justify-between mb-4">
                     <div>
@@ -18,7 +18,7 @@ const ProjectCard = ({ project }) => {
                             </span>
                         </div>
                     </div>
-                    <button className="btn btn-ghost btn-square btn-sm opacity-60 hover:opacity-100">
+                    <button className="btn btn-ghost btn-square btn-md opacity-60 hover:opacity-100">
                         <MoreHorizontal size={18} />
                     </button>
                 </div>
@@ -27,7 +27,7 @@ const ProjectCard = ({ project }) => {
 
                 <div className="py-2">
                     <p className="text-xs font-medium text-base-content/40 uppercase mb-2">Last 24h</p>
-                    <div className="flex items-center gap-2 text-base-content/60 text-sm">
+                    <div className="flex items-center gap-2 text-base-content/60 text-md">
                         <span className="italic">No messages</span>
                     </div>
                     {/* Placeholder for chart/activity line */}
@@ -36,7 +36,7 @@ const ProjectCard = ({ project }) => {
                     </div>
                 </div>
 
-                <div className="mt-2 pt-2 text-sm text-base-content/60">
+                <div className="mt-2 pt-2 text-md text-base-content/60">
                     No connections
                 </div>
             </div>

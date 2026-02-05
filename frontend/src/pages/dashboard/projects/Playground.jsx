@@ -1,7 +1,7 @@
+import { PinglyClient } from 'brodcasta-sdk';
 import { PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PinglyClient } from 'brodcasta-sdk';
 import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
@@ -314,7 +314,7 @@ const ProjectPlayground = () => {
             <Terminal size={18} />
             <h1 className="text-2xl font-bold">Playground</h1>
           </div>
-          <p className="text-sm text-base-content/60 mt-1">
+          <p className="text-md text-base-content/60 mt-1">
             Rooms sandbox for <span className="font-semibold">{project?.name || 'Project'}</span>.
           </p>
         </div>
@@ -332,7 +332,7 @@ const ProjectPlayground = () => {
 
           <div className="join">
             <select
-              className="select select-bordered select-sm join-item shadow-none"
+              className="select select-bordered select-md join-item shadow-none"
               value={prefer}
               onChange={(event) => setPrefer(event.target.value)}
               disabled={connected || busy}
@@ -341,7 +341,7 @@ const ProjectPlayground = () => {
               <option value="sse">SSE</option>
             </select>
             <button
-              className="btn btn-primary btn-sm join-item shadow-none"
+              className="btn btn-primary btn-md join-item shadow-none"
               onClick={connected ? disconnect : connect}
               disabled={(!connected && !secret) || busy}
             >
@@ -381,7 +381,7 @@ const ProjectPlayground = () => {
             </div>
 
             <div className="overflow-auto max-h-[640px]">
-              <table className="table table-sm text-xs">
+              <table className="table table-md text-xs">
                 <thead className="sticky top-0 z-10 bg-base-100">
                   <tr>
                     <th className="w-[130px]">Time</th>
@@ -432,7 +432,7 @@ const ProjectPlayground = () => {
               </p>
               <input
                 type="password"
-                className="input input-bordered input-sm w-full mt-3 font-mono shadow-none"
+                className="input input-bordered input-md w-full mt-3 font-mono shadow-none"
                 value={secret}
                 onChange={(event) => {
                   setSecret(event.target.value);
@@ -452,20 +452,20 @@ const ProjectPlayground = () => {
 
               <div className="join w-full">
                 <input
-                  className="input input-bordered input-sm join-item w-full font-mono shadow-none"
+                  className="input input-bordered input-md join-item w-full font-mono shadow-none"
                   value={room}
                   onChange={(event) => setRoom(event.target.value)}
                   placeholder="Enter a room name"
                 />
                 <button
-                  className="btn btn-primary btn-sm join-item shadow-none"
+                  className="btn btn-primary btn-md join-item shadow-none"
                   onClick={attachRoom}
                   disabled={!connected || !room.trim()}
                 >
                   Attach
                 </button>
                 <button
-                  className="btn btn-ghost btn-sm join-item shadow-none"
+                  className="btn btn-ghost btn-md join-item shadow-none"
                   onClick={detachRoom}
                   disabled={!connected || !room.trim() || !canDetach}
                 >
@@ -517,7 +517,7 @@ const ProjectPlayground = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr_1fr_0.7fr] gap-3 p-4">
                   <select
-                    className="select select-bordered select-sm shadow-none"
+                    className="select select-bordered select-md shadow-none"
                     value={eventType}
                     onChange={(event) => setEventType(event.target.value)}
                     disabled={!connected}
@@ -528,7 +528,7 @@ const ProjectPlayground = () => {
                   </select>
 
                   <input
-                    className="input input-bordered input-sm shadow-none"
+                    className="input input-bordered input-md shadow-none"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder={eventType === 'message.send' ? `Message to ${room.trim() || 'room'}` : 'Message'}
@@ -542,7 +542,7 @@ const ProjectPlayground = () => {
                   />
 
                   <input
-                    className="input input-bordered input-sm font-mono shadow-none"
+                    className="input input-bordered input-md font-mono shadow-none"
                     value={targetClientId}
                     onChange={(event) => setTargetClientId(event.target.value)}
                     placeholder={eventType === 'message.direct' ? 'Target client ID' : '--'}
@@ -550,7 +550,7 @@ const ProjectPlayground = () => {
                   />
 
                   <button
-                    className="btn btn-primary btn-sm justify-self-end shadow-none"
+                    className="btn btn-primary btn-md justify-self-end shadow-none"
                     onClick={publish}
                     disabled={publishDisabled}
                   >

@@ -44,10 +44,10 @@ const Dashboard = () => {
                         <h2 className="text-2xl font-bold text-white">Annotations</h2>
                         <span className="badge badge-success text-xs font-bold text-white border-none">NEW</span>
                     </div>
-                    <p className="text-white/80 mb-6 text-sm leading-relaxed max-w-md">
+                    <p className="text-white/80 mb-6 text-md leading-relaxed max-w-md">
                         Add rich context to messages with emoji reactions, read receipts, custom tags, and more.
                     </p>
-                    <button className="btn btn-primary btn-sm border-none text-white hover:brightness-110">
+                    <button className="btn btn-primary btn-md border-none text-white hover:brightness-110">
                         View docs &rarr;
                     </button>
                 </div>
@@ -73,7 +73,7 @@ const Dashboard = () => {
                 {projects.length === 0 && !error ? (
                     <div className="text-center py-12 border-2 border-dashed border-base-200 rounded-xl bg-base-50/50">
                         <p className="text-base-content/50 font-medium">You don't have any apps yet.</p>
-                        <a href="/dashboard/new" className="btn btn-link btn-sm text-primary mt-2">Create your first app</a>
+                        <a href="/dashboard/new" className="btn btn-link btn-md text-primary mt-2">Create your first app</a>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

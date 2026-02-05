@@ -9,7 +9,7 @@ const Loading = ({ size = 'md', fullScreen = false }) => {
 
     if (fullScreen) {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-100/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-100/80 backdrop-blur-md">
                 {loadingContent}
             </div>
         );

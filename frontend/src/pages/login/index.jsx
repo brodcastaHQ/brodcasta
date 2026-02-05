@@ -56,19 +56,19 @@ const Login = () => {
                         <h1 className="text-2xl font-bold mb-2">
                             Welcome back
                         </h1>
-                        <p className="text-sm text-base-content/60">
+                        <p className="text-md text-base-content/60">
                             Enter your credentials to access your workspace.
                         </p>
                     </div>
 
                     {error && (
-                        <div role="alert" className="alert alert-error mb-4 max-w-sm mx-auto">
+                        <div role="alert" className="alert alert-error mb-4 max-w-md mx-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span>{error}</span>
                         </div>
                     )}
 
-                    <form className="space-y-4 w-full max-w-sm mx-auto" onSubmit={handleSubmit}>
+                    <form className="space-y-4 w-full max-w-md mx-auto" onSubmit={handleSubmit}>
                         <div className="form-control">
                             <label className="label pt-0 pb-1.5">
                                 <span className="label-text text-xs font-medium uppercase tracking-wider opacity-60">Email</span>
@@ -105,7 +105,7 @@ const Login = () => {
                         </button>
                     </form>
 
-                    <div className="text-center mt-6 text-sm opacity-60">
+                    <div className="text-center mt-6 text-md opacity-60">
                         Don't have an account? <a href="/signup" className="link link-primary font-bold">Sign up</a>
                     </div>
                 </div>
