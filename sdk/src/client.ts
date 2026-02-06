@@ -114,6 +114,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
   private transport: Transport | null = null;
   private ws: WebSocket | null = null;
   private sse: EventSource | null = null;
+  private sseListeners = new Map<string, (event: Event) => void>();
   private connectPromise: Promise<void> | null = null;
   private reconnectAttempts = 0;
   private wsFailures = 0;
@@ -172,6 +173,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     const set = this.eventListeners.get(event) ?? new Set();
     set.add(listener as (data: unknown) => void);
     this.eventListeners.set(event, set);
+    this.ensureSseListener(event);
     return () => this.offEvent(event, listener);
   }
 
@@ -180,6 +182,9 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     if (!set) return;
     set.delete(listener as (data: unknown) => void);
     if (set.size === 0) this.eventListeners.delete(event);
+    if (!this.eventListeners.has(event)) {
+      this.removeSseListener(event);
+    }
   }
 
   getState(): ConnectionState {
@@ -221,21 +226,26 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       this.sse.close();
       this.sse = null;
     }
+    this.sseListeners.clear();
 
     this.setState('closed');
   }
 
   async join(roomId: string, payload?: unknown): Promise<void> {
+    const payloadObj =
+      payload && typeof payload === 'object' && !Array.isArray(payload) ? (payload as Record<string, unknown>) : {};
     const data = this.options.formatJoin
       ? this.options.formatJoin(roomId, payload)
-      : { event_type: 'room.subscribe', data: { room_id: roomId, ...(payload ?? {}) } };
+      : { event_type: 'room.subscribe', data: { room_id: roomId, ...payloadObj } };
     await this.sendRaw(data);
   }
 
   async leave(roomId: string, payload?: unknown): Promise<void> {
+    const payloadObj =
+      payload && typeof payload === 'object' && !Array.isArray(payload) ? (payload as Record<string, unknown>) : {};
     const data = this.options.formatJoin
       ? this.options.formatJoin(roomId, payload)
-      : { event_type: 'room.unsubscribe', data: { room_id: roomId, ...(payload ?? {}) } };
+      : { event_type: 'room.unsubscribe', data: { room_id: roomId, ...payloadObj } };
     await this.sendRaw(data);
   }
 
@@ -272,7 +282,6 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
   }
 
   async sendRaw(payload: unknown): Promise<void> {
-    console.log('sendRaw', this.state, this.transport);
     if (this.state !== 'open') {
       throw new Error('Client is not connected');
     }
@@ -283,13 +292,13 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     }
 
     if (this.transport === 'sse' && !this.clientToken) {
-      console.log('sendRaw', 'waiting for client token');
+      console.log('Queueing SSE request', payload);
       await new Promise<void>((resolve, reject) => {
         this.pendingSse.push({ payload, resolve, reject });
       });
       return;
     }
-
+    console.log('Sending HTTP request', payload);
     await this.sendHttp(payload);
   }
 
@@ -395,6 +404,19 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       let opened = false;
       const sse = new EventSource(sseUrl);
       this.sse = sse;
+      this.sseListeners.clear();
+
+      this.ensureSseListener('message');
+      this.ensureSseListener('connect');
+      this.ensureSseListener('disconnect');
+      this.ensureSseListener('client.identity');
+      this.ensureSseListener('connection.established');
+      this.ensureSseListener('presence.joined');
+      this.ensureSseListener('presence.leave');
+      this.ensureSseListener('presence.left');
+      for (const eventName of this.eventListeners.keys()) {
+        this.ensureSseListener(eventName);
+      }
 
       const timeout = window.setTimeout(() => {
         if (!opened) {
@@ -416,12 +438,6 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
         resolve();
       };
 
-
-      sse.onmessage = (event) => {
-        console.log(event)
-        this.handleInbound(String(event.data), 'sse');
-      };
-
       sse.onerror = (event) => {
         this.emitter.emit('error', { transport: 'sse', error: event });
         if (!opened) {
@@ -432,7 +448,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     });
   }
 
-  private handleInbound(raw: string, transport: Transport): void {
+  private handleInbound(raw: string, transport: Transport, meta?: { sseEvent?: string }): void {
     let parsed: unknown = raw;
 
     if (this.options.parseEvent) {
@@ -448,7 +464,12 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     this.emitter.emit('raw', { data: parsed });
 
     const envelope = this.normalizeInbound(parsed);
-    const eventName = envelope.event_type ?? envelope.event ?? envelope.type ?? 'message';
+    const eventName =
+      envelope.event_type ??
+      envelope.event ??
+      envelope.type ??
+      (transport === 'sse' ? meta?.sseEvent : undefined) ??
+      'message';
     const data = envelope.data ?? envelope.payload ?? envelope;
 
     if (eventName === 'client.identity' && data && typeof data === 'object') {
@@ -495,6 +516,37 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       message: typeof obj.message === 'string' ? obj.message : undefined,
       room: typeof obj.room === 'string' ? obj.room : undefined,
     };
+  }
+
+  private ensureSseListener(eventName: string): void {
+    if (!this.sse) return;
+    if (this.sseListeners.has(eventName)) return;
+
+    const handler = (event: Event) => {
+      const data = (event as MessageEvent).data;
+      if (eventName === 'client.identity') {
+        // TODO: Handle client.identity event
+        const jsonData = JSON.parse(data);
+        this.clientId = jsonData.client_id;
+        this.clientToken = jsonData.client_token;
+        
+       
+        return;
+      }
+      if (data === undefined) return;
+      this.handleInbound(String(data), 'sse', { sseEvent: eventName });
+    };
+
+    this.sseListeners.set(eventName, handler);
+    this.sse.addEventListener(eventName, handler);
+  }
+
+  private removeSseListener(eventName: string): void {
+    const handler = this.sseListeners.get(eventName);
+    if (!handler) return;
+    this.sseListeners.delete(eventName);
+    if (!this.sse) return;
+    this.sse.removeEventListener(eventName, handler);
   }
 
   private async sendHttp(payload: unknown): Promise<void> {
