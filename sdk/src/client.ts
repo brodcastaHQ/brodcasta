@@ -272,6 +272,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
   }
 
   async sendRaw(payload: unknown): Promise<void> {
+    console.log('sendRaw', this.state, this.transport);
     if (this.state !== 'open') {
       throw new Error('Client is not connected');
     }
@@ -282,6 +283,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     }
 
     if (this.transport === 'sse' && !this.clientToken) {
+      console.log('sendRaw', 'waiting for client token');
       await new Promise<void>((resolve, reject) => {
         this.pendingSse.push({ payload, resolve, reject });
       });
@@ -414,7 +416,9 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
         resolve();
       };
 
+
       sse.onmessage = (event) => {
+        console.log(event)
         this.handleInbound(String(event.data), 'sse');
       };
 
