@@ -5,6 +5,7 @@ from typing import Optional, AsyncGenerator
 from nexios.http import Response
 from .base import BaseChannel
 
+
 class SSEChannel(BaseChannel):
     def __init__(self, response: Response, payload_type: str = "json", expires: Optional[int] = None):
         self.response = response

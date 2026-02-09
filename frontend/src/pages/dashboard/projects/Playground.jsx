@@ -78,7 +78,7 @@ const ProjectPlayground = () => {
   const cleanupRef = useRef([]);
 
   const apiBaseUrl = useMemo(
-    () => import.meta.env.VITE_API_URL || 'http://localhost:6494',
+    () => import.meta.env.VITE_API_URL || 'http://localhost:8041',
     []
   );
   const sdkBaseUrl = useMemo(() => apiBaseUrl.replace(/\/api\/?$/, ''), [apiBaseUrl]);

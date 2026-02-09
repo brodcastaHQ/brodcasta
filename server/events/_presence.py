@@ -21,6 +21,7 @@ async def handle_presence_joined(channel: BaseChannel, project_id: str, data: di
         }
     )
 
+
 @emitter.on("presence.leave")
 async def handle_presence_leave(channel: BaseChannel, project_id: str, data: dict):
     """Publish leave event to Redis"""

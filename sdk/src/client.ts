@@ -505,8 +505,10 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     if (!parsed || typeof parsed !== 'object') {
       return { data: parsed };
     }
-
+    
     const obj = parsed as Record<string, unknown>;
+    console.log('Parsed:', parsed);
+    console.log('Obj:', obj);
     return {
       event_type: typeof obj.event_type === 'string' ? obj.event_type : undefined,
       event: typeof obj.event === 'string' ? obj.event : undefined,
