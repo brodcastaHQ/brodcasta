@@ -135,6 +135,7 @@ const ProjectPlayground = () => {
         setConnectionError(error?.message || 'Connection error');
       }),
       client.on('message', ({ event, data }) => {
+    
         const eventName = String(event);
         if (HIDDEN_EVENTS.has(eventName)) return;
         pushEventLog(eventName, data);
@@ -406,6 +407,7 @@ const ProjectPlayground = () => {
                         <td className="text-[11px]">
                           <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
                           {entry.data && typeof entry.data === 'object' ? (
+                            
                             <details className="mt-2">
                               <summary className="cursor-pointer text-base-content/60 select-none">JSON</summary>
                               <pre className="mt-2 p-3 rounded-lg bg-base-200/40 border border-base-200 whitespace-pre-wrap text-[11px] text-base-content/70">

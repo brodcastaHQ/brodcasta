@@ -1,7 +1,6 @@
 from .emitter import emitter
 from app.core.redis_publisher import redis_publisher
 from app.core.channels.base import BaseChannel
-
 @emitter.on("presence.joined")
 async def handle_presence_joined(channel: BaseChannel, project_id: str, data: dict):
     """Publish joined event to Redis"""

@@ -292,13 +292,11 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     }
 
     if (this.transport === 'sse' && !this.clientToken) {
-      console.log('Queueing SSE request', payload);
       await new Promise<void>((resolve, reject) => {
         this.pendingSse.push({ payload, resolve, reject });
       });
       return;
     }
-    console.log('Sending HTTP request', payload);
     await this.sendHttp(payload);
   }
 
@@ -450,7 +448,6 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
 
   private handleInbound(raw: string, transport: Transport, meta?: { sseEvent?: string }): void {
     let parsed: unknown = raw;
-
     if (this.options.parseEvent) {
       parsed = this.options.parseEvent(raw);
     } else {
@@ -470,8 +467,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       envelope.type ??
       (transport === 'sse' ? meta?.sseEvent : undefined) ??
       'message';
-    const data = envelope.data ?? envelope.payload ?? envelope;
-
+    const data = parsed;
     if (eventName === 'client.identity' && data && typeof data === 'object') {
       const identity = data as { client_token?: string; client_id?: string };
       if (identity.client_token && identity.client_id) {
@@ -491,6 +487,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
         });
       }
     }
+   
 
     this.emitter.emit('message', { event: eventName as keyof Inbound & string, data: data as Inbound[keyof Inbound] });
     const set = this.eventListeners.get(eventName);
@@ -507,8 +504,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     }
     
     const obj = parsed as Record<string, unknown>;
-    console.log('Parsed:', parsed);
-    console.log('Obj:', obj);
+    
     return {
       event_type: typeof obj.event_type === 'string' ? obj.event_type : undefined,
       event: typeof obj.event === 'string' ? obj.event : undefined,
