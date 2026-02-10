@@ -366,7 +366,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       };
 
       ws.onerror = (event) => {
-        this.emitter.emit('error', { transport: 'ws', error: event });
+        this.emitter.emit('error', { transport: 'ws', error: {message: "Websocket Connection Failed"} });
         if (!opened) {
           window.clearTimeout(timeout);
           reject(new Error('WebSocket failed to connect'));
