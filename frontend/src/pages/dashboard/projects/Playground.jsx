@@ -125,6 +125,7 @@ const ProjectPlayground = () => {
       prefer,
       fallbackToSse: true,
       autoConnect: false,
+      
     });
 
     clientRef.current = client;

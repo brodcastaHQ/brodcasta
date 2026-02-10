@@ -361,7 +361,8 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       };
 
       ws.onmessage = (event) => {
-        this.handleInbound(String(event.data), 'ws');
+        const data = JSON.parse(event.data);
+        this.handleInbound(data.data, 'ws', {event_type: data.event_type});
       };
 
       ws.onerror = (event) => {
@@ -385,6 +386,14 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
         }
       };
     });
+  }
+
+  private parseEvent(raw: string): InboundEnvelope {
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      return {};
+    }
   }
 
   private async connectSse(): Promise<void> {
@@ -446,28 +455,12 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
     });
   }
 
-  private handleInbound(raw: string, transport: Transport, meta?: { sseEvent?: string }): void {
-    let parsed: unknown = raw;
-    if (this.options.parseEvent) {
-      parsed = this.options.parseEvent(raw);
-    } else {
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        parsed = raw;
-      }
-    }
+  private handleInbound(data: object, transport: Transport, meta?: { event_type?: string }): void {
+    
 
-    this.emitter.emit('raw', { data: parsed });
+    this.emitter.emit('raw', { data: data });
 
-    const envelope = this.normalizeInbound(parsed);
-    const eventName =
-      envelope.event_type ??
-      envelope.event ??
-      envelope.type ??
-      (transport === 'sse' ? meta?.sseEvent : undefined) ??
-      'message';
-    const data = parsed;
+    const eventName = meta?.event_type || "unkown"
     if (eventName === 'client.identity' && data && typeof data === 'object') {
       const identity = data as { client_token?: string; client_id?: string };
       if (identity.client_token && identity.client_id) {
@@ -532,7 +525,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
         return;
       }
       if (data === undefined) return;
-      this.handleInbound(String(data), 'sse', { sseEvent: eventName });
+      this.handleInbound(this.parseEvent(data), 'sse', { event_type: eventName });
     };
 
     this.sseListeners.set(eventName, handler);
