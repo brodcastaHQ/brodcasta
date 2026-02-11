@@ -7,6 +7,7 @@ import Dashboard from './pages/dashboard'
 import NewProject from './pages/dashboard/new'
 import ProjectOverview from './pages/dashboard/projects/Overview'
 import ProjectPlayground from './pages/dashboard/projects/Playground'
+import LandingPage from './pages/homepage/LandingPage'
 import Login from './pages/login'
 import Signup from './pages/signup'
 
@@ -14,7 +15,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Signup />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 

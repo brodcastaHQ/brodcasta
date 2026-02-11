@@ -19,7 +19,7 @@ const Login = () => {
         try {
             const client = createClient('/api/accounts');
             await client.post('/login', { email, password });
-            navigate('/');
+            navigate('/dashboard');
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.detail || 'Invalid credentials. Please try again.');

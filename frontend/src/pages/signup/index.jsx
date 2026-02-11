@@ -34,7 +34,7 @@ const Signup = () => {
       const response = await client.post('/signup', formData);
 
       // If successful, redirect to home or login. Since cookies are set, redirect to home.
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.detail || 'An error occurred during signup.');
