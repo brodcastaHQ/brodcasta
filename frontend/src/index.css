@@ -37,3 +37,8 @@
   --depth: 0;
   --noise: 1;
 }
+
+
+*{
+  font-family: 'Exo 2 Variable', sans-serif;
+}

@@ -370,7 +370,7 @@ const ProjectPlayground = () => {
       ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
-        <div className="card bg-base-100 border border-base-200 shadow-none">
+        <div className="card bg-base-100 border border-base-200 shadow-none sticky top-6 h-fit">
           <div className="card-body p-0">
             <div className="px-6 py-4 border-b border-base-200 flex items-center justify-between">
               <div>

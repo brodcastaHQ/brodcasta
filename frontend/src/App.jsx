@@ -5,6 +5,7 @@ import DashboardLayout from './layout/DashboardLayout'
 import ProjectDashboardLayout from './layout/ProjectDashboardLayout'
 import Dashboard from './pages/dashboard'
 import NewProject from './pages/dashboard/new'
+import ProjectApiKeys from './pages/dashboard/projects/ApiKeys'
 import ProjectOverview from './pages/dashboard/projects/Overview'
 import ProjectPlayground from './pages/dashboard/projects/Playground'
 import LandingPage from './pages/homepage/LandingPage'
@@ -32,6 +33,7 @@ function App() {
         <Route path="/dashboard/projects/:projectId" element={<ProtectedRoute />}>
           <Route element={<ProjectDashboardLayout />}>
             <Route index element={<ProjectOverview />} />
+            <Route path="api-keys" element={<ProjectApiKeys />} />
             <Route path="playground" element={<ProjectPlayground />} />
             <Route path="*" element={<div className="p-8">Feature under construction.</div>} />
           </Route>
