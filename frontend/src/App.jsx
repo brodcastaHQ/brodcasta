@@ -5,6 +5,7 @@ import DashboardLayout from './layout/DashboardLayout'
 import ProjectDashboardLayout from './layout/ProjectDashboardLayout'
 import Dashboard from './pages/dashboard'
 import NewProject from './pages/dashboard/new'
+import ProjectAnalytics from './pages/dashboard/projects/Analytics'
 import ProjectApiKeys from './pages/dashboard/projects/ApiKeys'
 import ProjectOverview from './pages/dashboard/projects/Overview'
 import ProjectPlayground from './pages/dashboard/projects/Playground'
@@ -34,6 +35,7 @@ function App() {
         <Route path="/dashboard/projects/:projectId" element={<ProtectedRoute />}>
           <Route element={<ProjectDashboardLayout />}>
             <Route index element={<ProjectOverview />} />
+            <Route path="analytics" element={<ProjectAnalytics />} />
             <Route path="api-keys" element={<ProjectApiKeys />} />
             <Route path="playground" element={<ProjectPlayground />} />
             <Route path="settings" element={<ProjectSettings />} />

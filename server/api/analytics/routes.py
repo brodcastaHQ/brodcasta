@@ -1,3 +1,4 @@
+from typing import Optional, List
 from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
