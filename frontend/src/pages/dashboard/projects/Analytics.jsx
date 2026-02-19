@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Chart from '../../../components/ui/Chart';
 import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
@@ -49,6 +50,13 @@ const Analytics = () => {
 
     if (!analytics) return null;
 
+    // Prepare data for charts
+    const hourlyData = analytics.hourly_chart?.datasets?.messages_sent || [];
+    const hourlyLabels = analytics.hourly_chart?.labels || [];
+    
+    const eventTypeData = analytics.event_type_chart?.datasets?.count || [];
+    const eventTypeLabels = analytics.event_type_chart?.labels || [];
+
     return (
         <div className="max-w-5xl mx-auto space-y-10 pb-20">
             {/* Header */}
@@ -97,7 +105,7 @@ const Analytics = () => {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6">
+                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10">
                             <div className="w-6 h-6 bg-primary rounded"></div>
@@ -111,7 +119,7 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6">
+                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-success/10">
                             <div className="w-6 h-6 bg-success rounded"></div>
@@ -125,7 +133,7 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6">
+                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-info/10">
                             <div className="w-6 h-6 bg-info rounded"></div>
@@ -139,7 +147,7 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6">
+                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-warning/10">
                             <div className="w-6 h-6 bg-warning rounded"></div>
@@ -160,25 +168,28 @@ const Analytics = () => {
                 <section className="border border-base-300 rounded-lg">
                     <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
                         <h2 className="text-sm font-bold uppercase tracking-widest">Hourly Activity</h2>
+                        <p className="text-xs text-base-content/60 mt-1">Messages sent per hour</p>
                     </div>
                     <div className="p-6">
-                        <div className="h-64 flex items-end justify-between gap-1">
-                            {analytics.hourly_chart.labels.map((label, index) => {
-                                const maxValue = Math.max(...Object.values(analytics.hourly_chart.datasets).flat());
-                                const messagesSent = analytics.hourly_chart.datasets.messages_sent[index] || 0;
-                                const height = (messagesSent / maxValue) * 100;
-                                
-                                return (
-                                    <div key={label} className="flex-1 flex flex-col items-center">
-                                        <div 
-                                            className="w-full bg-primary rounded-t"
-                                            style={{ height: `${height}%` }}
-                                        ></div>
-                                        <span className="text-xs text-base-content/60 mt-1">{label}</span>
+                        {hourlyData.length > 0 ? (
+                            <Chart 
+                                type="bar" 
+                                data={hourlyData} 
+                                labels={hourlyLabels}
+                                height={250}
+                            />
+                        ) : (
+                            <div className="h-64 flex items-center justify-center text-base-content/40">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                    <p className="text-sm">No data available for this time period</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </section>
 
@@ -186,33 +197,115 @@ const Analytics = () => {
                 <section className="border border-base-300 rounded-lg">
                     <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
                         <h2 className="text-sm font-bold uppercase tracking-widest">Event Distribution</h2>
+                        <p className="text-xs text-base-content/60 mt-1">Breakdown by event type</p>
                     </div>
                     <div className="p-6">
-                        <div className="space-y-3">
-                            {analytics.event_type_chart.labels.map((label, index) => {
-                                const count = analytics.event_type_chart.datasets.count[index];
-                                const total = analytics.event_type_chart.datasets.count.reduce((a, b) => a + b, 0);
-                                const percentage = (count / total) * 100;
-                                
-                                return (
-                                    <div key={label} className="flex items-center justify-between">
-                                        <span className="text-sm text-base-content/80">{label}</span>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-24 bg-base-200 rounded-full h-2">
+                        {eventTypeData.length > 0 ? (
+                            <div className="space-y-6">
+                                <div className="flex justify-center">
+                                    <Chart 
+                                        type="pie" 
+                                        data={eventTypeData} 
+                                        labels={eventTypeLabels}
+                                        height={300}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                    {eventTypeLabels.map((label, index) => {
+                                        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                                        const count = eventTypeData[index];
+                                        const total = eventTypeData.reduce((a, b) => a + b, 0);
+                                        const percentage = ((count / total) * 100).toFixed(1);
+                                        
+                                        return (
+                                            <div key={label} className="flex items-center gap-2 p-2 rounded-lg hover:bg-base-100 transition-colors">
                                                 <div 
-                                                    className="bg-primary h-2 rounded-full"
-                                                    style={{ width: `${percentage}%` }}
+                                                    className="w-3 h-3 rounded-full shrink-0"
+                                                    style={{ backgroundColor: colors[index % colors.length] }}
                                                 ></div>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-sm text-base-content/80 truncate">{label}</div>
+                                                    <div className="text-xs text-base-content/60">{percentage}%</div>
+                                                </div>
                                             </div>
-                                            <span className="text-sm font-medium">{count}</span>
-                                        </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-64 flex items-center justify-center text-base-content/40">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                                        </svg>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                    <p className="text-sm">No events recorded yet</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </section>
             </div>
+
+            {/* Connection Types Chart */}
+            <section className="border border-base-300 rounded-lg">
+                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+                    <h2 className="text-sm font-bold uppercase tracking-widest">Connection Types</h2>
+                    <p className="text-xs text-base-content/60 mt-1">WebSocket vs Server-Sent Events</p>
+                </div>
+                <div className="p-6">
+                    {analytics.connection_chart?.datasets?.count?.length > 0 ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <Chart 
+                                    type="pie" 
+                                    data={analytics.connection_chart.datasets.count} 
+                                    labels={analytics.connection_chart.labels}
+                                    height={200}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-sm font-medium text-base-content/80 mb-3">Connection Types</h3>
+                                {analytics.connection_chart.labels.map((label, index) => {
+                                    const colors = ['#3b82f6', '#10b981'];
+                                    const count = analytics.connection_chart.datasets.count[index];
+                                    const total = analytics.connection_chart.datasets.count.reduce((a, b) => a + b, 0);
+                                    const percentage = ((count / total) * 100).toFixed(1);
+                                    
+                                    return (
+                                        <div key={label} className="flex items-center justify-between p-2 rounded-lg hover:bg-base-100 transition-colors">
+                                            <div className="flex items-center gap-2">
+                                                <div 
+                                                    className="w-3 h-3 rounded-full"
+                                                    style={{ backgroundColor: colors[index % colors.length] }}
+                                                ></div>
+                                                <span className="text-sm text-base-content/80">{label}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-medium">{count.toLocaleString()}</div>
+                                                <div className="text-xs text-base-content/60">{percentage}%</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-48 flex items-center justify-center text-base-content/40">
+                            <div className="text-center">
+                                <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm">No connection data available</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </section>
 
             {/* Detailed Stats Table */}
             <section className="border border-base-300 rounded-lg">
@@ -227,6 +320,7 @@ const Analytics = () => {
                                     <th>Metric</th>
                                     <th>Count</th>
                                     <th>Percentage</th>
+                                    <th>Trend</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -236,12 +330,18 @@ const Analytics = () => {
                                     <td>
                                         {((analytics.current_stats.messages_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
                                     </td>
+                                    <td>
+                                        <div className="badge badge-success badge-sm">↑ Active</div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="font-medium">Messages Received</td>
                                     <td>{analytics.current_stats.messages_received.toLocaleString()}</td>
                                     <td>
                                         {((analytics.current_stats.messages_received / analytics.current_stats.total_events) * 100).toFixed(1)}%
+                                    </td>
+                                    <td>
+                                        <div className="badge badge-success badge-sm">↑ Active</div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -250,12 +350,18 @@ const Analytics = () => {
                                     <td>
                                         {((analytics.current_stats.broadcasts_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
                                     </td>
+                                    <td>
+                                        <div className="badge badge-info badge-sm">→ Stable</div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="font-medium">Direct Messages</td>
                                     <td>{analytics.current_stats.direct_sent.toLocaleString()}</td>
                                     <td>
                                         {((analytics.current_stats.direct_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
+                                    </td>
+                                    <td>
+                                        <div className="badge badge-info badge-sm">→ Stable</div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -264,12 +370,18 @@ const Analytics = () => {
                                     <td>
                                         {((analytics.current_stats.connections / analytics.current_stats.total_events) * 100).toFixed(1)}%
                                     </td>
+                                    <td>
+                                        <div className="badge badge-success badge-sm">↑ Active</div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td className="font-medium">Rooms Joined</td>
                                     <td>{analytics.current_stats.rooms_joined.toLocaleString()}</td>
                                     <td>
                                         {((analytics.current_stats.rooms_joined / analytics.current_stats.total_events) * 100).toFixed(1)}%
+                                    </td>
+                                    <td>
+                                        <div className="badge badge-info badge-sm">→ Stable</div>
                                     </td>
                                 </tr>
                             </tbody>
