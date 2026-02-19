@@ -49,19 +49,19 @@ const ProjectOverview = () => {
 
     if (error) {
         return (
-            <div role="alert" className="alert alert-error shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>{error}</span>
+            <div role="alert" className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
+                <AlertTriangle size={14} />
+                <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
             </div>
         );
     }
 
     const StatCard = ({ title, value, icon: Icon, description, color }) => (
-        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-md group">
+        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-md group rounded-lg">
             <div className="card-body p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className={`p-2.5 rounded-xl ${color} bg-opacity-10`}>
-                        <Icon className={color.replace('bg-', 'text-')} size={20} strokeWidth={2} />
+                        <Icon className={color.replace('bg-', 'text-')} size={18} strokeWidth={2} />
                     </div>
                     <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Live Status</span>
                 </div>
@@ -138,7 +138,7 @@ const ProjectOverview = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors">
+                <div className="lg:col-span-2 card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors rounded-lg">
                     <div className="card-body p-8">
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                             Quick Integration
@@ -154,7 +154,7 @@ const ProjectOverview = () => {
                     </div>
                 </div>
 
-                <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors">
+                <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors rounded-lg">
                     <div className="card-body p-8">
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                             App Settings
@@ -174,7 +174,7 @@ const ProjectOverview = () => {
                             </div>
                         </div>
                         <div className="divider my-4"></div>
-                        <button className="btn btn-neutral btn-md w-full text-white font-bold tracking-tight">
+                        <button className="btn btn-neutral btn-md w-full text-white font-bold tracking-tight rounded-lg">
                             Documentation &rarr;
                         </button>
                     </div>
