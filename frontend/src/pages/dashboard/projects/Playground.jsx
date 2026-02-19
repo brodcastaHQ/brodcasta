@@ -1,5 +1,5 @@
 import { PinglyClient } from 'brodcasta-sdk';
-import { PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
+import { AlertTriangle, Link, Link2Off, PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
@@ -24,6 +24,15 @@ const safeJson = (value) => {
     return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
+  }
+};
+
+const prettifyJson = (text) => {
+  try {
+    const parsed = JSON.parse(text);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return text;
   }
 };
 
@@ -309,15 +318,16 @@ const ProjectPlayground = () => {
     (eventType === 'message.send' && (!room.trim() || !rooms.includes(room.trim())));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="max-w-5xl mx-auto space-y-10 pb-20">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-base-300 pb-8">
         <div>
           <div className="flex items-center gap-3">
             <Terminal size={18} />
-            <h1 className="text-2xl font-bold">Playground</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Playground</h1>
           </div>
-          <p className="text-md text-base-content/60 mt-1">
-            Rooms sandbox for <span className="font-semibold">{project?.name || 'Project'}</span>.
+          <p className="text-base-content/60 mt-1">
+            Real-time testing environment for <span className="font-semibold">{project?.name || 'Project'}</span>.
           </p>
         </div>
 
@@ -334,7 +344,7 @@ const ProjectPlayground = () => {
 
           <div className="join">
             <select
-              className="select select-bordered select-md join-item shadow-none"
+              className="select select-bordered select-md join-item shadow-none rounded-lg"
               value={prefer}
               onChange={(event) => setPrefer(event.target.value)}
               disabled={connected || busy}
@@ -343,7 +353,7 @@ const ProjectPlayground = () => {
               <option value="sse">SSE</option>
             </select>
             <button
-              className="btn btn-primary btn-md join-item shadow-none"
+              className="btn btn-primary btn-md join-item shadow-none rounded-lg"
               onClick={connected ? disconnect : connect}
               disabled={(!connected && !secret) || busy}
             >
@@ -361,118 +371,130 @@ const ProjectPlayground = () => {
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {connectionError ? (
-        <div role="alert" className="alert alert-error shadow-none">
-          <span>{connectionError}</span>
+        <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
+          <AlertTriangle size={14} />
+          <span className="text-sm font-bold uppercase tracking-wide">{connectionError}</span>
         </div>
       ) : null}
 
+      {/* Event Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
-        <div className="card bg-base-100 border border-base-200 shadow-none sticky top-6 h-fit">
-          <div className="card-body p-0">
-            <div className="px-6 py-4 border-b border-base-200 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Logs</div>
-                <div className="text-[11px] text-base-content/50">Realtime events only.</div>
-              </div>
-              <button className="btn btn-ghost btn-xs shadow-none" onClick={() => setLogs([])}>
-                Clear
-              </button>
+        <section className="border border-base-300 rounded-lg">
+          <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-widest">Event Logs</h2>
+              <p className="text-[11px] text-base-content/50">Real-time events and messages</p>
             </div>
+            <button className="btn btn-ghost btn-xs rounded-lg" onClick={() => setLogs([])}>
+              Clear
+            </button>
+          </div>
 
-            <div className="overflow-auto max-h-[640px]">
-              <table className="table table-md text-xs">
-                <thead className="sticky top-0 z-10 bg-base-100">
+          <div className="overflow-auto max-h-[640px]">
+            <table className="table table-md text-xs">
+              <thead className="sticky top-0 z-10 bg-base-100">
+                <tr>
+                  <th className="w-[130px]">Time</th>
+                  <th className="w-[240px]">Event</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.length === 0 ? (
                   <tr>
-                    <th className="w-[130px]">Time</th>
-                    <th className="w-[240px]">Event</th>
-                    <th>Details</th>
+                    <td colSpan={3} className="text-base-content/40">
+                      No events yet.
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {logs.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className="text-base-content/40">
-                        No events yet.
+                ) : (
+                  logs.map((entry, index) => (
+                    <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
+                      <td className="font-mono whitespace-nowrap text-[11px]">
+                        {entry.time ? formatTime(entry.time) : '--:--:--.---'}
+                      </td>
+                      <td className="font-mono text-[11px]">{entry.event}</td>
+                      <td className="text-[11px]">
+                        <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
+                        {entry.data && typeof entry.data === 'object' ? (
+                          
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-base-content/60 select-none">JSON</summary>
+                            <pre className="mt-2 p-3 rounded-lg bg-base-200/40 border border-base-200 whitespace-pre-wrap text-[11px] text-base-content/70">
+                              {safeJson(entry.data)}
+                            </pre>
+                          </details>
+                        ) : null}
                       </td>
                     </tr>
-                  ) : (
-                    logs.map((entry, index) => (
-                      <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
-                        <td className="font-mono whitespace-nowrap text-[11px]">
-                          {entry.time ? formatTime(entry.time) : '--:--:--.---'}
-                        </td>
-                        <td className="font-mono text-[11px]">{entry.event}</td>
-                        <td className="text-[11px]">
-                          <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
-                          {entry.data && typeof entry.data === 'object' ? (
-                            
-                            <details className="mt-2">
-                              <summary className="cursor-pointer text-base-content/60 select-none">JSON</summary>
-                              <pre className="mt-2 p-3 rounded-lg bg-base-200/40 border border-base-200 whitespace-pre-wrap text-[11px] text-base-content/70">
-                                {safeJson(entry.data)}
-                              </pre>
-                            </details>
-                          ) : null}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
+        </section>
 
         <div className="space-y-6">
+          {/* Authentication */}
           {!secret ? (
-            <div className="rounded-2xl border border-warning/20 bg-warning/5 p-5">
-              <div className="text-xs font-bold text-warning uppercase tracking-widest">Secret Required</div>
-              <p className="text-xs text-base-content/60 mt-1">
-                {secretError || 'Paste your project secret to connect.'}
-              </p>
-              <input
-                type="password"
-                className="input input-bordered input-md w-full mt-3 font-mono shadow-none"
-                value={secret}
-                onChange={(event) => {
-                  setSecret(event.target.value);
-                  setSecretError('');
-                }}
-                placeholder="Project secret"
-              />
-            </div>
+            <section className="border border-warning/20 rounded-lg">
+              <div className="p-6 border-b border-warning/20 bg-warning/5 rounded-t-lg">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-warning">Authentication Required</h2>
+                <p className="text-xs text-base-content/60 mt-1">
+                  {secretError || 'Paste your project secret to connect.'}
+                </p>
+              </div>
+              <div className="p-6">
+                <input
+                  type="password"
+                  className="input input-bordered input-md w-full font-mono rounded-lg"
+                  value={secret}
+                  onChange={(event) => {
+                    setSecret(event.target.value);
+                    setSecretError('');
+                  }}
+                  placeholder="Project secret"
+                />
+              </div>
+            </section>
           ) : null}
 
-          <div className="card bg-base-100 border border-base-200 shadow-none">
-            <div className="card-body p-6 space-y-4">
-              <div>
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Rooms</div>
-                <div className="text-[11px] text-base-content/50 mt-1">Attach rooms to receive events.</div>
-              </div>
-
-              <div className="join w-full">
+          {/* Room Management */}
+          <section className="border border-base-300 rounded-lg">
+            <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+              <h2 className="text-sm font-bold uppercase tracking-widest">Room Management</h2>
+              <p className="text-[11px] text-base-content/50">Attach rooms to receive and send events</p>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex gap-3">
                 <input
-                  className="input input-bordered input-md join-item w-full font-mono shadow-none"
+                  className="input input-bordered input-md flex-1 font-mono rounded-lg"
                   value={room}
                   onChange={(event) => setRoom(event.target.value)}
                   placeholder="Enter a room name"
                 />
                 <button
-                  className="btn btn-primary btn-md join-item shadow-none"
-                  onClick={attachRoom}
+                  className={`btn btn-md shadow-none rounded-lg ${
+                    canDetach 
+                      ? 'btn-error' 
+                      : 'btn-primary'
+                  }`}
+                  onClick={canDetach ? detachRoom : attachRoom}
                   disabled={!connected || !room.trim()}
                 >
-                  Attach
-                </button>
-                <button
-                  className="btn btn-ghost btn-md join-item shadow-none"
-                  onClick={detachRoom}
-                  disabled={!connected || !room.trim() || !canDetach}
-                >
-                  Detach
+                  {canDetach ? (
+                    <>
+                      <Link2Off size={14} />
+                      Detach
+                    </>
+                  ) : (
+                    <>
+                      <Link size={14} />
+                      Attach
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -501,26 +523,20 @@ const ProjectPlayground = () => {
                 <div className="text-[11px] text-base-content/40">Connect to attach rooms.</div>
               ) : null}
             </div>
-          </div>
+          </section>
 
-          <div className="card bg-base-100 border border-base-200 shadow-none">
-            <div className="card-body p-6 space-y-4">
-              <div>
-                <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Publish</div>
-                <div className="text-[11px] text-base-content/50 mt-1">Send clean messages using the SDK.</div>
-              </div>
-
-              <div className="border border-base-200 rounded-2xl overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr_1fr_0.7fr] bg-base-200/40 text-xs font-semibold text-base-content/60">
-                  <div className="px-4 py-3">Event</div>
-                  <div className="px-4 py-3">Message</div>
-                  <div className="px-4 py-3">Target</div>
-                  <div className="px-4 py-3 text-right">Action</div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.3fr_1fr_0.7fr] gap-3 p-4">
+          {/* Message Publisher */}
+          <section className="border border-base-300 rounded-lg">
+            <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+              <h2 className="text-sm font-bold uppercase tracking-widest">Message Publisher</h2>
+              <p className="text-[11px] text-base-content/50">Send messages using the SDK</p>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  {/* <label className="text-xs font-bold text-base-content/70 uppercase">Event Type</label> */}
                   <select
-                    className="select select-bordered select-md shadow-none"
+                    className="select select-bordered  w-full rounded-lg"
                     value={eventType}
                     onChange={(event) => setEventType(event.target.value)}
                     disabled={!connected}
@@ -529,51 +545,71 @@ const ProjectPlayground = () => {
                     <option value="message.broadcast">message.broadcast</option>
                     <option value="message.direct">message.direct</option>
                   </select>
+                </div>
 
-                  <input
-                    className="input input-bordered input-md shadow-none"
+                {eventType === 'message.direct' && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-base-content/70 uppercase">Target Client ID</label>
+                    <input
+                      className="input input-bordered input-sm font-mono rounded-lg flex-1"
+                      value={targetClientId}
+                      onChange={(event) => setTargetClientId(event.target.value)}
+                      placeholder="Target client ID"
+                      disabled={!connected}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-base-content/70 uppercase">Message Content</label>
+                    <button
+                      className="btn btn-ghost btn-xs rounded-lg"
+                      onClick={() => setMessage(prettifyJson(message))}
+                      disabled={!connected}
+                    >
+                      Prettify JSON
+                    </button>
+                  </div>
+                  <textarea
+                    className="textarea w-full textarea-bordered rounded-lg font-mono text-sm min-h-[120px]"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    placeholder={eventType === 'message.send' ? `Message to ${room.trim() || 'room'}` : 'Message'}
+                    placeholder={eventType === 'message.send' 
+                      ? `Message to ${room.trim() || 'room'} (supports JSON)` 
+                      : 'Message content (supports JSON)'
+                    }
                     disabled={!connected}
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter' && !event.shiftKey) {
+                      if (event.key === 'Enter' && event.ctrlKey) {
                         event.preventDefault();
                         void publish();
                       }
                     }}
                   />
-
-                  <input
-                    className="input input-bordered input-md font-mono shadow-none"
-                    value={targetClientId}
-                    onChange={(event) => setTargetClientId(event.target.value)}
-                    placeholder={eventType === 'message.direct' ? 'Target client ID' : '--'}
-                    disabled={!connected || eventType !== 'message.direct'}
-                  />
-
-                  <button
-                    className="btn btn-primary btn-md justify-self-end shadow-none"
-                    onClick={publish}
-                    disabled={publishDisabled}
-                  >
-                    <Send size={14} />
-                    Publish
-                  </button>
+                  <p className="text-[11px] text-base-content/50">
+                    {eventType === 'message.send' 
+                      ? `Room must be attached before publishing. Ctrl+Enter to send.`
+                      : 'Ctrl+Enter to send.'
+                    }
+                  </p>
                 </div>
 
-                {eventType === 'message.send' ? (
-                  <div className="px-4 pb-4 text-[11px] text-base-content/50">
-                    Room must be attached before publishing.
-                  </div>
-                ) : null}
+                <button
+                  className="btn btn-primary btn-md shadow-none rounded-lg"
+                  onClick={publish}
+                  disabled={publishDisabled}
+                >
+                  <Send size={14} />
+                  Publish Message
+                </button>
               </div>
 
               {!connected ? (
                 <div className="text-[11px] text-base-content/40">Connect to publish events.</div>
               ) : null}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
