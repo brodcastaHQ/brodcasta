@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
-const DEFAULT_ROOM = 'global';
+const DEFAULT_ROOM = 'pingly_default';
 const MAX_LOGS = 200;
 
 // Hide low-signal connection bootstrap events from the log list.
@@ -382,8 +382,8 @@ const ProjectPlayground = () => {
 
       {/* Event Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
-        <section className="border border-base-300 rounded-lg">
-          <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between">
+        <section className="border border-base-300 rounded-lg flex flex-col">
+          <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between flex-shrink-0">
             <div>
               <h2 className="text-sm font-bold uppercase tracking-widest">Event Logs</h2>
               <p className="text-[11px] text-base-content/50">Real-time events and messages</p>
@@ -393,7 +393,7 @@ const ProjectPlayground = () => {
             </button>
           </div>
 
-          <div className="overflow-auto max-h-[640px]">
+          <div className="flex-1 overflow-auto max-h-[640px]">
             <table className="table table-md text-xs">
               <thead className="sticky top-0 z-10 bg-base-100">
                 <tr>
