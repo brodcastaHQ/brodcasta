@@ -72,132 +72,149 @@ const ApiKeys = () => {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="max-w-5xl mx-auto space-y-10 pb-20">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-base-300 pb-8">
                 <div>
-                    <h1 className="text-2xl font-semibold text-base-content flex items-center gap-3">
-                        <Key className="text-primary" />
-                        Project Secret
-                    </h1>
-                    <p className="text-base-content/60 mt-2">
+                    <div className="flex items-center gap-3">
+                        <Key className="text-primary" size={18} />
+                        <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
+                    </div>
+                    <p className="text-base-content/60 mt-1">
                         Manage your project's secret for secure access to Pingly services
                     </p>
                 </div>
                 <button
                     onClick={rotateProjectSecret}
-                    className="btn btn-primary gap-2 font-medium"
+                    className="btn btn-primary gap-2 font-medium rounded-lg"
                     disabled={rotatingSecret}
                 >
                     {rotatingSecret ? <span className="loading loading-spinner loading-sm"></span> : <RefreshCw size={18} />}
                     Rotate Secret
                 </button>
-            </div>
+            </header>
+
+            {error && (
+                <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
+                    <AlertTriangle size={14} />
+                    <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
+                </div>
+            )}
 
             {/* Success Alert for Rotated Secret */}
             {projectSecret && projectSecret.message && revealedSecret && (
-                <div className="alert alert-success">
-                    <Check className="h-5 w-5" />
-                    <div className="flex-1">
-                        <div className="font-medium">Secret Rotated Successfully!</div>
-                        <div className="text-sm opacity-80">
-                            Save this new secret securely. The previous secret is now invalid.
+                <div className="border border-success bg-success/5 p-4 rounded-lg">
+                    <div className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-success mt-0.5" />
+                        <div className="flex-1">
+                            <div className="font-medium text-sm">Secret Rotated Successfully!</div>
+                            <div className="text-sm opacity-80 mt-1">
+                                Save this new secret securely. The previous secret is now invalid.
+                            </div>
                         </div>
+                        <button
+                            onClick={() => setRevealedSecret(false)}
+                            className="btn btn-ghost btn-xs rounded-lg"
+                        >
+                            Dismiss
+                        </button>
                     </div>
-                    <button
-                        onClick={() => setRevealedSecret(false)}
-                        className="btn btn-ghost btn-sm"
-                    >
-                        Dismiss
-                    </button>
                 </div>
             )}
 
-            {/* Project Secret Card */}
+            {/* Project Secret Section */}
             {projectSecret ? (
-                <div className="bg-base-100 border border-base-200 rounded-2xl overflow-hidden">
-                    <div className="p-8">
-                        <div className="flex items-center gap-4">
-                            <div className="p-2.5 rounded-xl bg-primary/10">
-                                <Key className="text-primary" size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-base-content">Project Secret</h3>
-                                <p className="text-base-content/60 text-sm">Your unique project identifier and secret</p>
+                <section className="border border-base-300 rounded-lg">
+                    <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+                        <div className="flex items-center gap-3">
+                            <Key className="text-primary" size={18} />
+                            <h2 className="text-sm font-bold uppercase tracking-widest">Project Secret</h2>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-6">
+                        <div>
+                            <label className="text-xs font-medium text-base-content/40 uppercase tracking-wider block mb-2">Project ID</label>
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-base-200/50 border border-base-200/50 px-4 py-3 rounded-xl text-sm font-mono">
+                                    {projectId}
+                                </div>
+                                <button
+                                    onClick={() => copyToClipboard(projectId)}
+                                    className="btn btn-ghost btn-sm btn-square rounded-lg"
+                                >
+                                    {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
+                                </button>
                             </div>
                         </div>
                         
-                        <div className="space-y-6">
-                            <div>
-                                <label className="text-xs font-medium text-base-content/40 uppercase tracking-wider block mb-2">Project ID</label>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-base-200/50 border border-base-200/50 px-4 py-3 rounded-xl text-sm font-mono">
-                                        {projectId}
-                                    </div>
-                                    <button
-                                        onClick={() => copyToClipboard(projectId)}
-                                        className="btn btn-ghost btn-sm btn-square"
-                                    >
-                                        {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
-                                    </button>
+                        <div>
+                            <label className="text-xs font-medium text-base-content/40 uppercase tracking-wider block mb-2">Secret</label>
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-base-200/50 border border-base-200/50 px-4 py-3 rounded-xl text-sm font-mono">
+                                    {revealedSecret ? projectSecret.project_secret : maskSecret(projectSecret.project_secret)}
                                 </div>
-                            </div>
-                            
-                            <div>
-                                <label className="text-xs font-medium text-base-content/40 uppercase tracking-wider block mb-2">Secret</label>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-base-200/50 border border-base-200/50 px-4 py-3 rounded-xl text-sm font-mono">
-                                        {revealedSecret ? projectSecret.project_secret : maskSecret(projectSecret.project_secret)}
-                                    </div>
-                                    <button
-                                        onClick={() => setRevealedSecret(!revealedSecret)}
-                                        className="btn btn-ghost btn-sm btn-square"
-                                    >
-                                        {revealedSecret ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                    <button
-                                        onClick={() => copyToClipboard(projectSecret.project_secret)}
-                                        className="btn btn-ghost btn-sm btn-square"
-                                    >
-                                        {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => setRevealedSecret(!revealedSecret)}
+                                    className="btn btn-ghost btn-sm btn-square rounded-lg"
+                                >
+                                    {revealedSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                                <button
+                                    onClick={() => copyToClipboard(projectSecret.project_secret)}
+                                    className="btn btn-ghost btn-sm btn-square rounded-lg"
+                                >
+                                    {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
+                                </button>
                             </div>
                         </div>
 
-                        <div className="alert alert-warning mt-8">
-                            <Shield size={16} />
-                            <div>
-                                <div className="font-medium">Security Notice</div>
-                                <div className="text-sm opacity-80">
-                                    {projectSecret.message}
+                        <div className="border border-warning/20 bg-warning/5 p-4 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <Shield size={16} className="text-warning" />
+                                <div>
+                                    <div className="font-medium text-sm">Security Notice</div>
+                                    <div className="text-sm opacity-80 mt-1">
+                                        {projectSecret.message}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
             ) : (
-                <div className="text-center py-16 bg-base-100 rounded-2xl border border-base-200">
-                    <Key className="mx-auto h-12 w-12 text-base-content/20 mb-4" />
-                    <h3 className="text-lg font-medium text-base-content mb-2">No Secret Available</h3>
-                    <p className="text-base-content/60 mb-8 max-w-md mx-auto">
-                        Generate a project secret to start integrating with Pingly services
-                    </p>
-                    <button
-                        onClick={rotateProjectSecret}
-                        className="btn btn-primary gap-2"
-                        disabled={rotatingSecret}
-                    >
-                        {rotatingSecret ? <span className="loading loading-spinner loading-sm"></span> : <RefreshCw size={18} />}
-                        Generate Secret
-                    </button>
-                </div>
+                <section className="border border-base-300 rounded-lg">
+                    <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+                        <div className="flex items-center gap-3">
+                            <Key className="text-base-content/40" size={18} />
+                            <h2 className="text-sm font-bold uppercase tracking-widest">No Secret Available</h2>
+                        </div>
+                    </div>
+                    <div className="p-6 text-center">
+                        <div className="max-w-md mx-auto">
+                            <Key className="mx-auto h-12 w-12 text-base-content/20 mb-4" />
+                            <h3 className="text-lg font-medium text-base-content mb-2">Generate Project Secret</h3>
+                            <p className="text-base-content/60 mb-8">
+                                Generate a project secret to start integrating with Pingly services
+                            </p>
+                            <button
+                                onClick={rotateProjectSecret}
+                                className="btn btn-primary gap-2 rounded-lg"
+                                disabled={rotatingSecret}
+                            >
+                                {rotatingSecret ? <span className="loading loading-spinner loading-sm"></span> : <RefreshCw size={18} />}
+                                Generate Secret
+                            </button>
+                        </div>
+                    </div>
+                </section>
             )}
 
             {/* Integration Guide */}
-            <div className="bg-base-100 border border-base-200 rounded-2xl overflow-hidden">
-                <div className="p-8">
-                    <h2 className="text-lg font-medium mb-6">Quick Integration</h2>
+            <section className="border border-base-300 rounded-lg">
+                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
+                    <h2 className="text-sm font-bold uppercase tracking-widest">Quick Integration</h2>
+                </div>
+                <div className="p-6">
                     <div className="bg-base-200/30 rounded-xl p-6 font-mono text-sm border border-base-200/50">
                         <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
                         <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
@@ -207,7 +224,7 @@ const ApiKeys = () => {
                         <div className="text-base-content">{'}'};</div>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     );
 };
