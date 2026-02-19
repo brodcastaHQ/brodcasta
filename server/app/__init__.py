@@ -16,6 +16,7 @@ from app.core.redis_fanout import redis_fanout
 from app.core.redis_publisher import redis_publisher
 import asyncio
 from events import emitter as _
+from services.analytics_tracker import AnalyticsTracker
 
 app = NexiosApp(
     title="Pingly",
@@ -58,6 +59,7 @@ app.add_middleware(AuthenticationMiddleware(
     user_model=Account
 ))
 
+
 # Initialize Redis services
 @app.on_startup
 async def startup():
@@ -77,3 +79,6 @@ async def shutdown():
     await redis_fanout.disconnect()
     await redis_publisher.disconnect()
     print("✅ Redis services stopped")
+
+# Initialize analytics tracker
+analytics_tracker = AnalyticsTracker()
