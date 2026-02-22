@@ -145,7 +145,7 @@ const ProjectPlayground = () => {
         setConnectionError(error?.message || 'Connection error');
       }),
       client.on('message', ({ event, data }) => {
-    
+        console.log('message', event, data);
         const eventName = String(event);
         if (HIDDEN_EVENTS.has(eventName)) return;
         pushEventLog(eventName, data);

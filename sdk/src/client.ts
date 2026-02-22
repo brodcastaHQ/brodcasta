@@ -413,7 +413,10 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
       this.sse = sse;
       this.sseListeners.clear();
 
-      this.ensureSseListener('message');
+      this.ensureSseListener('message.received');
+      this.ensureSseListener('message.send.ok');
+      this.ensureSseListener('message.broadcast.ok');
+      this.ensureSseListener("message.direct.ok")
       this.ensureSseListener('connect');
       this.ensureSseListener('disconnect');
       this.ensureSseListener('client.identity');
@@ -512,7 +515,7 @@ export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends 
   private ensureSseListener(eventName: string): void {
     if (!this.sse) return;
     if (this.sseListeners.has(eventName)) return;
-
+    
     const handler = (event: Event) => {
       const data = (event as MessageEvent).data;
       if (eventName === 'client.identity') {

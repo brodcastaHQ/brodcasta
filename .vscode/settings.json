@@ -10,6 +10,7 @@
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true,
-        // "**/.venv/**":true,
+        "**/.venv/**":true,
+        "**/node_modules/**":true
     }
 }
