@@ -89,6 +89,7 @@ async def get_analytics_overview(request: Request, response: Response):
     
     # Get connection type distribution
     connection_type_chart_data = _generate_connection_type_chart(hourly_events)
+    print("connection type chart data", connection_type_chart_data)
     
     return AnalyticsOverviewResponse(
         current_stats=AnalyticsStatsResponse(**current_stats),
