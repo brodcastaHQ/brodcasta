@@ -1,396 +1,398 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Chart from '../../../components/ui/Chart';
-import Loading from '../../../components/ui/Loading';
-import { createClient } from '../../../utils/client';
-
-
+import { Activity, Calendar, Download, Filter, MessageSquare, RefreshCw, TrendingUp, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import Chart from '../../../components/ui/Chart'
+import { createClient } from '../../../utils/client'
 const Analytics = () => {
-    const { projectId } = useParams();
-    const [analytics, setAnalytics] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [filter, setFilter] = useState('day'); // hour, day, week, month, all
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+  const { projectId } = useParams()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [filterType, setFilterType] = useState('day')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [projectId, filter, startDate, endDate]);
+  const fetchAnalyticsData = async () => {
+    setLoading(true)
+    try {
+      console.log('Fetching analytics for project:', projectId)
+      
+      if (!projectId) {
+        setError('No project ID found')
+        return
+      }
+      
+      const client = createClient(`/api/analytics/projects/${projectId}`)
+      const params = new URLSearchParams({ filter_type: filterType })
+      
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
 
-    const fetchAnalytics = async () => {
-        try {
-            setLoading(true);
-            const client = createClient('/api');
-            const params = new URLSearchParams();
-            
-            if (filter !== 'all') params.append('filter_type', filter);
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            
-            const response = await client.get(`/analytics/projects/${projectId}/overview?${params}`);
-            setAnalytics(response.data);
-        } catch (err) {
-            console.error('Failed to fetch analytics:', err);
-            setError('Failed to load analytics data.');
-        } finally {
-            setLoading(false);
-        }
-    };
+      console.log('Fetching from endpoint:', `/overview?${params}`)
 
-    if (loading) return <Loading fullScreen />;
+      const response = await client.get(`/overview?${params}`)
 
-    if (error) {
-        return (
-            <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
-                <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
-            </div>
-        );
+      console.log('Response received:', response.data)
+      setAnalyticsData(response.data)
+      setError(null)
+    } catch (err) {
+      console.error('Analytics fetch error:', err)
+      if (err.response?.status === 404) {
+        setError('Analytics endpoint not found. The backend analytics module may not be implemented yet.')
+      } else if (err.response?.status === 401) {
+        setError('Authentication failed. Please log in again.')
+      } else {
+        setError(`Failed to load analytics data: ${err.response?.data?.detail || err.message}`)
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
     }
+  }
 
-    if (!analytics) return null;
+  useEffect(() => {
+    if (projectId) {
+      fetchAnalyticsData()
+    } else {
+      setLoading(false)
+      setError('No project ID found')
+    }
+  }, [projectId, filterType, startDate, endDate])
 
-    // Prepare data for charts
-    const hourlyData = analytics.hourly_chart?.datasets?.messages_sent || [];
-    const hourlyLabels = analytics.hourly_chart?.labels || [];
+  const handleRefresh = () => {
+    setRefreshing(true)
+    fetchAnalyticsData()
+  }
+
+  const handleExportData = () => {
+    if (!analyticsData) return
     
-    const eventTypeData = analytics.event_type_chart?.datasets?.count || [];
-    const eventTypeLabels = analytics.event_type_chart?.labels || [];
+    const dataStr = JSON.stringify(analyticsData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `analytics-${projectId}-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
-    return (
-        <div className="max-w-5xl mx-auto space-y-10 pb-20">
-            {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-base-300 pb-8">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-                    <p className="text-base-content/60 mt-1">
-                        Real-time insights and performance metrics for your project
-                    </p>
-                </div>
-                
-                {/* Filters */}
-                <div className="flex items-center gap-3 flex-wrap">
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="select select-bordered select-md rounded-lg"
-                    >
-                        <option value="hour">Last Hour</option>
-                        <option value="day">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                        <option value="all">All Time</option>
-                    </select>
-                    
-                    {filter === 'all' && (
-                        <>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="input input-bordered input-md rounded-lg"
-                                placeholder="Start date"
-                            />
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="input input-bordered input-md rounded-lg"
-                                placeholder="End date"
-                            />
-                        </>
-                    )}
-                </div>
-            </header>
-
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                            <div className="w-6 h-6 bg-primary rounded"></div>
-                        </div>
-                        <div>
-                            <p className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Total Events</p>
-                            <p className="text-2xl font-bold text-base-content">
-                                {analytics.current_stats.total_events.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-success/10">
-                            <div className="w-6 h-6 bg-success rounded"></div>
-                        </div>
-                        <div>
-                            <p className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Messages Sent</p>
-                            <p className="text-2xl font-bold text-base-content">
-                                {analytics.current_stats.messages_sent.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-info/10">
-                            <div className="w-6 h-6 bg-info rounded"></div>
-                        </div>
-                        <div>
-                            <p className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Active Connections</p>
-                            <p className="text-2xl font-bold text-base-content">
-                                {analytics.current_stats.connections.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-base-100 border border-base-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-warning/10">
-                            <div className="w-6 h-6 bg-warning rounded"></div>
-                        </div>
-                        <div>
-                            <p className="text-xs font-medium text-base-content/40 uppercase tracking-wider">Avg Message Size</p>
-                            <p className="text-2xl font-bold text-base-content">
-                                {Math.round(analytics.current_stats.avg_message_size)}B
-                            </p>
-                        </div>
-                    </div>
-                </div>
+  const StatCard = ({ icon: Icon, title, value, change, changeType, color }) => (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 transition-all">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${color}`}>
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="mt-4 text-sm font-medium text-gray-600">{title}</h3>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{value?.toLocaleString() || 0}</p>
+          {change && (
+            <div className={`mt-2 flex items-center text-sm ${
+              changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+            }`}>
+              <TrendingUp className="w-4 h-4 mr-1" />
+              {change}
             </div>
-
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Hourly Activity Chart */}
-                <section className="border border-base-300 rounded-lg">
-                    <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-                        <h2 className="text-sm font-bold uppercase tracking-widest">Hourly Activity</h2>
-                        <p className="text-xs text-base-content/60 mt-1">Messages sent per hour</p>
-                    </div>
-                    <div className="p-6">
-                        {hourlyData.length > 0 ? (
-                            <Chart 
-                                type="bar" 
-                                data={hourlyData} 
-                                labels={hourlyLabels}
-                                height={250}
-                            />
-                        ) : (
-                            <div className="h-64 flex items-center justify-center text-base-content/40">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm">No data available for this time period</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                {/* Event Types Chart */}
-                <section className="border border-base-300 rounded-lg">
-                    <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-                        <h2 className="text-sm font-bold uppercase tracking-widest">Event Distribution</h2>
-                        <p className="text-xs text-base-content/60 mt-1">Breakdown by event type</p>
-                    </div>
-                    <div className="p-6">
-                        {eventTypeData.length > 0 ? (
-                            <div className="space-y-6">
-                                <div className="flex justify-center">
-                                    <Chart 
-                                        type="pie" 
-                                        data={eventTypeData} 
-                                        labels={eventTypeLabels}
-                                        height={300}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                                    {eventTypeLabels.map((label, index) => {
-                                        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                                        const count = eventTypeData[index];
-                                        const total = eventTypeData.reduce((a, b) => a + b, 0);
-                                        const percentage = ((count / total) * 100).toFixed(1);
-                                        
-                                        return (
-                                            <div key={label} className="flex items-center gap-2 p-2 rounded-lg hover:bg-base-100 transition-colors">
-                                                <div 
-                                                    className="w-3 h-3 rounded-full shrink-0"
-                                                    style={{ backgroundColor: colors[index % colors.length] }}
-                                                ></div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="text-sm text-base-content/80 truncate">{label}</div>
-                                                    <div className="text-xs text-base-content/60">{percentage}%</div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="h-64 flex items-center justify-center text-base-content/40">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm">No events recorded yet</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </section>
-            </div>
-
-            {/* Connection Types Chart */}
-            <section className="border border-base-300 rounded-lg">
-                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-                    <h2 className="text-sm font-bold uppercase tracking-widest">Connection Types</h2>
-                    <p className="text-xs text-base-content/60 mt-1">WebSocket vs Server-Sent Events</p>
-                </div>
-                <div className="p-6">
-                    {analytics.connection_chart?.datasets?.count?.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div>
-                                <Chart 
-                                    type="pie" 
-                                    data={analytics.connection_chart.datasets.count} 
-                                    labels={analytics.connection_chart.labels}
-                                    height={200}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-medium text-base-content/80 mb-3">Connection Types</h3>
-                                {analytics.connection_chart.labels.map((label, index) => {
-                                    const colors = ['#3b82f6', '#10b981'];
-                                    const count = analytics.connection_chart.datasets.count[index];
-                                    const total = analytics.connection_chart.datasets.count.reduce((a, b) => a + b, 0);
-                                    const percentage = ((count / total) * 100).toFixed(1);
-                                    
-                                    return (
-                                        <div key={label} className="flex items-center justify-between p-2 rounded-lg hover:bg-base-100 transition-colors">
-                                            <div className="flex items-center gap-2">
-                                                <div 
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: colors[index % colors.length] }}
-                                                ></div>
-                                                <span className="text-sm text-base-content/80">{label}</span>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-sm font-medium">{count.toLocaleString()}</div>
-                                                <div className="text-xs text-base-content/60">{percentage}%</div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="h-48 flex items-center justify-center text-base-content/40">
-                            <div className="text-center">
-                                <div className="w-16 h-16 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <p className="text-sm">No connection data available</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* Detailed Stats Table */}
-            <section className="border border-base-300 rounded-lg">
-                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-                    <h2 className="text-sm font-bold uppercase tracking-widest">Detailed Metrics</h2>
-                </div>
-                <div className="p-6">
-                    <div className="overflow-x-auto">
-                        <table className="table table-md">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Count</th>
-                                    <th>Percentage</th>
-                                    <th>Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td className="font-medium">Messages Sent</td>
-                                    <td>{analytics.current_stats.messages_sent.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.messages_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-success badge-sm">↑ Active</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium">Messages Received</td>
-                                    <td>{analytics.current_stats.messages_received.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.messages_received / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-success badge-sm">↑ Active</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium">Broadcasts Sent</td>
-                                    <td>{analytics.current_stats.broadcasts_sent.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.broadcasts_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-info badge-sm">→ Stable</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium">Direct Messages</td>
-                                    <td>{analytics.current_stats.direct_sent.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.direct_sent / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-info badge-sm">→ Stable</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium">Client Connections</td>
-                                    <td>{analytics.current_stats.connections.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.connections / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-success badge-sm">↑ Active</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="font-medium">Rooms Joined</td>
-                                    <td>{analytics.current_stats.rooms_joined.toLocaleString()}</td>
-                                    <td>
-                                        {((analytics.current_stats.rooms_joined / analytics.current_stats.total_events) * 100).toFixed(1)}%
-                                    </td>
-                                    <td>
-                                        <div className="badge badge-info badge-sm">→ Stable</div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+          )}
         </div>
-    );
-};
+      </div>
+    </div>
+  )
 
-export default Analytics;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">Error</h3>
+            <div className="mt-2 text-sm text-red-700">{error}</div>
+            <button
+              onClick={handleRefresh}
+              className="mt-3 bg-red-100 text-red-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-200"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const stats = analyticsData?.current_stats
+  const charts = analyticsData
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Monitor your project's real-time metrics and performance
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <button
+            onClick={handleExportData}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filter:</span>
+          </div>
+          
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="hour">Last Hour</option>
+            <option value="day">Last 24 Hours</option>
+            <option value="week">Last Week</option>
+            <option value="month">Last Month</option>
+            <option value="all">All Time</option>
+          </select>
+
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Start date"
+            />
+            <span className="text-gray-500">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="End date"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          icon={Activity}
+          title="Total Events"
+          value={stats?.total_events}
+          color="bg-blue-500"
+        />
+        <StatCard
+          icon={MessageSquare}
+          title="Messages Sent"
+          value={stats?.messages_sent}
+          color="bg-green-500"
+        />
+        <StatCard
+          icon={Users}
+          title="Connections"
+          value={stats?.connections}
+          color="bg-purple-500"
+        />
+        <StatCard
+          icon={TrendingUp}
+          title="Avg Message Size"
+          value={`${Math.round(stats?.avg_message_size || 0)} bytes`}
+          color="bg-orange-500"
+        />
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Hourly Chart */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Hourly Activity</h3>
+          <Chart
+            type="line"
+            data={charts?.hourly_chart?.datasets?.messages_sent || []}
+            labels={charts?.hourly_chart?.labels || []}
+            height={300}
+          />
+        </div>
+
+        {/* Daily Chart */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Trends</h3>
+          <Chart
+            type="bar"
+            data={charts?.daily_chart?.datasets?.messages_sent || []}
+            labels={charts?.daily_chart?.labels || []}
+            height={300}
+          />
+        </div>
+
+        {/* Event Types Distribution */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Types</h3>
+          <Chart
+            type="pie"
+            data={charts?.event_type_chart?.datasets?.count || []}
+            labels={charts?.event_type_chart?.labels || []}
+            height={300}
+          />
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Legend</h4>
+            <div className="flex flex-wrap gap-3">
+              {charts?.event_type_chart?.labels?.map((label, index) => {
+                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                const color = colors[index % colors.length];
+                return (
+                  <div key={label} className="flex items-center space-x-2">
+                    <div 
+                      className="w-4 h-4 rounded" 
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-xs text-gray-600">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Connection Types Distribution */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection Types</h3>
+          <Chart
+            type="pie"
+            data={charts?.connection_type_chart?.datasets?.count || []}
+            labels={charts?.connection_type_chart?.labels || []}
+            height={300}
+          />
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Legend</h4>
+            <div className="flex flex-wrap gap-3">
+              {charts?.connection_type_chart?.labels?.map((label, index) => {
+                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                const color = colors[index % colors.length];
+                return (
+                  <div key={label} className="flex items-center space-x-2">
+                    <div 
+                      className="w-4 h-4 rounded" 
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-xs text-gray-600">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Stats Table */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Statistics</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Metric
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Description
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  Messages Sent
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stats?.messages_sent?.toLocaleString() || 0}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Total messages sent from your application
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  Messages Received
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stats?.messages_received?.toLocaleString() || 0}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Total messages received by your application
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  WebSocket Connections
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stats?.websocket_connections?.toLocaleString() || 0}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Total WebSocket connections established
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  SSE Connections
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {stats?.sse_connections?.toLocaleString() || 0}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Total Server-Sent Events connections
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  Total Message Size
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(stats?.total_message_size / 1024).toFixed(2)} KB
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Combined size of all messages transferred
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Analytics

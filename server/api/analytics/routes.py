@@ -40,26 +40,47 @@ async def get_analytics_overview(request: Request, response: Response):
             status_code=status.HTTP_404_NOT_FOUND
         )
     
-    # Get current stats (last 24 hours)
-    current_stats = await ProjectAnalytics.get_aggregated_stats(
-        project_id=project_id,
-        filter_type="day"
+    # Parse query parameters
+    query_params = request.query_params
+    filter_params = AnalyticsFilterParams(
+        filter_type=query_params.get('filter_type', 'day'),
+        start_date=_parse_date(query_params.get('start_date')),
+        end_date=_parse_date(query_params.get('end_date')),
+        room_id=query_params.get('room_id'),
+        event_types=_parse_event_types(query_params.get('event_types'))
     )
     
-    # Get hourly data for today
+    # Get current stats based on filter
+    current_stats = await ProjectAnalytics.get_aggregated_stats(
+        project_id=project_id,
+        filter_type=filter_params.filter_type,
+        start_date=filter_params.start_date,
+        end_date=filter_params.end_date
+    )
+    
+    # Get hourly data based on filter
     hourly_events = await ProjectAnalytics.get_filtered(
         project_id=project_id,
-        filter_type="day"
+        filter_type=filter_params.filter_type,
+        start_date=filter_params.start_date,
+        end_date=filter_params.end_date
     )
     
     hourly_chart_data = _generate_hourly_chart(hourly_events)
     
-    # Get daily data for last 7 days
-    daily_events = await ProjectAnalytics.get_filtered(
-        project_id=project_id,
-        start_date=date.today() - timedelta(days=7),
-        end_date=date.today()
-    )
+    # Get daily data for last 7 days (or custom range)
+    if filter_params.start_date and filter_params.end_date:
+        daily_events = await ProjectAnalytics.get_filtered(
+            project_id=project_id,
+            start_date=filter_params.start_date,
+            end_date=filter_params.end_date
+        )
+    else:
+        daily_events = await ProjectAnalytics.get_filtered(
+            project_id=project_id,
+            start_date=date.today() - timedelta(days=7),
+            end_date=date.today()
+        )
     
     daily_chart_data = _generate_daily_chart(daily_events)
     

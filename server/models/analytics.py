@@ -108,6 +108,7 @@ class ProjectAnalytics(BaseModel):
             query = query.filter(event_week=now.isocalendar()[1], event_year=now.year)
         elif filter_type == "month":
             query = query.filter(event_month=now.month, event_year=now.year)
+        # "all" case - no time filtering applied
         
         # Custom date range
         if start_date:
@@ -146,6 +147,7 @@ class ProjectAnalytics(BaseModel):
             query = query.filter(event_week=now.isocalendar()[1], event_year=now.year)
         elif filter_type == "month":
             query = query.filter(event_month=now.month, event_year=now.year)
+        # "all" case - no time filtering applied
         
         if start_date:
             query = query.filter(event_date__gte=start_date)
