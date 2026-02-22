@@ -339,7 +339,7 @@ def _generate_event_type_chart(events):
 
 
 def _generate_connection_type_chart(events):
-    """Generate connection type distribution chart"""
+    """Generate connection type distribution chart """
     connection_counts = defaultdict(int)
     for event in events:
         if event.connection_type:

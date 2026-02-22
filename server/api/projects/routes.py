@@ -47,10 +47,21 @@ async def get_user_projects(request: Request, response: Response):
     """Get all projects belonging to the authenticated user"""
     projects = await Project.filter(account_id=request.user.identity, deleted_at__isnull=True)
     
-    return [
-        await project.detail()
-        for project in projects
-    ]
+    projects_data = []
+    for project in projects:
+        # Get connection stats for each project
+        stats = await ConnectionStore.get_stats(str(project.id))
+        project_detail = await project.detail()
+        # Add connection data to project detail
+        project_detail.update({
+            "total_connections": stats.get("total_connections", 0),
+            "websocket_connections": stats.get("websocket_connections", 0),
+            "sse_connections": stats.get("sse_connections", 0),
+            "rooms_count": stats.get("rooms_count", 0)
+        })
+        projects_data.append(project_detail)
+    
+    return projects_data
 
 
 @router.get("/{project_id}/", 
