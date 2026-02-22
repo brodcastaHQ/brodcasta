@@ -10,17 +10,19 @@ import ProjectApiKeys from './pages/dashboard/projects/ApiKeys'
 import ProjectOverview from './pages/dashboard/projects/Overview'
 import ProjectPlayground from './pages/dashboard/projects/Playground'
 import ProjectSettings from './pages/dashboard/projects/Settings'
-import LandingPage from './pages/homepage/LandingPage'
+import Landing from './pages/Landing'
 import Login from './pages/login'
+import Pricing from './pages/Pricing'
 import Signup from './pages/signup'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/pricing" element={<Pricing />} />
 
         {/* Protected Dashboard Routes */}
         <Route path="/dashboard" element={<ProtectedRoute />}>
