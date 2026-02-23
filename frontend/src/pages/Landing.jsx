@@ -1,24 +1,32 @@
 import { ArrowRight, Check, Github, Globe, Play, Shield, Star, Twitter, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import LandingNavbar from '../components/LandingNavbar';
+import LandingNavbar from '../components/Navbar';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-linear-to-b from-primary/30 via-transparent to-base-200/50">
-      {/* Modern Capsule Navbar */}
+    <div className="min-h-screen ">
       <LandingNavbar />
-
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden " >
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-base-200/50 -z-10"></div>
+      <section className="">
+        <div className="absolute inset-0">
+          <img 
+            src="/hero-bg.svg" 
+            alt="Hero background" 
+            className="w-full h-full object-cover opacity-90"
+          />
+        </div>
+        
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent -z-10"></div>
         
         {/* Pattern Lines at Bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
         <div className="absolute bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
         <div className="absolute bottom-4 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
         
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        {/* Bottom Gradient Fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-base-200/50 to-transparent pointer-events-none"></div>
+        
+        <div className="max-w-7xl mx-auto text-center relative z-10 mt-12">
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <Zap className="w-4 h-4 mr-2" />
             Real-time infrastructure for modern apps

@@ -1,7 +1,6 @@
 import { Activity, Globe, MessageSquare, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
 const ProjectOverview = () => {
@@ -45,14 +44,125 @@ const ProjectOverview = () => {
         return () => clearInterval(interval);
     }, [projectId]);
 
-    if (loading) return <Loading fullScreen />;
+    if (loading) {
+        return (
+            <div className="min-h-screen relative overflow-hidden">
+                {/* Dot Pattern Background */}
+                <div className="absolute inset-0">
+                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
+                                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
+                            </radialGradient>
+                        </defs>
+                        
+                        {/* Dot grid pattern */}
+                        <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
+                        
+                        <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
+                        
+                        <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
+                    </svg>
+                </div>
+                
+                {/* Overlay for readability */}
+                <div className="absolute inset-0 bg-base-200/80"></div>
+                
+                {/* Loading Content */}
+                <div className="relative z-10 flex items-center justify-center h-screen">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </div>
+        )
+    }
 
     if (error) {
         return (
+            <div className="min-h-screen relative overflow-hidden">
+                {/* Dot Pattern Background */}
+                <div className="absolute inset-0">
+                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
+                                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
+                            </radialGradient>
+                        </defs>
+                        
+                        {/* Dot grid pattern */}
+                        <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
+                        
+                        <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
+                        
+                        <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
+                        <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
+                    </svg>
+                </div>
+                
+                {/* Overlay for readability */}
+                <div className="absolute inset-0 bg-base-200/80"></div>
+                
+                {/* Error Content */}
+                <div className="relative z-10 flex items-center justify-center h-screen">
+                    <div className="bg-error/10 border border-error/20 rounded-lg p-4 max-w-md mx-auto">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <Activity className="h-5 w-5 text-error" />
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-error">Error</h3>
+                                <div className="mt-2 text-sm text-error/80">{error}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             <div role="alert" className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
                 <AlertTriangle size={14} />
                 <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
             </div>
+        </div>
         );
     }
 

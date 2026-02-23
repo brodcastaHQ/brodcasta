@@ -1,10 +1,10 @@
 import { ArrowRight, Check, CheckCircleIcon, ChevronRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import LandingNavbar from '../components/LandingNavbar';
+import LandingNavbar from '../components/Navbar';
 
 const Pricing = () => {
   return (
-    <div className="min-h-screen bg-linear-to-r from-cyan-500 to-blue-500">
+    <div className="min-h-screen ">
       {/* Header */}
       <LandingNavbar />
 

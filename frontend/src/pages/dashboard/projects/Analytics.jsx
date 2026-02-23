@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Chart from '../../../components/ui/Chart'
 import { createClient } from '../../../utils/client'
+
 const Analytics = () => {
   const { projectId } = useParams()
   const [loading, setLoading] = useState(true)
@@ -81,17 +82,17 @@ const Analytics = () => {
   }
 
   const StatCard = ({ icon: Icon, title, value, change, changeType, color }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 transition-all">
+    <div className="bg-base-100 rounded-xl border border-base-300 p-6 hover:shadow-sm transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${color}`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
-          <h3 className="mt-4 text-sm font-medium text-gray-600">{title}</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value?.toLocaleString() || 0}</p>
+          <h3 className="mt-4 text-sm font-medium text-base-content/60">{title}</h3>
+          <p className="mt-2 text-3xl font-bold text-base-content">{value?.toLocaleString() || 0}</p>
           {change && (
             <div className={`mt-2 flex items-center text-sm ${
-              changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+              changeType === 'positive' ? 'text-success' : 'text-error'
             }`}>
               <TrendingUp className="w-4 h-4 mr-1" />
               {change}
@@ -104,25 +105,122 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Dot Pattern Background */}
+        <div className="absolute inset-0">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
+              </radialGradient>
+            </defs>
+            
+            {/* Dot grid pattern */}
+            <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
+            
+            <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
+            
+            <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
+          </svg>
+        </div>
+        
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-base-200/80"></div>
+        
+        {/* Loading Content */}
+        <div className="relative z-10 flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <div className="mt-2 text-sm text-red-700">{error}</div>
-            <button
-              onClick={handleRefresh}
-              className="mt-3 bg-red-100 text-red-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-200"
-            >
-              Try Again
-            </button>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Dot Pattern Background */}
+        <div className="absolute inset-0">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
+              </radialGradient>
+            </defs>
+            
+            {/* Dot grid pattern */}
+            <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
+            <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
+            
+            <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
+            <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
+            
+            <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
+            <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
+          </svg>
+        </div>
+        
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-base-200/80"></div>
+        
+        {/* Error Content */}
+        <div className="relative z-10 flex items-center justify-center h-screen">
+          <div className="bg-error/10 border border-error/20 rounded-lg p-4 max-w-md mx-auto">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <Activity className="h-5 w-5 text-error" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-error">Error</h3>
+                <div className="mt-2 text-sm text-error/80">{error}</div>
+                <button
+                  onClick={handleRefresh}
+                  className="mt-3 bg-error/100 text-error px-3 py-1 rounded-md text-sm font-medium hover:bg-error/200"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -133,7 +231,52 @@ const Analytics = () => {
   const charts = analyticsData
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Dot Pattern Background */}
+      <div className="absolute inset-0">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
+            </radialGradient>
+          </defs>
+          
+          {/* Dot grid pattern */}
+          <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
+          <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
+          
+          <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
+          <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
+          
+          <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
+          <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
+        </svg>
+      </div>
+      
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-base-200/80"></div>
+      
+      {/* Content */}
+      <div className="relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -391,6 +534,7 @@ const Analytics = () => {
           </table>
         </div>
       </div>
+    </div>
     </div>
   )
 }
