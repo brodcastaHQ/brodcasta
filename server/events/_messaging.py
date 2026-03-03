@@ -1,9 +1,10 @@
 from .emitter import emitter
 from app.core.redis_publisher import redis_publisher
+from models import Message
 
 
 @emitter.on("message.send")
-async def handle_message_send(channel, project_id: str, data: dict[str, str]):
+async def handle_message_send(channel, project_id: str, data: dict[str, str], persist: bool = None):
     """Handle sending a message to a room"""
     if not data:
         await channel._send({
@@ -11,6 +12,12 @@ async def handle_message_send(channel, project_id: str, data: dict[str, str]):
             "message": "Invalid data"
         })
         return
+    
+    # Check if persistence is enabled from project settings
+    if persist is None and hasattr(channel, 'project') and channel.project:
+        persist = channel.project.history_enabled
+    elif persist is None:
+        persist = False  # Default to False if no project available
     
     room_id = data.get("room_id")
     message_content = data.get("message")
@@ -23,6 +30,19 @@ async def handle_message_send(channel, project_id: str, data: dict[str, str]):
         return
     
     try:
+        # Persist message if requested
+        if persist:
+            message_data = {
+                "message": message_content
+            }
+            await Message.create_message(
+                project_id, 
+                room_id, 
+                message_data,
+                sender_id=str(channel.uuid),
+                message_type="room_message"
+            )
+        
         # Create message payload
         payload = {
             "event_type": "message.received",
@@ -49,7 +69,7 @@ async def handle_message_send(channel, project_id: str, data: dict[str, str]):
 
 
 @emitter.on("message.broadcast")
-async def handle_message_broadcast(channel, project_id: str, data: dict[str, str]):
+async def handle_message_broadcast(channel, project_id: str, data: dict[str, str], persist: bool = None):
     """Handle broadcasting a message to all clients in a tenant"""
     if not data:
         await channel._send({
@@ -57,6 +77,12 @@ async def handle_message_broadcast(channel, project_id: str, data: dict[str, str
             "message": "Invalid data"
         })
         return
+    
+    # Check if persistence is enabled from project settings
+    if persist is None and hasattr(channel, 'project') and channel.project:
+        persist = channel.project.history_enabled
+    elif persist is None:
+        persist = False  # Default to False if no project available
     
     message_content = data.get("message")
     
@@ -68,6 +94,19 @@ async def handle_message_broadcast(channel, project_id: str, data: dict[str, str
         return
     
     try:
+        # Persist message if requested
+        if persist:
+            message_data = {
+                "message": message_content
+            }
+            await Message.create_message(
+                project_id, 
+                "broadcast", 
+                message_data,
+                sender_id=str(channel.uuid),
+                message_type="broadcast_message"
+            )
+        
         # Create broadcast payload
         payload = {
             "event_type": "broadcast.received",
@@ -93,7 +132,7 @@ async def handle_message_broadcast(channel, project_id: str, data: dict[str, str
 
 
 @emitter.on("message.direct")
-async def handle_message_direct(channel, project_id: str, data: dict[str, str]):
+async def handle_message_direct(channel, project_id: str, data: dict[str, str], persist: bool = None):
     """Handle sending a direct message to a specific client"""
     if not data:
         await channel._send({
@@ -101,6 +140,12 @@ async def handle_message_direct(channel, project_id: str, data: dict[str, str]):
             "message": "Invalid data"
         })
         return
+    
+    # Check if persistence is enabled from project settings
+    if persist is None and hasattr(channel, 'project') and channel.project:
+        persist = channel.project.history_enabled
+    elif persist is None:
+        persist = False  # Default to False if no project available
     
     target_client_id = data.get("target_client_id")
     message_content = data.get("message")
@@ -113,6 +158,20 @@ async def handle_message_direct(channel, project_id: str, data: dict[str, str]):
         return
     
     try:
+        # Persist message if requested
+        if persist:
+            message_data = {
+                "message": message_content,
+                "target_client_id": target_client_id
+            }
+            await Message.create_message(
+                project_id, 
+                f"direct_{target_client_id}", 
+                message_data,
+                sender_id=str(channel.uuid),
+                message_type="direct_message"
+            )
+        
         # Create direct message payload
         payload = {
             "event_type": "direct.received",

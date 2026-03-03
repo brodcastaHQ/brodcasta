@@ -7,15 +7,16 @@ from .base import BaseChannel
 
 
 class SSEChannel(BaseChannel):
-    def __init__(self, response: Response, payload_type: str = "json", expires: Optional[int] = None):
+    def __init__(self, response: Response, payload_type: str = "json", expires: Optional[int] = None, project: any = None):
         self.response = response
         self.payload_type = payload_type
         self.expires = expires
+        self.project = project  # Store the project instance
 
         self._event_queue = asyncio.Queue()
         self._closed = False
         self.created = time.time()
-        super().__init__(payload_type, expires)
+        super().__init__(payload_type, expires, project)
 
     async def wait_and_send(self):
         """

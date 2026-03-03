@@ -27,7 +27,7 @@ async def ws_gateway(websocket: WebSocket):
         return
 
     await websocket.accept()
-    channel = WebSocketChannel(websocket,payload_type="json")
+    channel = WebSocketChannel(websocket,payload_type="json",project=project)
     emitter.emit("client.connected", channel,project_id)
     try:
         while True:

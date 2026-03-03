@@ -13,10 +13,16 @@ class Message(BaseModel):
     # Message content - just the actual message data
     data = fields.JSONField(default=dict)
     
+    # Optional message metadata
+    sender_id = fields.CharField(max_length=255, null=True, index=True)
+    message_type = fields.CharField(max_length=50, null=True, index=True)  # room_message, broadcast_message, direct_message
+    
     class Meta:
         table = "messages"
         indexes = [
             ("project_id", "room_id", "created_at"),
+            ("project_id", "sender_id", "created_at"),
+            ("project_id", "message_type", "created_at"),
         ]
     
     @classmethod
@@ -24,13 +30,17 @@ class Message(BaseModel):
         cls,
         project_id: str,
         room_id: str,
-        data: Dict[str, Any]
+        data: Dict[str, Any],
+        sender_id: str = None,
+        message_type: str = None
     ):
         """Create a new message record from user message data"""
         return await cls.create(
             project_id=project_id,
             room_id=room_id,
-            data=data
+            data=data,
+            sender_id=sender_id,
+            message_type=message_type
         )
     
     @classmethod
@@ -65,6 +75,8 @@ class Message(BaseModel):
             "project_id": str(self.project_id),
             "room_id": self.room_id,
             "data": self.data,
+            "sender_id": self.sender_id,
+            "message_type": self.message_type,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat()
         }
@@ -75,5 +87,7 @@ class Message(BaseModel):
             "id": str(self.id),
             "room_id": self.room_id,
             "data": self.data,
+            "sender_id": self.sender_id,
+            "message_type": self.message_type,
             "created_at": self.created_at.isoformat()
         }

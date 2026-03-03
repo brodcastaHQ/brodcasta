@@ -10,9 +10,10 @@ class WebSocketChannel(BaseChannel):
         websocket: WebSocket,
         payload_type: str,
         expires: int | None = None,
+        project: any = None,
     ) -> None:
         assert isinstance(websocket, WebSocket)
-        super().__init__(payload_type, expires)
+        super().__init__(payload_type, expires, project)
         self.websocket = websocket
 
     async def _send(self, payload):

@@ -9,6 +9,7 @@ class BaseChannel(ABC):
         self,
         payload_type: str,
         expires: typing.Optional[int] = None,
+        project: typing.Optional[any] = None,
     ) -> None:
         assert isinstance(payload_type, str)
         assert payload_type in {
@@ -22,6 +23,7 @@ class BaseChannel(ABC):
 
         self.payload_type = payload_type
         self.expires = expires
+        self.project = project  # Store the project instance
         self.uuid = uuid.uuid4()
         self.created = time.time()
 
