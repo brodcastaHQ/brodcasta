@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from models.accounts import Plan
 
 
 class UserCreate(BaseModel):
@@ -8,7 +7,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     company: Optional[str] = None
-    plan: Plan = Plan.FREE
 
 
 class UserLogin(BaseModel):
@@ -21,7 +19,6 @@ class UserResponse(BaseModel):
     name: str
     email: str
     company: Optional[str] = None
-    plan: Plan
     
     class Config:
         from_attributes = True

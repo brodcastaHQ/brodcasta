@@ -114,8 +114,6 @@ async def login(request: Request,response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
-        company=user.company,
-        plan=user.plan
     )
     
     response.set_cookie(
@@ -212,8 +210,6 @@ async def get_user(request: Request,response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
-        company=user.company,
-        plan=user.plan
     )
     return user_response
 
