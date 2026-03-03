@@ -1,14 +1,19 @@
 from tortoise import fields
 from ._base import BaseModel
 import bcrypt
+from enum import Enum
 from nexios.auth.users.simple import SimpleUser
+
+class Role(str, Enum):
+    ADMIN = "ADMIN"
+    MEMBER = "MEMBER"
 
 
 class Account(BaseModel,SimpleUser):
     name = fields.CharField(max_length=100)
     email = fields.CharField(max_length=255, unique=True)
     password = fields.CharField(max_length=255)
-
+    role = fields.CharEnumField(Role,max_length=10,default=Role.ADMIN)
     class Meta:
         table = "accounts"
 
