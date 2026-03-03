@@ -1,19 +1,11 @@
 from tortoise import fields
 from ._base import BaseModel
-from enum import Enum
 import bcrypt
 from nexios.auth.users.simple import SimpleUser
 
-class Plan(str, Enum):
-    FREE = "free"
-    BASIC = "basic"
-    PRO = "pro"
-    ENTERPRISE = "enterprise"
 
 class Account(BaseModel,SimpleUser):
     name = fields.CharField(max_length=100)
-    company = fields.CharField(max_length=100, null=True)
-    plan = fields.CharEnumField(Plan, default=Plan.FREE)
     email = fields.CharField(max_length=255, unique=True)
     password = fields.CharField(max_length=255)
 
@@ -21,13 +13,11 @@ class Account(BaseModel,SimpleUser):
         table = "accounts"
 
     @classmethod
-    async def create_user(cls, name: str, email: str, password: str, company: str = None, plan: Plan = Plan.FREE):
+    async def create_user(cls, name: str, email: str, password: str):
         hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         return await cls.create(
             name=name,
             email=email,
-            company=company,
-            plan=plan,
             password=hashed_pw.decode("utf-8")
         )
 
