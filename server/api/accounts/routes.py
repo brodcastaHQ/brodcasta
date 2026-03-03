@@ -429,11 +429,82 @@ async def admin_get_user(request: Request, response: Response, user_id: str):
         id=str(target_user.id),
         name=target_user.name,
         email=target_user.email,
-        company=target_user.company,
         role=target_user.role,
         created_at=target_user.created_at.isoformat()
     )
     
     return user_response
+
+
+# Personal Account Management Routes
+
+@router.put("/account", 
+            summary="Update current user account",
+            request_model=UserUpdate,
+            response_model=UserResponse)
+async def update_account(request: Request, response: Response):
+    """Update current user account"""
+    user = request.user
+    
+    if not user.is_authenticated:
+        return response.json(
+            {"detail": "User not authenticated"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    data = await request.json
+    update_data = UserUpdate(**data)
+    
+    # Update user fields
+    if update_data.name is not None:
+        user.name = update_data.name
+    if update_data.email is not None:
+        # Check if email is already taken by another user
+        existing_user = await Account.get_or_none(email=update_data.email)
+        if existing_user and existing_user.id != user.id:
+            return response.json(
+                {"detail": "Email already registered"},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        user.email = update_data.email
+    if update_data.password is not None:
+        user.password = update_data.password  # Will be hashed in save
+    
+    await user.save()
+    
+    user_response = UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        role=user.role,
+        created_at=user.created_at.isoformat()
+    )
+    
+    return user_response
+
+
+@router.delete("/account", 
+               summary="Delete current user account",
+               status_code=status.HTTP_204_NO_CONTENT)
+async def delete_account(request: Request, response: Response):
+    """Delete current user account"""
+    user = request.user
+    
+    if not user.is_authenticated:
+        return response.json(
+            {"detail": "User not authenticated"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    await user.delete()
+    
+    # Clear cookies
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+    
+    return response.json(
+        {"message": "Account deleted successfully"},
+        status_code=status.HTTP_204_NO_CONTENT
+    )
 
 

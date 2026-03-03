@@ -153,7 +153,10 @@ const AdminUsers = () => {
                             </p>
                         </div>
                         <button
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={() => {
+                                resetForm();
+                                setShowCreateModal(true);
+                            }}
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-primary-content bg-primary hover:bg-primary-focus transition-colors"
                         >
                             <Plus className="w-4 h-4 mr-2" />

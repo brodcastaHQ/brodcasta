@@ -54,7 +54,6 @@ const Sidebar = () => {
                 <SectionLabel label="Configuration" />
                 <NavItem to="/dashboard/admin/users" icon={Users} label="User Management" active={isActive('/dashboard/admin/users')} />
                 <NavItem to="/dashboard/settings" icon={Settings} label="Account Settings" active={isActive('/dashboard/settings')} />
-                <NavItem to="/dashboard/team" icon={Users} label="Team" active={isActive('/dashboard/team')} />
 
                 <SectionLabel label="Billing" />
                 <NavItem to="/dashboard/billing/package" icon={Shield} label="Package" active={isActive('/dashboard/billing/package')} />
