@@ -1,4 +1,4 @@
-import { Activity, Globe, MessageSquare, Users } from 'lucide-react';
+import { Activity, ArrowUpRight, BookOpen, ExternalLink, Globe, Users, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { createClient } from '../../../utils/client';
@@ -46,52 +46,8 @@ const ProjectOverview = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen relative overflow-hidden">
-                {/* Dot Pattern Background */}
-                <div className="absolute inset-0">
-                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
-                                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
-                            </radialGradient>
-                        </defs>
-                        
-                        {/* Dot grid pattern */}
-                        <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
-                        
-                        <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
-                        
-                        <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
-                    </svg>
-                </div>
-                
-                {/* Overlay for readability */}
-                <div className="absolute inset-0 bg-base-200/80"></div>
-                
-                {/* Loading Content */}
-                <div className="relative z-10 flex items-center justify-center h-screen">
+            <div className="min-h-screen bg-base-200">
+                <div className="flex items-center justify-center h-screen">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                 </div>
             </div>
@@ -100,52 +56,8 @@ const ProjectOverview = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen relative overflow-hidden">
-                {/* Dot Pattern Background */}
-                <div className="absolute inset-0">
-                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
-                                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
-                            </radialGradient>
-                        </defs>
-                        
-                        {/* Dot grid pattern */}
-                        <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
-                        
-                        <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
-                        
-                        <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
-                        <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
-                    </svg>
-                </div>
-                
-                {/* Overlay for readability */}
-                <div className="absolute inset-0 bg-base-200/80"></div>
-                
-                {/* Error Content */}
-                <div className="relative z-10 flex items-center justify-center h-screen">
+            <div className="min-h-screen bg-base-200">
+                <div className="flex items-center justify-center h-screen">
                     <div className="bg-error/10 border border-error/20 rounded-lg p-4 max-w-md mx-auto">
                         <div className="flex">
                             <div className="flex-shrink-0">
@@ -158,135 +70,158 @@ const ProjectOverview = () => {
                         </div>
                     </div>
                 </div>
-            <div role="alert" className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
-                <AlertTriangle size={14} />
-                <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
             </div>
-        </div>
         );
     }
 
-    const StatCard = ({ title, value, icon: Icon, description, color }) => (
-        <div className="card bg-base-100 border border-base-200 hover:border-primary/50 transition-all shadow-none hover:shadow-md group rounded-lg">
-            <div className="card-body p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <div className={`p-2.5 rounded-xl ${color} bg-opacity-10`}>
-                        <Icon className={color.replace('bg-', 'text-')} size={18} strokeWidth={2} />
-                    </div>
-                    <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Live Status</span>
+    const StatCard = ({ title, value, icon: Icon, description }) => (
+        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
+            <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-base-200">
+                    <Icon className="w-6 h-6 text-base-content" />
                 </div>
-                <div className="flex flex-col">
-                    <span className="text-3xl font-bold mb-1 text-base-content">{value}</span>
-                    <span className="text-md font-semibold text-base-content/60">{title}</span>
-                    <p className="text-xs text-base-content/40 mt-3 leading-relaxed">{description}</p>
-                </div>
-                <div className="h-1 w-full bg-base-200 mt-4 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary/20 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
-                </div>
+                <span className="text-xs text-success font-medium flex items-center">
+                    <ArrowUpRight className="w-3 h-3 mr-1" />
+                    Live
+                </span>
+            </div>
+            <div className="flex flex-col">
+                <span className="text-2xl font-bold text-base-content mb-1">{value}</span>
+                <span className="text-sm font-semibold text-base-content/60">{title}</span>
+                <p className="text-xs text-base-content/40 mt-3 leading-relaxed">{description}</p>
             </div>
         </div>
     );
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Banner matching the main dashboard */}
-            <div className="w-full h-48 rounded-2xl bg-neutral text-neutral-content relative overflow-hidden flex items-center p-8 shadow-lg">
-                <div className="absolute inset-0 bg-linear-to-r from-black/80 to-transparent z-10"></div>
-                <div className="absolute inset-0 bg-linear-to-br from-primary/30 via-neutral to-secondary/30 z-0"></div>
-
-                <div className="relative z-20 max-w-xl">
-                    <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-white">{project.name}</h1>
-                        <span className="badge badge-success text-[10px] font-bold text-white border-none px-2.5">ACTIVE</span>
-                    </div>
-                    <p className="text-white/70 mb-0 text-md leading-relaxed max-w-md">
-                        Real-time ecosystem broadcasting from <span className="text-primary-content font-mono font-bold">{projectId.split('-')[0]}...</span>
-                    </p>
-                    <div className="flex items-center gap-4 mt-6">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Total Clients</span>
-                            <span className="text-xl font-bold text-white">{stats.total_connections}</span>
-                        </div>
-                        <div className="divider divider-horizontal mx-0 opacity-20"></div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Active Rooms</span>
-                            <span className="text-xl font-bold text-white">{stats.rooms_count}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Connections"
-                    value={stats.total_connections}
-                    icon={Users}
-                    description="Total active WebSocket and SSE clients"
-                    color="bg-primary"
-                />
-                <StatCard
-                    title="Active Rooms"
-                    value={stats.rooms_count}
-                    icon={Globe}
-                    description="Number of groups currently with participants"
-                    color="bg-secondary"
-                />
-                <StatCard
-                    title="WebSocket Clients"
-                    value={stats.websocket_connections}
-                    icon={Activity}
-                    description="Connections using native WebSockets"
-                    color="bg-accent"
-                />
-                <StatCard
-                    title="SSE Clients"
-                    value={stats.sse_connections}
-                    icon={MessageSquare}
-                    description="Connections using HTTP Server-Sent Events"
-                    color="bg-info"
-                />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors rounded-lg">
-                    <div className="card-body p-8">
-                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                            Quick Integration
-                        </h2>
-                        <div className="bg-neutral/5 rounded-xl p-6 font-mono text-md relative border border-base-200/40">
-                            <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
-                            <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
-                            <div className="my-2"></div>
-                            <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
-                            <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
-                            <div className="text-base-content">{'}'};</div>
+        <div className="min-h-screen bg-base-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    {/* Getting Started Banner */}
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <div className="p-3 bg-primary/20 rounded-lg">
+                                    <BookOpen className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-base-content">Getting Started with {project.name}</h3>
+                                    <p className="text-base-content/70 text-sm mt-1">
+                                        Learn how to build real-time applications with WebSocket and Server-Sent Events
+                                    </p>
+                                </div>
+                            </div>
+                            <a 
+                                href="https://docs.pingly.dev" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-4 py-2 border border-primary/30 rounded-lg text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                            >
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                View Docs
+                            </a>
                         </div>
                     </div>
-                </div>
 
-                <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors rounded-lg">
-                    <div className="card-body p-8">
-                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                            App Settings
-                        </h2>
-                        <div className="space-y-5">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Auth Type</span>
-                                <span className="badge badge-ghost font-bold text-[10px] capitalize">{project.auth_type.replace('_', ' ')}</span>
+                    {/* Project Header */}
+                    <div className="bg-base-100 rounded-xl border border-base-300 p-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h1 className="text-3xl font-bold text-base-content mb-2">{project.name}</h1>
+                                <p className="text-base-content/60">
+                                    Real-time ecosystem broadcasting from <span className="font-mono text-primary">{projectId.split('-')[0]}...</span>
+                                </p>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">History</span>
-                                <span className="text-md font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
+                                <div className="w-1.5 h-1.5 bg-success rounded-full mr-1.5"></div>
+                                ACTIVE
+                            </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Total Clients</span>
+                                <span className="text-2xl font-bold text-base-content">{stats.total_connections}</span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Created</span>
-                                <span className="text-md font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
+                            <div>
+                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Active Rooms</span>
+                                <span className="text-2xl font-bold text-base-content">{stats.rooms_count}</span>
                             </div>
                         </div>
-                        <div className="divider my-4"></div>
-                        <button className="btn btn-neutral btn-md w-full text-white font-bold tracking-tight rounded-lg">
-                            Documentation &rarr;
-                        </button>
+                    </div>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StatCard
+                            title="Total Connections"
+                            value={stats.total_connections}
+                            icon={Users}
+                            description="Total active WebSocket and SSE clients"
+                        />
+                        <StatCard
+                            title="Active Rooms"
+                            value={stats.rooms_count}
+                            icon={Globe}
+                            description="Number of groups currently with participants"
+                        />
+                        <StatCard
+                            title="WebSocket Clients"
+                            value={stats.websocket_connections}
+                            icon={Activity}
+                            description="Connections using native WebSockets"
+                        />
+                        <StatCard
+                            title="SSE Clients"
+                            value={stats.sse_connections}
+                            icon={Zap}
+                            description="Connections using HTTP Server-Sent Events"
+                        />
+                    </div>
+
+                    {/* Quick Integration */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 bg-base-100 rounded-xl border border-base-300 p-8">
+                            <h2 className="text-xl font-bold mb-6 text-base-content">Quick Integration</h2>
+                            <div className="bg-base-200 rounded-xl p-6 font-mono text-md relative border border-base-300">
+                                <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
+                                <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
+                                <div className="my-2"></div>
+                                <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
+                                <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
+                                <div className="text-base-content">{'}'};</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-base-100 rounded-xl border border-base-300 p-8">
+                            <h2 className="text-xl font-bold mb-6 text-base-content">App Settings</h2>
+                            <div className="space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Auth Type</span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-base-200 text-base-content">
+                                        {project.auth_type.replace('_', ' ')}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">History</span>
+                                    <span className="text-sm font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Created</span>
+                                    <span className="text-sm font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div className="border-t border-base-300 my-4 pt-4">
+                                <a 
+                                    href="https://docs.pingly.dev" 
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center w-full px-4 py-2 border border-base-300 rounded-lg text-sm font-medium text-base-content bg-base-100 hover:bg-base-200 transition-colors justify-center"
+                                >
+                                    Documentation
+                                    <ArrowUpRight className="w-4 h-4 ml-2" />
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
