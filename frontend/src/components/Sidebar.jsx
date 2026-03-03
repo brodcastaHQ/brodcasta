@@ -1,11 +1,11 @@
 import {
     Activity,
-    BarChart,
+    BookOpen,
     FileText,
     LayoutGrid,
     Settings,
-    Shield,
-    Users
+    Users,
+    Zap
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -51,29 +51,28 @@ const Sidebar = () => {
 
                 <NavItem to="/dashboard" icon={LayoutGrid} label="Apps" active={isActive('/dashboard')} />
 
+                <SectionLabel label="Development" />
+                <NavItem to="/dashboard/playground" icon={Zap} label="Playground" active={isActive('/dashboard/playground')} />
+                <NavItem to="/dashboard/docs" icon={BookOpen} label="Documentation" active={isActive('/dashboard/docs')} />
+
                 <SectionLabel label="Configuration" />
                 <NavItem to="/dashboard/admin/users" icon={Users} label="User Management" active={isActive('/dashboard/admin/users')} />
                 <NavItem to="/dashboard/settings" icon={Settings} label="Account Settings" active={isActive('/dashboard/settings')} />
 
-                <SectionLabel label="Billing" />
-                <NavItem to="/dashboard/billing/package" icon={Shield} label="Package" active={isActive('/dashboard/billing/package')} />
-                <NavItem to="/dashboard/billing/invoices" icon={FileText} label="Invoices" active={isActive('/dashboard/billing/invoices')} />
-                <NavItem to="/dashboard/billing/usage" icon={Activity} label="Usage" active={isActive('/dashboard/billing/usage')} />
-                <NavItem to="/dashboard/billing/limits" icon={BarChart} label="Limits" active={isActive('/dashboard/billing/limits')} />
-
-                <SectionLabel label="Monitoring" />
-                <NavItem to="/dashboard/reports" icon={FileText} label="Reports" active={isActive('/dashboard/reports')} />
+                <SectionLabel label="Resources" />
+                <NavItem to="/dashboard/logs" icon={FileText} label="Logs" active={isActive('/dashboard/logs')} />
+                <NavItem to="/dashboard/activity" icon={Activity} label="Activity" active={isActive('/dashboard/activity')} />
             </div>
 
             {/* User Profile / Bottom */}
             <div className="p-4 border-t border-base-200">
                 <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 cursor-pointer transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-neutral text-neutral-content flex items-center justify-center text-md font-medium">
-                        JD
+                    <div className="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-md font-medium">
+                        <Users className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="text-md font-medium truncate">John Doe</div>
-                        <div className="text-xs text-base-content/60 truncate">Free account</div>
+                        <div className="text-md font-medium truncate">User</div>
+                        <div className="text-xs text-base-content/60 truncate">Account Settings</div>
                     </div>
                 </div>
             </div>
