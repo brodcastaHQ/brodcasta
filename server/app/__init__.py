@@ -5,6 +5,7 @@ import config
 from api.accounts.routes import router as auth_router
 from api.projects.routes import router as projects_router
 from api.analytics.routes import router as analytics_router 
+from api.messages.routes import router as messages_router
 from ws.gateway import router as ws_router
 from sse.routes import router as sse_router
 from nexios import MakeConfig
@@ -41,6 +42,7 @@ app = NexiosApp(
             Group(auth_router.prefix,auth_router),
             Group(projects_router.prefix, projects_router),
             Group(analytics_router.prefix, analytics_router),
+            Group(messages_router.prefix, messages_router),
         ]),
         Group(sse_router.prefix, sse_router),
         Group("/ws", routes=[

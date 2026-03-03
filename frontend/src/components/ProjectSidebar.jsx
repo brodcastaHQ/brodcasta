@@ -2,6 +2,7 @@ import {
     Activity,
     ArrowLeft,
     Code,
+    FileText,
     Key,
     LayoutDashboard,
     Settings
@@ -49,6 +50,7 @@ const ProjectSidebar = () => {
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto px-3">
                 <NavItem to="" path="" icon={LayoutDashboard} label="Overview" />
+                <NavItem to="/messages" path="/messages" icon={FileText} label="Messages" />
                 <NavItem to="/api-keys" path="/api-keys" icon={Key} label="API Keys" />
                 <NavItem to="/analytics" path="/analytics" icon={Activity} label="Analytics" />
                 <NavItem to="/playground" path="/playground" icon={Code} label="Playground" />

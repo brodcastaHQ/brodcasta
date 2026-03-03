@@ -32,13 +32,10 @@ async def handle_message_send(channel, project_id: str, data: dict[str, str], pe
     try:
         # Persist message if requested
         if persist:
-            message_data = {
-                "message": message_content
-            }
             await Message.create_message(
                 project_id, 
                 room_id, 
-                message_data,
+                message_content,  # Store message content directly
                 sender_id=str(channel.uuid),
                 message_type="room_message"
             )
@@ -96,13 +93,10 @@ async def handle_message_broadcast(channel, project_id: str, data: dict[str, str
     try:
         # Persist message if requested
         if persist:
-            message_data = {
-                "message": message_content
-            }
             await Message.create_message(
                 project_id, 
                 "broadcast", 
-                message_data,
+                message_content,  # Store message content directly
                 sender_id=str(channel.uuid),
                 message_type="broadcast_message"
             )
@@ -160,9 +154,10 @@ async def handle_message_direct(channel, project_id: str, data: dict[str, str], 
     try:
         # Persist message if requested
         if persist:
+            # For direct messages, store as dict with target_client_id
             message_data = {
-                "message": message_content,
-                "target_client_id": target_client_id
+                "target_client_id": target_client_id,
+                "message": message_content
             }
             await Message.create_message(
                 project_id, 

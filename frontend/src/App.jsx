@@ -9,6 +9,7 @@ import AdminUsers from './pages/dashboard/AdminUsers'
 import NewProject from './pages/dashboard/new'
 import ProjectAnalytics from './pages/dashboard/projects/Analytics'
 import ProjectApiKeys from './pages/dashboard/projects/ApiKeys'
+import ProjectMessages from './pages/dashboard/projects/Messages'
 import ProjectOverview from './pages/dashboard/projects/Overview'
 import ProjectPlayground from './pages/dashboard/projects/Playground'
 import ProjectSettings from './pages/dashboard/projects/Settings'
@@ -44,6 +45,7 @@ function App() {
             <Route path="analytics" element={<ProjectAnalytics />} />
             <Route path="api-keys" element={<ProjectApiKeys />} />
             <Route path="playground" element={<ProjectPlayground />} />
+            <Route path="messages" element={<ProjectMessages />} />
             <Route path="settings" element={<ProjectSettings />} />
             <Route path="*" element={<div className="p-8">Feature under construction.</div>} />
           </Route>

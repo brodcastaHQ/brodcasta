@@ -60,8 +60,6 @@ class Message(BaseModel):
     @classmethod
     async def get_project_stats(cls, project_id: str):
         """Get message statistics for a project"""
-        from tortoise.functions import Count
-        
         total_messages = await cls.filter(project_id=project_id).count()
         
         return {
