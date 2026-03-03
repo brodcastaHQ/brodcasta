@@ -52,6 +52,7 @@ const Sidebar = () => {
                 <NavItem to="/dashboard" icon={LayoutGrid} label="Apps" active={isActive('/dashboard')} />
 
                 <SectionLabel label="Configuration" />
+                <NavItem to="/dashboard/admin/users" icon={Users} label="User Management" active={isActive('/dashboard/admin/users')} />
                 <NavItem to="/dashboard/settings" icon={Settings} label="Account Settings" active={isActive('/dashboard/settings')} />
                 <NavItem to="/dashboard/team" icon={Users} label="Team" active={isActive('/dashboard/team')} />
 

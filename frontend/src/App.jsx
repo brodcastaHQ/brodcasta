@@ -4,6 +4,7 @@ import './index.css'
 import DashboardLayout from './layout/DashboardLayout'
 import ProjectDashboardLayout from './layout/ProjectDashboardLayout'
 import Dashboard from './pages/dashboard'
+import AdminUsers from './pages/dashboard/AdminUsers'
 import NewProject from './pages/dashboard/new'
 import ProjectAnalytics from './pages/dashboard/projects/Analytics'
 import ProjectApiKeys from './pages/dashboard/projects/ApiKeys'
@@ -29,6 +30,7 @@ function App() {
           <Route element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewProject />} />
+            <Route path="admin/users" element={<AdminUsers />} />
             <Route path="*" element={<div className="p-8">Page not found or under construction.</div>} />
           </Route>
         </Route>

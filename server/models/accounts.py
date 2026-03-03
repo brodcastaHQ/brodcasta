@@ -3,6 +3,7 @@ from ._base import BaseModel
 import bcrypt
 from enum import Enum
 from nexios.auth.users.simple import SimpleUser
+from typing import Optional
 
 class Role(str, Enum):
     ADMIN = "ADMIN"
@@ -18,12 +19,13 @@ class Account(BaseModel,SimpleUser):
         table = "accounts"
 
     @classmethod
-    async def create_user(cls, name: str, email: str, password: str):
+    async def create_user(cls, name: str, email: str, password: str, role: Role = Role.MEMBER):
         hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         return await cls.create(
             name=name,
             email=email,
-            password=hashed_pw.decode("utf-8")
+            password=hashed_pw.decode("utf-8"),
+            role=role
         )
 
     @classmethod

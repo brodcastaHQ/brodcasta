@@ -3,8 +3,8 @@ from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
 from tortoise.exceptions import IntegrityError
-from ._schema import UserCreate, UserLogin, UserResponse, TokenResponse
-from models.accounts import Account
+from ._schema import UserCreate, UserLogin, UserResponse, TokenResponse, UserUpdate, AdminUserCreate, UsersListResponse
+from models.accounts import Account, Role
 from utils.auth import create_access_token, create_refresh_token, verify_token
 
 
@@ -34,8 +34,7 @@ async def signup(request: Request,response: Response):
         name=user_data.name,
         email=user_data.email,
         password=user_data.password,
-        company=user_data.company,
-        plan=user_data.plan
+        role=user_data.role
     )
     
     # Create access token
@@ -48,8 +47,8 @@ async def signup(request: Request,response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
-        company=user.company,
-        plan=user.plan
+        role=user.role,
+        created_at=user.created_at.isoformat()
     )
 
     response.set_cookie(
@@ -114,6 +113,8 @@ async def login(request: Request,response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
+        role=user.role,
+        created_at=user.created_at.isoformat()
     )
     
     response.set_cookie(
@@ -177,8 +178,8 @@ async def refresh_token(request: Request, response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
-        company=user.company,
-        plan=user.plan
+        role=user.role,
+        created_at=user.created_at.isoformat()
     )
     
     response.set_cookie(
@@ -210,7 +211,229 @@ async def get_user(request: Request,response: Response):
         id=str(user.id),
         name=user.name,
         email=user.email,
+        role=user.role,
+        created_at=user.created_at.isoformat()
     )
+    return user_response
+
+
+# Admin Management Routes
+
+@router.get("/admin/users", 
+            summary="Get all users (Admin only)",
+            responses=UsersListResponse)
+async def get_all_users(request: Request, response: Response):
+    """Get all users with pagination (Admin only)"""
+    user = request.user
+    
+    # Check if user is admin
+    if not user.is_authenticated or user.role != Role.ADMIN:
+        return response.json(
+            {"detail": "Admin access required"},
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get pagination parameters
+    page = int(request.query_params.get("page", 1))
+    per_page = int(request.query_params.get("per_page", 10))
+    
+    # Get users with pagination
+    offset = (page - 1) * per_page
+    users = await Account.all().order_by("-created_at").offset(offset).limit(per_page)
+    total = await Account.all().count()
+    
+    user_responses = [
+        UserResponse(
+            id=str(user.id),
+            name=user.name,
+            email=user.email,
+            role=user.role,
+            created_at=user.created_at.isoformat()
+        )
+        for user in users
+    ]
+    
+    return UsersListResponse(
+        users=user_responses,
+        total=total,
+        page=page,
+        per_page=per_page
+    )
+
+
+@router.post("/admin/users",
+            summary="Create user (Admin only)",
+            request_model=AdminUserCreate,
+            responses=UserResponse,
+            status_code=status.HTTP_201_CREATED)
+async def admin_create_user(request: Request, response: Response):
+    """Create a new user (Admin only)"""
+    user = request.user
+    
+    # Check if user is admin
+    if not user.is_authenticated or user.role != Role.ADMIN:
+        return response.json(
+            {"detail": "Admin access required"},
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    data = await request.json
+    user_data = AdminUserCreate(**data)
+    
+    # Check if user already exists
+    existing_user = await Account.get_or_none(email=user_data.email)
+    if existing_user:
+        return response.json(
+            {"detail": "Email already registered"},
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create new user
+    new_user = await Account.create_user(
+        name=user_data.name,
+        email=user_data.email,
+        password=user_data.password,
+        role=user_data.role
+    )
+    
+    user_response = UserResponse(
+        id=str(new_user.id),
+        name=new_user.name,
+        email=new_user.email,
+        role=new_user.role,
+        created_at=new_user.created_at.isoformat()
+    )
+    
+    return response.json(
+        user_response.dict(),
+        status_code=status.HTTP_201_CREATED
+    )
+
+
+@router.put("/admin/users/{user_id}",
+            summary="Update user (Admin only)",
+            request_model=UserUpdate,
+            responses=UserResponse)
+async def admin_update_user(request: Request, response: Response, user_id: str):
+    """Update user details (Admin only)"""
+    user = request.user
+    
+    # Check if user is admin
+    if not user.is_authenticated or user.role != Role.ADMIN:
+        return response.json(
+            {"detail": "Admin access required"},
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Find user to update
+    target_user = await Account.get_or_none(id=user_id)
+    if not target_user:
+        return response.json(
+            {"detail": "User not found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    
+    data = await request.json
+    update_data = UserUpdate(**data)
+    
+    # Update user fields
+    if update_data.name is not None:
+        target_user.name = update_data.name
+    if update_data.email is not None:
+        # Check if email is already taken
+        existing_user = await Account.get_or_none(email=update_data.email)
+        if existing_user and existing_user.id != target_user.id:
+            return response.json(
+                {"detail": "Email already registered"},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        target_user.email = update_data.email
+    if update_data.role is not None:
+        target_user.role = update_data.role
+    if update_data.password is not None:
+        target_user.password = update_data.password  # Will be hashed in save
+    
+    await target_user.save()
+    
+    user_response = UserResponse(
+        id=str(target_user.id),
+        name=target_user.name,
+        email=target_user.email,
+        role=target_user.role,
+        created_at=target_user.created_at.isoformat()
+    )
+    
+    return user_response
+
+
+@router.delete("/admin/users/{user_id}",
+               summary="Delete user (Admin only)",
+               status_code=status.HTTP_204_NO_CONTENT)
+async def admin_delete_user(request: Request, response: Response, user_id: str):
+    """Delete user (Admin only)"""
+    user = request.user
+    
+    # Check if user is admin
+    if not user.is_authenticated or user.role != Role.ADMIN:
+        return response.json(
+            {"detail": "Admin access required"},
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Find user to delete
+    target_user = await Account.get_or_none(id=user_id)
+    if not target_user:
+        return response.json(
+            {"detail": "User not found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Prevent admin from deleting themselves
+    if str(target_user.id) == str(user.id):
+        return response.json(
+            {"detail": "Cannot delete yourself"},
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    
+    await target_user.delete()
+    
+    return response.json(
+        {"message": "User deleted successfully"},
+        status_code=status.HTTP_204_NO_CONTENT
+    )
+
+
+@router.get("/admin/users/{user_id}",
+            summary="Get user details (Admin only)",
+            responses=UserResponse)
+async def admin_get_user(request: Request, response: Response, user_id: str):
+    """Get specific user details (Admin only)"""
+    user = request.user
+    
+    # Check if user is admin
+    if not user.is_authenticated or user.role != Role.ADMIN:
+        return response.json(
+            {"detail": "Admin access required"},
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Find user
+    target_user = await Account.get_or_none(id=user_id)
+    if not target_user:
+        return response.json(
+            {"detail": "User not found"},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+    
+    user_response = UserResponse(
+        id=str(target_user.id),
+        name=target_user.name,
+        email=target_user.email,
+        company=target_user.company,
+        role=target_user.role,
+        created_at=target_user.created_at.isoformat()
+    )
+    
     return user_response
 
 
