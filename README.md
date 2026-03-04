@@ -231,8 +231,8 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 <div align="center">
   <p>
     <strong>Powered by</strong>
-    <a href="https://nexios.dev" target="_blank" rel="noopener noreferrer">
-      <img src="https://nexios.dev/logo.svg" alt="Nexios Logo" width="100" height="20">
+    <a href="https://nexioslabs.com" target="_blank" rel="noopener noreferrer">
+      <img src="https://nexioslabs.com/logo.png" alt="Nexios Logo" width="100" height="20">
     </a>
   </p>
   
