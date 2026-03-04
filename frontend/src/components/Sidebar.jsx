@@ -1,17 +1,14 @@
 import {
     Activity,
-
     BarChart,
-
     FileText,
-
     LayoutGrid,
-
     Settings,
-
     Shield,
-
-    Users
+    Users,
+    Download,
+    Server,
+    GitBranch
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -108,25 +105,17 @@ const Sidebar = () => {
 
                 <NavItem to="/dashboard/settings" icon={Settings} label="Account Settings" active={isActive('/dashboard/settings')} />
 
-                <NavItem to="/dashboard/team" icon={Users} label="Team" active={isActive('/dashboard/team')} />
 
 
+                <SectionLabel label="Self-Hosted" />
 
-                <SectionLabel label="Billing" />
+                <NavItem to="/dashboard/deployment" icon={Server} label="Deployment" active={isActive('/dashboard/deployment')} />
 
-                <NavItem to="/dashboard/billing/package" icon={Shield} label="Package" active={isActive('/dashboard/billing/package')} />
+                <NavItem to="/dashboard/documentation" icon={FileText} label="Documentation" active={isActive('/dashboard/documentation')} />
 
-                <NavItem to="/dashboard/billing/invoices" icon={FileText} label="Invoices" active={isActive('/dashboard/billing/invoices')} />
+                <NavItem to="/dashboard/downloads" icon={Download} label="Downloads" active={isActive('/dashboard/downloads')} />
 
-                <NavItem to="/dashboard/billing/usage" icon={Activity} label="Usage" active={isActive('/dashboard/billing/usage')} />
-
-                <NavItem to="/dashboard/billing/limits" icon={BarChart} label="Limits" active={isActive('/dashboard/billing/limits')} />
-
-
-
-                <SectionLabel label="Monitoring" />
-
-                <NavItem to="/dashboard/reports" icon={FileText} label="Reports" active={isActive('/dashboard/reports')} />
+                <NavItem to="/dashboard/source" icon={GitBranch} label="Source Code" active={isActive('/dashboard/source')} />
 
             </div>
 
@@ -148,7 +137,7 @@ const Sidebar = () => {
 
                         <div className="text-md font-medium truncate">John Doe</div>
 
-                        <div className="text-xs text-base-content/60 truncate">Free account</div>
+                        <div className="text-xs text-base-content/60 truncate">Self-hosted</div>
 
                     </div>
 

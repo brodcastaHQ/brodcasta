@@ -1,4 +1,4 @@
-import { Activity, ArrowUpRight, BookOpen, ExternalLink, Eye, Globe, Plus, Settings, TrendingUp, Users, Zap } from 'lucide-react';
+import { Activity, ArrowUpRight, BookOpen, ExternalLink, Globe, Plus, Settings, Users, Zap } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 
@@ -459,107 +459,52 @@ const Dashboard = () => {
                                     <tbody className="bg-base-100 divide-y divide-base-300">
 
                                         {projects.map((project) => (
-
-                                            <tr key={project.id} className="hover:bg-base-200 cursor-pointer transition-colors">
-
+                                            <tr 
+                                                key={project.id} 
+                                                className="hover:bg-base-200 cursor-pointer transition-colors"
+                                                onClick={() => window.location.href = `/dashboard/projects/${project.id}`}
+                                            >
                                                 <td className="px-6 py-4 whitespace-nowrap">
-
                                                     <div className="text-sm font-medium text-base-content">{project.name}</div>
-
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
-
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
-
                                                         {project.auth_type === 'all' ? 'Private' : project.auth_type === 'none' ? 'Public' : 'Publishing'}
-
                                                     </span>
-
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
-
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-
                                                         <div className="w-1.5 h-1.5 bg-primary rounded-full mr-1.5"></div>
-
                                                         Running
-
                                                     </span>
-
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/80">
-
                                                     <div className="flex items-center">
-
                                                         <Users className="h-4 w-4 mr-1 text-base-content/40" />
-
                                                         <span className="font-medium">{project.total_connections || 0}</span>
-
                                                     </div>
-
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/80">
-
                                                     {new Date(project.created_at).toLocaleDateString()}
-
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-
                                                     <div className="flex items-center justify-end space-x-1">
-
                                                         <a 
-
-                                                            href={`/dashboard/projects/${project.id}`} 
-
-                                                            className="text-primary hover:text-primary-focus p-2 rounded-lg hover:bg-primary/10 transition-colors"
-
-                                                            title="View Project"
-
-                                                        >
-
-                                                            <Eye className="h-4 w-4" />
-
-                                                        </a>
-
-                                                        <a 
-
-                                                            href={`/dashboard/projects/${project.id}/analytics`} 
-
-                                                            className="text-success hover:text-success-focus p-2 rounded-lg hover:bg-success/10 transition-colors"
-
-                                                            title="Analytics"
-
-                                                        >
-
-                                                            <TrendingUp className="h-4 w-4" />
-
-                                                        </a>
-
-                                                        <a 
-
                                                             href={`/dashboard/projects/${project.id}/settings`} 
-
                                                             className="text-base-content/60 hover:text-base-content p-2 rounded-lg hover:bg-base-300 transition-colors"
-
                                                             title="Settings"
-
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
-
                                                             <Settings className="h-4 w-4" />
-
                                                         </a>
-
                                                     </div>
-
                                                 </td>
-
                                             </tr>
-
                                         ))}
 
                                     </tbody>
