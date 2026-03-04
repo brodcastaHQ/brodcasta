@@ -1,0 +1,23 @@
+<svg width="600" height="600" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="signalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Back signal -->
+  <g transform="translate(80 130) rotate(-15)">
+    <rect x="0" y="0" width="260" height="160" rx="50" fill="url(#signalGradient)" opacity="0.85"/>
+    <circle cx="70" cy="80" r="10" fill="#E0F2FE"/>
+    <circle cx="115" cy="80" r="10" fill="#E0F2FE"/>
+    <circle cx="160" cy="80" r="10" fill="#E0F2FE"/>
+  </g>
+
+  <!-- Front signal -->
+  <g transform="translate(220 210) rotate(10)">
+    <rect x="0" y="0" width="260" height="160" rx="50" fill="#38BDF8"/>
+    <circle cx="90" cy="80" r="12" fill="#0F172A"/>
+    <circle cx="135" cy="80" r="12" fill="#0F172A"/>
+  </g>
+</svg>
