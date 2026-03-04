@@ -64,25 +64,25 @@ const ProjectSettings = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 pb-20">
-            {/* Flat Header */}
+            {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-base-300 pb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
-                    <p className="text-base-content/60 mt-1">System configuration and security protocols.</p>
+                    <h1 className="text-3xl font-bold">Project Settings</h1>
+                    <p className="text-base-content/60 mt-1">Manage your project configuration and security settings</p>
                 </div>
                 <div className="flex items-center gap-2">
                 {isEditing ? (
                     <>
-                        <button className="btn btn-ghost border border-base-300 btn-sm rounded-lg" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setIsEditing(false)} disabled={isSaving}>
                             <X size={14} /> Cancel
                         </button>
-                        <button className="btn btn-primary btn-sm rounded-lg" onClick={handleSaveProject} disabled={isSaving}>
+                        <button className="btn btn-primary btn-sm" onClick={handleSaveProject} disabled={isSaving}>
                             {isSaving ? <span className="loading loading-spinner loading-xs" /> : <Check size={14} />}
                             Save Changes
                         </button>
                     </>
                 ) : (
-                    <button className="btn btn-outline border-base-300 btn-sm rounded-lg" onClick={() => setIsEditing(true)}>
+                    <button className="btn btn-outline btn-sm" onClick={() => setIsEditing(true)}>
                         <Edit3 size={14} /> Edit Settings
                     </button>
                 )}
@@ -90,128 +90,156 @@ const ProjectSettings = () => {
             </header>
 
             {error && (
-                <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
-                    <AlertTriangle size={14} />
-                    <span className="text-sm font-bold uppercase tracking-wide">{error}</span>
+                <div className="alert alert-error">
+                    <AlertTriangle size={16} />
+                    <span>{error}</span>
                 </div>
             )}
 
-            {/* General Settings - No elevation */}
-            <section className="border border-base-300 rounded-lg">
-                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-                    <h2 className="text-sm font-bold uppercase tracking-widest">General Configuration</h2>
+            {/* General Settings */}
+            <section className="bg-base-100 rounded-xl border border-base-300">
+                <div className="p-6 border-b border-base-300">
+                    <h2 className="text-lg font-semibold">General Configuration</h2>
+                    <p className="text-sm text-base-content/60 mt-1">Basic project settings and preferences</p>
                 </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="form-control w-full gap-2 flex">
-                        <label className="label pt-0">
-                            <span className="label-text font-bold text-xs uppercase opacity-70">Project Identity</span>
+                <div className="p-6 space-y-6">
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text font-medium">Project Name</span>
                         </label>
                         <input
                             type="text"
-                            className="input input-bordered rounded-lg bg-transparent focus:outline-none focus:border-primary"
+                            className="input input-bordered"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             disabled={!isEditing}
+                            placeholder="Enter project name"
                         />
                     </div>
 
-                    <div className="form-control w-full gap-2 flex">
-                        <label className="label pt-0">
-                            <span className="label-text font-bold text-xs uppercase opacity-70">Auth Strategy</span>
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text font-medium">Authentication Type</span>
                         </label>
                         <select
-                            className="select select-bordered rounded-lg bg-transparent focus:outline-none focus:border-primary"
+                            className="select select-bordered"
                             value={formData.authType}
                             onChange={(e) => setFormData({ ...formData, authType: e.target.value })}
                             disabled={!isEditing}
                         >
-                            <option value="none">Disabled</option>
-                            <option value="api_key">API Key</option>
-                            <option value="jwt">JWT</option>
+                            <option value="none">No Authentication</option>
+                            <option value="api_key">API Key Required</option>
+                            <option value="jwt">JWT Required</option>
                         </select>
                     </div>
 
-                    <div className="md:col-span-2 p-4 border border-base-300 rounded-lg flex items-center justify-between">
-                        <div>
-                            <p className="font-bold text-sm">Message History Persistence</p>
-                            <p className="text-xs opacity-60">Store all async task results for retrospective analysis.</p>
-                        </div>
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-sm"
-                            checked={formData.historyEnabled}
-                            onChange={(e) => setFormData({ ...formData, historyEnabled: e.target.checked })}
-                            disabled={!isEditing}
-                        />
+                    <div className="form-control">
+                        <label className="label cursor-pointer">
+                            <span className="label-text font-medium">Enable Message History</span>
+                            <input
+                                type="checkbox"
+                                className="checkbox"
+                                checked={formData.historyEnabled}
+                                onChange={(e) => setFormData({ ...formData, historyEnabled: e.target.checked })}
+                                disabled={!isEditing}
+                            />
+                        </label>
+                        <label className="label">
+                            <span className="label-text-alt text-base-content/60">Store message history for analytics and debugging</span>
+                        </label>
                     </div>
                 </div>
             </section>
 
-            {/* Security - Flat and Clean */}
-            <section className="border border-base-300 rounded-lg"> 
-                <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center gap-2">
-                    <h2 className="text-sm font-bold uppercase tracking-widest">Security Credentials</h2>
+            {/* Security Settings */}
+            <section className="bg-base-100 rounded-xl border border-base-300">
+                <div className="p-6 border-b border-base-300">
+                    <h2 className="text-lg font-semibold">Security</h2>
+                    <p className="text-sm text-base-content/60 mt-1">Manage project secrets and access credentials</p>
                 </div>
                 <div className="p-6 space-y-6">
-                    <div className="p-4 bg-info/5 border border-info/20 rounded-lg text-info-content text-sm leading-relaxed">
-                        The project secret is an environment-level variable. Rotate this if your client-side keys are exposed.
+                    <div className="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <h3 className="font-bold">Project Secret</h3>
+                            <div className="text-xs">Keep this secret secure. Rotate it if you suspect it has been compromised.</div>
+                        </div>
                     </div>
 
                     {newSecret && (
-                        <div className="border border-success bg-success/5 p-4 rounded-lg animate-pulse">
-                            <p className="text-xs font-black uppercase text-success mb-2">Immediate Action Required: Copy New Secret</p>
-                            <div className="font-mono text-sm break-all bg-base-100 p-3 border border-success/30 rounded-lg select-all">
-                                {newSecret}
+                        <div className="alert alert-success">
+                            <Check size={16} />
+                            <div>
+                                <h3 className="font-bold">New Secret Generated</h3>
+                                <div className="text-sm mt-2">Copy this secret immediately. It won't be shown again.</div>
+                                <div className="font-mono text-xs bg-base-200 p-2 rounded mt-2 select-all">
+                                    {newSecret}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    <button 
-                        className="btn btn-warning btn-outline btn-sm rounded-lg border-base-300" 
-                        onClick={() => {/* handleRotateSecret */}} 
-                    >
-                        <RotateCcw size={12} /> Rotate System Secret
-                    </button>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="font-medium">Rotate Project Secret</h3>
+                            <p className="text-sm text-base-content/60">Generate a new project secret</p>
+                        </div>
+                        <button 
+                            className="btn btn-warning btn-sm" 
+                            onClick={() => {/* handleRotateSecret */}} 
+                        >
+                            <RotateCcw size={14} /> Rotate Secret
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            {/* Danger Zone - Flat High Contrast */}
-            <section className="border border-error/50 rounded-lg">
-                <div className="p-4 bg-error text-error-content rounded-t-lg flex items-center gap-2">
-                    <AlertTriangle size={14} />
-                    <h2 className="text-sm font-black uppercase tracking-tighter">Critical: Danger Zone</h2>
+            {/* Danger Zone */}
+            <section className="bg-base-100 rounded-xl border border-error/20">
+                <div className="p-6 border-b border-error/20 bg-error/5">
+                    <h2 className="text-lg font-semibold text-error">Danger Zone</h2>
+                    <p className="text-sm text-error/80 mt-1">Irreversible actions that affect your project</p>
                 </div>
                 <div className="p-6">
-                    <p className="text-sm mb-6 opacity-80">Deletion is irreversible. This will purge all associated Nexios worker logs and PostgreSQL records.</p>
-                    
-                    {!showDeleteConfirm ? (
-                        <button className="btn btn-error btn-sm rounded-lg px-8" onClick={() => setShowDeleteConfirm(true)}>
-                            Destroy Project
-                        </button>
-                    ) : (
-                        <div className="space-y-4 animate-in slide-in-from-left-1">
-                            <div className="form-control">
-                                <label className="label pt-0">
-                                    <span className="label-text text-xs font-bold uppercase">Confirm deletion by typing: <span className="text-error underline">{project?.name}</span></span>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered border-error rounded-lg w-full max-w-md bg-transparent"
-                                    value={deleteConfirmText}
-                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                                    placeholder="Project Name"
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <button className="btn btn-error btn-sm rounded-lg px-6" onClick={() => {/* handleDelete */}} disabled={deleteConfirmText !== project?.name}>
-                                    Confirm Destruction
-                                </button>
-                                <button className="btn btn-ghost border border-base-300 btn-sm rounded-lg" onClick={() => setShowDeleteConfirm(false)}>
-                                    Abort
-                                </button>
-                            </div>
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="font-medium mb-2">Delete Project</h3>
+                            <p className="text-sm text-base-content/60 mb-4">Permanently delete this project and all associated data. This action cannot be undone.</p>
                         </div>
-                    )}
+                        
+                        {!showDeleteConfirm ? (
+                            <button className="btn btn-error btn-sm" onClick={() => setShowDeleteConfirm(true)}>
+                                Delete Project
+                            </button>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text">Type <span className="font-bold text-error">{project?.name}</span> to confirm deletion</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered border-error/50"
+                                        value={deleteConfirmText}
+                                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                        placeholder="Project name"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <button 
+                                        className="btn btn-error btn-sm" 
+                                        onClick={() => {/* handleDelete */}} 
+                                        disabled={deleteConfirmText !== project?.name}
+                                    >
+                                        Confirm Delete
+                                    </button>
+                                    <button className="btn btn-ghost btn-sm" onClick={() => setShowDeleteConfirm(false)}>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </section>
         </div>
