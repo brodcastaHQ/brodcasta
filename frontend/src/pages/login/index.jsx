@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from "../../components/Navbar";
 import Loading from '../../components/ui/Loading';
 import { createClient } from '../../utils/client';
 
@@ -29,9 +28,7 @@ const Login = () => {
     };
 
     return (
-        <>
-            <Navbar />
-            <div className="min-h-screen w-full bg-base-100 flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-screen w-full bg-base-100 flex items-center justify-center relative overflow-hidden">
                 {/* Background glow effect */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
 
@@ -110,7 +107,6 @@ const Login = () => {
                     </div>
                 </div>
             </div>
-        </>
     );
 };
 
