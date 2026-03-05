@@ -6,7 +6,7 @@
   <h3>Real-time messaging and event broadcasting platform</h3>
   
   <p>
-    <strong>Brodcasta</strong> (also known as "Pingly") is a self-hosted real-time messaging platform built with modern web technologies. 
+    <strong>Brodcasta</strong> (also known as "Brodcasta") is a self-hosted real-time messaging platform built with modern web technologies. 
     It provides WebSocket and Server-Sent Events (SSE) connections for building real-time applications.
   </p>
 </div>
@@ -137,9 +137,9 @@ npm install brodcasta-sdk
 ### Basic Usage
 
 ```typescript
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';  
 
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'http://localhost:8041',
   projectId: 'your-project-id',
   projectSecret: 'your-project-secret',

@@ -1,6 +1,6 @@
 ﻿# Brodcasta SDK
 
-A clean, typed TypeScript client for connecting to the Brodcasta/Pingly platform. It supports WebSocket and SSE with automatic fallback, room management, and strongly typed events.
+A clean, typed TypeScript client for connecting to the Brodcasta platform. It supports WebSocket and SSE with automatic fallback, room management, and strongly typed events.
 
 ## Features
 - WS first with automatic fallback to SSE
@@ -20,13 +20,13 @@ pnpm add ../sdk
 Then import:
 
 ```ts
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 ```
 
 ## Quick Start
 
 ```ts
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 
 type InboundEvents = {
   'message.received': { room_id: string; message: string; sender_id: string };
@@ -40,8 +40,8 @@ type OutboundEvents = {
   'message.direct': { target_client_id: string; message: string };
 };
 
-const client = new PinglyClient<InboundEvents, OutboundEvents>({
-  baseUrl: 'https://api.pingly.dev',
+const client = new BrodcastaClient<InboundEvents, OutboundEvents>({
+  baseUrl: 'https://api.Brodcastay.dev',
   projectId: 'your_project_id',
   projectSecret: 'your_project_secret',
   wsPath: '/ws/{projectId}',
@@ -67,7 +67,7 @@ await client.sendMessage('global', 'hello world');
 
 ## API
 
-### `new PinglyClient(options)`
+### `new BrodcastaClient(options)`
 
 Key options:
 - `baseUrl` (required): Base HTTP URL for the platform

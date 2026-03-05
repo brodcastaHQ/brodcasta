@@ -152,9 +152,9 @@ npm install brodcasta-sdk
 
 Create a test client:
 ```javascript
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'http://localhost:8041',
   projectId: 'your-project-id',
   projectSecret: 'your-project-secret',

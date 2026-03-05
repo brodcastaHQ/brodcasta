@@ -1,11 +1,11 @@
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastayClient } from 'brodcasta-sdk';
 import { AlertTriangle, Link, Link2Off, PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
-const DEFAULT_ROOM = 'pingly_default';
+const DEFAULT_ROOM = 'Brodcastay_default';
 const MAX_LOGS = 200;
 
 // Hide low-signal connection bootstrap events from the log list.
@@ -127,7 +127,7 @@ const ProjectPlayground = () => {
     setConnectionError('');
     setState('connecting');
 
-    const client = new PinglyClient({
+    const client = new BrodcastaClient({
       baseUrl: sdkBaseUrl,
       projectId,
       projectSecret: secret,

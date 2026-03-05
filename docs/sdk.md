@@ -13,9 +13,9 @@ npm install brodcasta-sdk
 ### Initialize Client
 
 ```typescript
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'https://your-brodcasta-instance.com',
   projectId: 'your-project-id',
   projectSecret: 'your-project-secret',
@@ -76,7 +76,7 @@ client.onEvent('user.left', (data) => {
 ### Client Options
 
 ```typescript
-interface PinglyClientOptions {
+interface BrodcastaClientOptions {
   // Required
   baseUrl: string;
   projectId: string;
@@ -151,7 +151,7 @@ type OutboundEvents = {
 };
 
 // Create typed client
-const client = new PinglyClient<InboundEvents, OutboundEvents>({
+const client = new BrodcastaClient<InboundEvents, OutboundEvents>({
   baseUrl: 'https://api.example.com',
   projectId: 'proj_123',
   projectSecret: 'secret_abc'
@@ -323,7 +323,7 @@ client.off('message.received', listener);
 ### Custom Event Parsing
 
 ```typescript
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'https://api.example.com',
   projectId: 'proj_123',
   projectSecret: 'secret_abc',
@@ -341,7 +341,7 @@ const client = new PinglyClient({
 ### Custom Send Formatting
 
 ```typescript
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'https://api.example.com',
   projectId: 'proj_123',
   projectSecret: 'secret_abc',
@@ -359,7 +359,7 @@ const client = new PinglyClient({
 ### Custom Headers
 
 ```typescript
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'https://api.example.com',
   projectId: 'proj_123',
   projectSecret: 'secret_abc',
@@ -373,7 +373,7 @@ const client = new PinglyClient({
 ### Reconnection Configuration
 
 ```typescript
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   baseUrl: 'https://api.example.com',
   projectId: 'proj_123',
   projectSecret: 'secret_abc',
@@ -423,7 +423,7 @@ try {
 ### Chat Application
 
 ```typescript
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 
 type ChatEvents = {
   'message.received': {
@@ -446,12 +446,12 @@ type ChatEvents = {
 };
 
 class ChatApp {
-  private client: PinglyClient<ChatEvents, {}>;
+  private client: BrodcastaClient<ChatEvents, {}>;
   private currentRoom = 'general';
   private username = '';
 
   constructor() {
-    this.client = new PinglyClient<ChatEvents, {}>({
+    this.client = new BrodcastaClient<ChatEvents, {}>({
       baseUrl: 'https://chat.example.com',
       projectId: 'chat-app',
       projectSecret: 'your-secret',
@@ -501,7 +501,7 @@ class ChatApp {
 ### Real-time Dashboard
 
 ```typescript
-import { PinglyClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 
 type DashboardEvents = {
   'stats.update': {
@@ -517,10 +517,10 @@ type DashboardEvents = {
 };
 
 class Dashboard {
-  private client: PinglyClient<DashboardEvents, {}>;
+  private client: BrodcastaClient<DashboardEvents, {}>;
 
   constructor() {
-    this.client = new PinglyClient<DashboardEvents, {}>({
+    this.client = new BrodcastaClient<DashboardEvents, {}>({
       baseUrl: 'https://monitoring.example.com',
       projectId: 'dashboard',
       projectSecret: 'monitoring-secret'
@@ -583,7 +583,7 @@ class Dashboard {
 Enable debug logging:
 
 ```typescript
-const client = new PinglyClient({
+const client = new BrodcastaClient({
   // ... other options
   debug: true  // Enable console logging
 });

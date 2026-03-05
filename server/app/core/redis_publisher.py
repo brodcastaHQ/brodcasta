@@ -30,7 +30,7 @@ class RedisPublisher:
     def __init__(self):
         self.logger = RedisPublisherLogger.get_logger()
         self._redis: Optional[redis.Redis] = None
-        self._channel_prefix = "pingly_events"
+        self._channel_prefix = "brodcasta_events"
     
     # -------------------- CONNECTION --------------------
     

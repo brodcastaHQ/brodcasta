@@ -79,9 +79,9 @@ const Sidebar = () => {
 
                 <Link to="/" className="flex items-center gap-2">
 
-                    <img src="/logo.svg" alt="Pingly Logo" className="w-8 h-8 object-contain" />
+                    <img src="/logo.svg" alt="Brodcastay Logo" className="w-8 h-8 object-contain" />
 
-                    <span className="font-bold text-lg">Pingly</span>
+                    <span className="font-bold text-lg">Brodcastay</span>
 
                 </Link>
 

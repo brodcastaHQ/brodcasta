@@ -1,4 +1,4 @@
-﻿export { PinglyClient } from './client';
+﻿export { BrodcastaClient } from './client';
 export type {
   ClientEventMap,
   ClientOptions,

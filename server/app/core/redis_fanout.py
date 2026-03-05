@@ -35,7 +35,7 @@ class RedisFanout:
         self._pubsub: Optional[redis.client.PubSub] = None
         self._listener_task: Optional[asyncio.Task] = None
         self._running = False
-        self._channel_prefix = "pingly_events"
+        self._channel_prefix = "brodcasta_events"
     
     # -------------------- CONNECTION --------------------
     

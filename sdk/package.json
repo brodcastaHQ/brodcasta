@@ -1,7 +1,7 @@
 ﻿{
   "name": "brodcasta-sdk",
   "version": "0.1.0",
-  "description": "Typed client SDK for the Brodcasta/Pingly realtime platform",
+  "description": "Typed client SDK for the Brodcasta realtime platform",
   "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",

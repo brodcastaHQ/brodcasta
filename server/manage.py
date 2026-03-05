@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Management script for the Pingly server application.
+Management script for the Brodcasta server application.
 Provides CLI commands for database management, migrations, and other administrative tasks.
 """
 
@@ -17,11 +17,11 @@ from cli.db import db
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="pingly-server")
+@click.version_option(version="0.1.0", prog_name="Brodcasta-server")
 def cli():
-    """Pingly Server Management CLI
+    """Brodcasta Server Management CLI
     
-    A command-line interface for managing the Pingly server application,
+    A command-line interface for managing the Brodcasta server application,
     including database operations, migrations, and other administrative tasks.
     """
     pass
@@ -46,7 +46,7 @@ def shell():
         # Import models for easy access
         from models import Account
         
-        print("Pingly Server Shell")
+        print("Brodcasta Server Shell")
         print("Available models: Account")
         print("Database connection established")
         print("Type 'exit()' to quit")

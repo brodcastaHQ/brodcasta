@@ -21,10 +21,10 @@ from events import emitter as _
 from services.analytics_tracker import AnalyticsTracker
 
 app = NexiosApp(
-    title="Pingly",
+    title="Brodcasta",
     version="0.1.0",
     description="""
-    Pingly
+    Brodcasta
     """,
     
     config=MakeConfig(

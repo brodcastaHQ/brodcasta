@@ -112,7 +112,7 @@ const ProjectOverview = () => {
                                 </div>
                             </div>
                             <a 
-                                href="https://docs.pingly.dev" 
+                                href="https://docs.Brodcastay.dev" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center px-4 py-2 border border-primary/30 rounded-lg text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
@@ -183,7 +183,7 @@ const ProjectOverview = () => {
                         <div className="lg:col-span-2 bg-base-100 rounded-xl border border-base-300 p-8">
                             <h2 className="text-xl font-bold mb-6 text-base-content">Quick Integration</h2>
                             <div className="bg-base-200 rounded-xl p-6 font-mono text-md relative border border-base-300">
-                                <div className="text-base-content/40 mb-2">// Connect to Pingly</div>
+                                <div className="text-base-content/40 mb-2">// Connect to Brodcastay</div>
                                 <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
                                 <div className="my-2"></div>
                                 <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
@@ -212,7 +212,7 @@ const ProjectOverview = () => {
                             </div>
                             <div className="border-t border-base-300 my-4 pt-4">
                                 <a 
-                                    href="https://docs.pingly.dev" 
+                                    href="https://docs.Brodcastay.dev" 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center w-full px-4 py-2 border border-base-300 rounded-lg text-sm font-medium text-base-content bg-base-100 hover:bg-base-200 transition-colors justify-center"

@@ -106,7 +106,7 @@ function nextDelay(attempt: number, minDelay: number, maxDelay: number, jitter: 
   return Math.round(base + (Math.random() * 2 - 1) * delta);
 }
 
-export class PinglyClient<Inbound extends EventMap = EventMap, Outbound extends EventMap = EventMap> {
+export class BrodcastaClient<Inbound extends EventMap = EventMap, Outbound extends EventMap = EventMap> {
   private options: ClientOptions<Inbound, Outbound>;
   private emitter = new TypedEventEmitter<ClientEventMap<Inbound>>();
   private eventListeners = new Map<string, Set<(data: unknown) => void>>();

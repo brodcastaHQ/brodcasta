@@ -30,7 +30,7 @@ class ConnectionStore(ChannelBox):
     CHANNEL_GROUPS: dict[str, dict[str, dict[Channel, ...]]] = {}
     CHANNEL_GROUPS_HISTORY: dict[str, dict[str, deque]] = {}
     MEMORY_HISTORY_SIZE = 100
-    DEFAULT_ROOM = "pingly_default"
+    DEFAULT_ROOM = "brodcasta_default"
 
     store_message_hook = None
     get_history_hook = None
