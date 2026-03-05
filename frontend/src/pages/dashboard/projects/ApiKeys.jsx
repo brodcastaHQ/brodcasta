@@ -81,7 +81,7 @@ const ApiKeys = () => {
                         Project Secret
                     </h1>
                     <p className="text-base-content/60 mt-2">
-                        Manage your project's secret for secure access to Brodcastay services
+                        Manage your project's secret for secure access to Brodcasta services
                     </p>
                 </div>
                 <button
@@ -184,7 +184,7 @@ const ApiKeys = () => {
                     <Key className="mx-auto h-16 w-16 text-base-content/20 mb-4" />
                     <h3 className="text-lg font-semibold text-base-content mb-2">No Secret Available</h3>
                     <p className="text-base-content/60 mb-6 max-w-md mx-auto">
-                        Generate a project secret to start integrating with Brodcastay services
+                        Generate a project secret to start integrating with Brodcasta services
                     </p>
                     <button
                         onClick={rotateProjectSecret}
@@ -204,7 +204,7 @@ const ApiKeys = () => {
                         Quick Integration
                     </h2>
                     <div className="bg-neutral/5 rounded-xl p-6 font-mono text-md relative border border-base-200/40">
-                        <div className="text-base-content/40 mb-2">// Connect to Brodcastay</div>
+                        <div className="text-base-content/40 mb-2">// Connect to Brodcasta</div>
                         <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
                         <div className="my-2"></div>
                         <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>

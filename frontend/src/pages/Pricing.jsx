@@ -190,7 +190,7 @@ const Pricing = () => {
                 </li>
               </ul>
               
-              <a href="mailto:sales@Brodcastay.dev" className="w-full inline-flex items-center justify-center px-6 py-3 border border-base-300 rounded-full font-medium hover:bg-base-200 transition-colors">
+              <a href="mailto:sales@Brodcasta.dev" className="w-full inline-flex items-center justify-center px-6 py-3 border border-base-300 rounded-full font-medium hover:bg-base-200 transition-colors">
                 Contact Sales
                 <ChevronRight className="w-4 h-4 ml-2" />
               </a>
@@ -285,7 +285,7 @@ const Pricing = () => {
               Ready to Get Started?
             </h2>
             <p className="text-lg text-base-content/70 mb-8">
-              Join thousands of developers building real-time applications with Brodcastay.
+              Join thousands of developers building real-time applications with Brodcasta.
             </p>
             <Link to="/dashboard" className="inline-flex items-center px-8 py-4 bg-primary text-primary-content rounded-full font-medium hover:bg-primary-focus transition-colors">
               Start Free Trial

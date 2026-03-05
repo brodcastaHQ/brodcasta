@@ -112,7 +112,7 @@ const ProjectOverview = () => {
                                 </div>
                             </div>
                             <a 
-                                href="https://docs.Brodcastay.dev" 
+                                href="https://docs.Brodcasta.dev" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center px-4 py-2 border border-primary/30 rounded-lg text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
@@ -183,12 +183,24 @@ const ProjectOverview = () => {
                         <div className="lg:col-span-2 bg-base-100 rounded-xl border border-base-300 p-8">
                             <h2 className="text-xl font-bold mb-6 text-base-content">Quick Integration</h2>
                             <div className="bg-base-200 rounded-xl p-6 font-mono text-md relative border border-base-300">
-                                <div className="text-base-content/40 mb-2">// Connect to Brodcastay</div>
-                                <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
+                                <div className="text-base-content/40 mb-2">// Install the SDK</div>
+                                <div className="text-primary">npm install<span className="text-base-content"> brodcasta-sdk</span></div>
+                                <div className="my-3"></div>
+                                <div className="text-base-content/40 mb-2">// Connect to Brodcasta</div>
+                                <div className="text-primary">import<span className="text-base-content"> {'{'} BrodcastaClient {'}'} </span><span className="text-base-content">from </span><span className="text-success">'brodcasta-sdk'</span><span className="text-base-content">;</span></div>
                                 <div className="my-2"></div>
-                                <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
-                                <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
-                                <div className="text-base-content">{'}'};</div>
+                                <div className="text-primary">const<span className="text-base-content"> client = </span><span className="text-secondary">new</span><span className="text-base-content"> BrodcastaClient({'{'}</span></div>
+                                <div className="pl-4 text-base-content">  <span className="text-base-content">baseUrl: </span><span className="text-success">'https://your-brodcasta-instance.com'</span><span className="text-base-content">,</span></div>
+                                <div className="pl-4 text-base-content">  <span className="text-base-content">projectId: </span><span className="text-success">'{projectId}'</span><span className="text-base-content">,</span></div>
+                                <div className="pl-4 text-base-content">  <span className="text-base-content">projectSecret: </span><span className="text-success">'your-project-secret'</span><span className="text-base-content">,</span></div>
+                                <div className="pl-4 text-base-content">  <span className="text-base-content">room: </span><span className="text-success">'general'</span><span className="text-base-content">,</span></div>
+                                <div className="text-base-content">{'}'});</div>
+                                <div className="my-2"></div>
+                                <div className="text-primary">await<span className="text-base-content"> client.connect();</span></div>
+                                <div className="my-2"></div>
+                                <div className="text-primary">client.onEvent</div><span className="text-base-content">(<span className="text-success">'message.received'</span>, (data) =&gt; {'{'}</span></div>
+                                <div className="pl-4 text-base-content">  <span className="text-base-content">console.log(</span><span className="text-success">'Message:'</span><span className="text-base-content">, data.message);</span></div>
+                                <div className="text-base-content">{'}'});</div>
                             </div>
                         </div>
 
@@ -212,7 +224,7 @@ const ProjectOverview = () => {
                             </div>
                             <div className="border-t border-base-300 my-4 pt-4">
                                 <a 
-                                    href="https://docs.Brodcastay.dev" 
+                                    href="https://docs.Brodcasta.dev" 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center w-full px-4 py-2 border border-base-300 rounded-lg text-sm font-medium text-base-content bg-base-100 hover:bg-base-200 transition-colors justify-center"
@@ -225,7 +237,6 @@ const ProjectOverview = () => {
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 

@@ -13,8 +13,8 @@ const LandingNavbar = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-8">
                 <Link to="/" className="flex items-center space-x-2">
-                  <img src="/logo.svg" alt="Brodcastay" className="w-8 h-8" />
-                  <span className="text-lg font-bold text-base-content">Brodcastay</span>
+                  <img src="/logo.svg" alt="Brodcasta" className="w-8 h-8" />
+                  <span className="text-lg font-bold text-base-content">Brodcasta</span>
                 </Link>
                 
                 <div className="hidden md:flex items-center space-x-6">

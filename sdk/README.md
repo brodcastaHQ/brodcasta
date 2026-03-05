@@ -41,7 +41,7 @@ type OutboundEvents = {
 };
 
 const client = new BrodcastaClient<InboundEvents, OutboundEvents>({
-  baseUrl: 'https://api.Brodcastay.dev',
+  baseUrl: 'https://api.Brodcasta.dev',
   projectId: 'your_project_id',
   projectSecret: 'your_project_secret',
   wsPath: '/ws/{projectId}',

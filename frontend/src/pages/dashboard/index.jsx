@@ -206,7 +206,7 @@ const Dashboard = () => {
 
                                 <div>
 
-                                    <h3 className="text-lg font-semibold text-base-content">Getting Started with Brodcastay</h3>
+                                    <h3 className="text-lg font-semibold text-base-content">Getting Started with Brodcasta</h3>
 
                                     <p className="text-base-content/70 text-sm mt-1">
 
@@ -220,7 +220,7 @@ const Dashboard = () => {
 
                             <a 
 
-                                href="https://docs.Brodcastay.dev" 
+                                href="https://docs.Brodcasta.dev" 
 
                                 target="_blank"
 

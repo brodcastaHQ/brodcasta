@@ -1,11 +1,11 @@
-import { BrodcastayClient } from 'brodcasta-sdk';
+import { BrodcastaClient } from 'brodcasta-sdk';
 import { AlertTriangle, Link, Link2Off, PlugZap, RefreshCcw, Send, Terminal } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 
-const DEFAULT_ROOM = 'Brodcastay_default';
+const DEFAULT_ROOM = 'brodcasta_default';
 const MAX_LOGS = 200;
 
 // Hide low-signal connection bootstrap events from the log list.
@@ -78,7 +78,7 @@ const ProjectPlayground = () => {
   const [rooms, setRooms] = useState([DEFAULT_ROOM]);
 
   const [eventType, setEventType] = useState('message.send');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('{"text": "Hello World!"}');
   const [targetClientId, setTargetClientId] = useState('');
 
   const [logs, setLogs] = useState([]);
@@ -571,13 +571,20 @@ const ProjectPlayground = () => {
                       Prettify JSON
                     </button>
                   </div>
+                  
+                  {/* JSON Warning */}
+                  <div className="alert alert-warning">
+                    <AlertTriangle size={14} />
+                    <span className="text-xs font-medium">Only JSON messages are allowed</span>
+                  </div>
+                  
                   <textarea
                     className="textarea w-full textarea-bordered rounded-lg font-mono text-sm min-h-[120px]"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder={eventType === 'message.send' 
-                      ? `Message to ${room.trim() || 'room'} (supports JSON)` 
-                      : 'Message content (supports JSON)'
+                      ? `JSON message to ${room.trim() || 'room'} (e.g., {"text": "Hello!"})` 
+                      : 'JSON message content (e.g., {"text": "Hello!"})'
                     }
                     disabled={!connected}
                     onKeyDown={(event) => {
@@ -589,8 +596,8 @@ const ProjectPlayground = () => {
                   />
                   <p className="text-[11px] text-base-content/50">
                     {eventType === 'message.send' 
-                      ? `Room must be attached before publishing. Ctrl+Enter to send.`
-                      : 'Ctrl+Enter to send.'
+                      ? `Room must be attached before publishing. Ctrl+Enter to send. Messages must be valid JSON.`
+                      : 'Ctrl+Enter to send. Messages must be valid JSON.'
                     }
                   </p>
                 </div>
