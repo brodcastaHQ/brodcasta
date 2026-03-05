@@ -21,10 +21,17 @@ export const createClient = (prefix = '') => {
         withCredentials: true,
     });
 
-    // Add response interceptor for global error handling if needed later
+    // Add response interceptor for global error handling
     client.interceptors.response.use(
         (response) => response,
         (error) => {
+            // Handle 401 unauthorized responses globally
+            if (error.response?.status === 401) {
+                // Only redirect if we're not already on the login page
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+            }
             return Promise.reject(error);
         }
     );
