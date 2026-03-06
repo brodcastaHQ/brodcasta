@@ -11,13 +11,13 @@ DB_NAME = os.getenv('DB_NAME', 'brodcasta')
 async def create_superuser():
     try:
        
-        if Account.filter(role=Role.ADMIN).exists():
+        if await Account.filter(role=Role.ADMIN).exists():
             print('Superuser already exists')
             return
         await Account.create_user(
             email='admin@brodcasta.dev',
             password='admin123',
-            full_name='Admin User',
+            name='Admin User',
             role=Role.ADMIN
         )
         print('Superuser created: admin@brodcasta.dev / admin123')
