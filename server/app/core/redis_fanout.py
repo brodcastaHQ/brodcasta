@@ -39,7 +39,8 @@ class RedisFanout:
     
     # -------------------- CONNECTION --------------------
     
-    async def connect(self, host="localhost", port=6379, db=0, password=None):
+    async def connect(self, host, port, db, password=None):
+        print("Connecting to Redis...",host)
         self._redis = redis.Redis(
             host=host,
             port=port,

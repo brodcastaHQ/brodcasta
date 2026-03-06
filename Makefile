@@ -22,6 +22,7 @@ build:
 # Development environment
 dev:
 	@echo "Starting development environment..."
+	docker compose build --no-cache
 	docker compose up -d
 	@echo "Services starting at:"
 	@echo "  Frontend: http://localhost:3000"

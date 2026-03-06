@@ -13,12 +13,12 @@ from nexios.middleware.cors import CORSMiddleware,CorsConfig
 from app.core.auth_backend import JWTAuthBackend
 from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
-from socketify import ASGI
 from app.core.redis_fanout import redis_fanout
 from app.core.redis_publisher import redis_publisher
 import asyncio
 from events import emitter as _
 from services.analytics_tracker import AnalyticsTracker
+import os
 
 app = NexiosApp(
     title="Brodcasta",
@@ -68,13 +68,21 @@ app.add_middleware(AuthenticationMiddleware(
 @app.on_startup
 async def startup():
     # Connect Redis fanout (listener)
-    await redis_fanout.connect()
+    await redis_fanout.connect(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", 6379)),
+        db=int(os.getenv("REDIS_DB", 0))
+    )
     redis_fanout._listener_task = asyncio.create_task(
         redis_fanout.start_listening()
     )
     
     # Connect Redis publisher
-    await redis_publisher.connect()
+    await redis_publisher.connect(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", 6379)),
+        db=int(os.getenv("REDIS_DB", 0))
+    )
     
     print("✅ Redis services started")
 
