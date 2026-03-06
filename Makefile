@@ -74,7 +74,7 @@ migrate:
 # Create superuser
 createsuperuser:
 	@echo "Creating superuser..."
-	docker compose exec backend python scripts/create-superuser.py
+	docker compose exec backend sh -c "cd scripts && python create-superuser.py"
 
 # Run tests
 test:

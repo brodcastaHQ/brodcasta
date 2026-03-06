@@ -91,7 +91,7 @@ async def login(request: Request,response: Response):
     # Find user by email
     user = await Account.get_or_none(email=login_data.email)
     if not user:
-        return Response.json(
+        return response.json(
             {"detail": "Invalid credentials"},
             status_code=status.HTTP_401_UNAUTHORIZED
         )

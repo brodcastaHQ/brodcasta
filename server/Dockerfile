@@ -26,6 +26,7 @@ RUN uv sync --frozen --no-cache
 
 
 # Copy the rest of the app
+
 COPY . .
 
 # Create non-root user

@@ -18,6 +18,7 @@ from app.core.redis_publisher import redis_publisher
 import asyncio
 from events import emitter as _
 from services.analytics_tracker import AnalyticsTracker
+from scripts.create_superuser import create_superuser
 import os
 
 app = NexiosApp(
@@ -85,6 +86,7 @@ async def startup():
     )
     
     print("✅ Redis services started")
+    await create_superuser()
 
 @app.on_shutdown
 async def shutdown():
