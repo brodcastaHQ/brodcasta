@@ -82,6 +82,7 @@ const ProjectPlayground = () => {
   const [targetClientId, setTargetClientId] = useState('');
 
   const [logs, setLogs] = useState([]);
+  const [allLogs, setAllLogs] = useState({}); // Store logs per room
 
   const clientRef = useRef(null);
   const cleanupRef = useRef([]);
@@ -95,11 +96,33 @@ const ProjectPlayground = () => {
   const connected = state === 'open';
   const busy = state === 'connecting' || state === 'reconnecting';
 
-  const pushEventLog = (eventName, payload) => {
-    setLogs((prev) => {
-      const next = [{ time: new Date(), event: eventName, data: payload }, ...prev];
-      return next.slice(0, MAX_LOGS);
+  const pushEventLog = (eventName, payload, room = null) => {
+    const logEntry = { time: new Date(), event: eventName, data: payload, room };
+    
+    setAllLogs((prev) => {
+      const roomKey = room || 'global';
+      const currentRoomLogs = prev[roomKey] || [];
+      const nextLogs = [logEntry, ...currentRoomLogs].slice(0, MAX_LOGS);
+      return {
+        ...prev,
+        [roomKey]: nextLogs
+      };
     });
+    
+    // Only update displayed logs if this belongs to current room
+    if (room === room.trim() || (!room && room.trim() === DEFAULT_ROOM)) {
+      setLogs((prev) => {
+        const next = [logEntry, ...prev];
+        return next.slice(0, MAX_LOGS);
+      });
+    }
+  };
+
+  const switchRoom = (newRoom) => {
+    setRoom(newRoom);
+    // Load logs for the new room
+    const roomKey = newRoom || 'global';
+    setLogs(allLogs[roomKey] || []);
   };
 
   const disconnect = () => {
@@ -148,7 +171,14 @@ const ProjectPlayground = () => {
         console.log('message', event, data);
         const eventName = String(event);
         if (HIDDEN_EVENTS.has(eventName)) return;
-        pushEventLog(eventName, data);
+        
+        // Extract room information from message data if available
+        let messageRoom = null;
+        if (data && typeof data === 'object') {
+          messageRoom = data.room_id || data.room || null;
+        }
+        
+        pushEventLog(eventName, data, messageRoom);
       }),
     ];
 
@@ -168,7 +198,8 @@ const ProjectPlayground = () => {
     try {
       await clientRef.current.join(roomId);
       setRooms((prev) => (prev.includes(roomId) ? prev : [roomId, ...prev]));
-      setRoom(roomId);
+      // Auto-switch to the newly attached room
+      switchRoom(roomId);
     } catch (err) {
       console.error(err);
       setConnectionError(err?.message || 'Failed to attach room');
@@ -228,6 +259,7 @@ const ProjectPlayground = () => {
     const fetchProject = async () => {
       disconnect();
       setLogs([]);
+      setAllLogs({});
       setRooms([DEFAULT_ROOM]);
       setRoom(DEFAULT_ROOM);
 
@@ -386,9 +418,17 @@ const ProjectPlayground = () => {
           <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between flex-shrink-0">
             <div>
               <h2 className="text-sm font-bold uppercase tracking-widest">Event Logs</h2>
-              <p className="text-[11px] text-base-content/50">Real-time events and messages</p>
+              <p className="text-[11px] text-base-content/50">
+                Real-time events and messages
+                {room !== DEFAULT_ROOM && (
+                  <> for room: <span className="font-mono text-primary">{room}</span></>
+                )}
+              </p>
             </div>
-            <button className="btn btn-ghost btn-xs rounded-lg" onClick={() => setLogs([])}>
+            <button className="btn btn-ghost btn-xs rounded-lg" onClick={() => {
+              setAllLogs(prev => ({ ...prev, [room || 'global']: [] }));
+              setLogs([]);
+            }}>
               Clear
             </button>
           </div>
@@ -417,7 +457,14 @@ const ProjectPlayground = () => {
                       </td>
                       <td className="font-mono text-[11px]">{entry.event}</td>
                       <td className="text-[11px]">
-                        <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
+                        <div className="flex items-center gap-2">
+                          {entry.room && (
+                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono">
+                              {entry.room}
+                            </span>
+                          )}
+                          <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
+                        </div>
                         {entry.data && typeof entry.data === 'object' ? (
                           
                           <details className="mt-2">
@@ -510,7 +557,7 @@ const ProjectPlayground = () => {
                           ? 'border-primary/30 bg-primary/10 text-primary'
                           : 'border-base-200 bg-base-200/40 text-base-content/70 hover:bg-base-200'
                       }`}
-                      onClick={() => setRoom(item)}
+                      onClick={() => switchRoom(item)}
                       type="button"
                     >
                       {item}
