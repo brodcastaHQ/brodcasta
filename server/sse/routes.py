@@ -16,13 +16,15 @@ router = Router(prefix="/sse", tags=["poll"])
 async def poll_connect(request: Request, response: Response):
     """Start a long-polling connection"""
     project_id = request.path_params["project_id"]
+    # Make secret optional for now - will be used for JWT authentication later
     secret = request.query_params.get("secret")
     
     # Validate project
     project = await Project.get_or_none(id=project_id)
-    if not project or project.project_secret != secret:
-        response.status(401)
-        return {"error": "Invalid credentials"}
+    if not project:
+        return response.json({"error":"project not found"},status_code=404)
+    
+   
     
     # Create HTTP channel for long polling
     channel = SSEChannel(response, payload_type="json",project=project)
@@ -48,13 +50,17 @@ async def poll_connect(request: Request, response: Response):
 async def poll_send(request: Request, response: Response):
     """Send message via HTTP (for long-polling clients)"""
     project_id = request.path_params["project_id"]
+    # Make secret optional for now - will be used for JWT authentication later
     secret = request.query_params.get("secret")
     
     # Validate project
     project = await Project.get_or_none(id=project_id)
-    if not project or project.project_secret != secret:
-        response.status(401)
-        return {"error": "Invalid credentials"}
+    if not project:
+        return response.json({"error": "Project not found"},status_code=404)
+    
+    # Optional secret validation - will be replaced with JWT token validation
+    if secret and project.project_secret != secret:
+        return response.json({"error": "Invalid credentials"},status_code=401)
     
     try:
         data = await request.json
@@ -63,48 +69,47 @@ async def poll_send(request: Request, response: Response):
         event_data = data.get("data")
         
         if not client_token:
-            response.status(401)
-            return {"error": "client_token required"}
+            return response.json({"error": "client_token required"},status_code=401)
 
         if not event_type:
-            response.status_code = 400
-            return {"error": "event_type required"}
+            return response.json({"error": "event_type required"},status_code=400)
 
         # Validate token and get client_id
         try:
             client_id = validate_hmac_token(client_token)
         except ValueError:
-            response.status_code = 401
-            return {"error": "Invalid client_token"}
+            return response.json({"error": "Invalid client_token"},status_code=401)
 
         # Get the actual channel from connection store
         channel = await ConnectionStore.get_channel_by_id(project_id, client_id)
         if not channel:
-            response.status(404)
-            return {"error": "Client session not found"}
+            return response.json({"error": "Client session not found"},status_code=404)
         
         # Emit the event using the REAL channel
         emitter.emit(event_type, channel, project_id, event_data)
         
-        return {"status": "sent", "event_type": event_type}
+        return response.json({"status": "sent", "event_type": event_type})
         
     except Exception as e:
         print(f"Poll send error: {e}")
-        response.status(500)
-        return {"error": "Send failed"}
+        return response.json({"error": "Send failed"},status_code=500)
 
 
 @router.get("/{project_id}/stats")
 async def get_poll_stats(request: Request, response: Response):
     """Get connection statistics"""
     project_id = request.path_params["project_id"]
+    # Make secret optional for now - will be used for JWT authentication later
     secret = request.query_params.get("secret")
     
     # Validate project
     project = await Project.get_or_none(id=project_id)
-    if not project or project.project_secret != secret:
-        response.status_code = 401
-        return {"error": "Invalid credentials"}
+    if not project:
+        return response.json({"error": "Project not found"},status_code=404)
+    
+    # Optional secret validation - will be replaced with JWT token validation
+    if secret and project.project_secret != secret:
+        return response.json({"error": "Invalid credentials"},status_code=401)
     
     # Get connection stats
     total_connections = await ConnectionStore.count_connections_in_tenant(project_id)
@@ -115,9 +120,9 @@ async def get_poll_stats(request: Request, response: Response):
     for room_id, channels in tenant_rooms.items():
         room_stats[room_id] = len(channels)
     
-    return {
+    return response.json({
         "project_id": project_id,
         "total_connections": total_connections,
         "rooms": room_stats,
         "transport": "long_poll"
-    }
+    })

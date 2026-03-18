@@ -15,17 +15,13 @@ logger = create_logger(__name__)
 @router.ws_route("/{project_id}")
 async def ws_gateway(websocket: WebSocket):
     project_id = websocket.path_params["project_id"]
+    # Make secret optional for now - will be used for JWT authentication later
     secret = websocket.query_params.get("secret")
     project = await Project.get_or_none(id=project_id)
     if not project:
         logger.error(f"Project not found: {project_id}")
         await websocket.close()
         return
-    if project.project_secret != secret:
-        logger.error(f"Invalid secret for project: {project_id}")
-        await websocket.close()
-        return
-
     await websocket.accept()
     channel = WebSocketChannel(websocket,payload_type="json",project=project)
     emitter.emit("client.connected", channel,project_id)
