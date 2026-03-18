@@ -49,7 +49,7 @@ app = NexiosApp(
         Group("/ws", routes=[
             Group(ws_router.prefix, ws_router)
         ])
-    ]
+    ] #type:ignore
 )
 
 init_tortoise(app, 

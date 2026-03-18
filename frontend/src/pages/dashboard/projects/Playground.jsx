@@ -66,8 +66,8 @@ const ProjectPlayground = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [secret, setSecret] = useState('');
-  const [secretError, setSecretError] = useState('');
+  const [token, setToken] = useState('');
+  const [authError, setAuthError] = useState('');
 
   const [state, setState] = useState('idle');
   const [transport, setTransport] = useState(null);
@@ -140,20 +140,19 @@ const ProjectPlayground = () => {
   };
 
   const connect = async () => {
-    if (!secret) {
-      setSecretError('Project secret required to connect.');
+    if (!token) {
+      setAuthError('Token required to connect.');
       return;
     }
 
     disconnect();
-    setSecretError('');
+    setAuthError('');
     setConnectionError('');
     setState('connecting');
 
     const client = new BrodcastaClient({
       baseUrl: sdkBaseUrl,
       projectId,
-      projectSecret: secret,
       prefer,
       fallbackToSse: true,
       autoConnect: false,
@@ -183,7 +182,7 @@ const ProjectPlayground = () => {
     ];
 
     try {
-      await client.connect();
+      await client.connect(token);
     } catch (err) {
       console.error(err);
       setConnectionError(err?.message || 'Failed to connect');
@@ -265,7 +264,7 @@ const ProjectPlayground = () => {
 
       setLoading(true);
       setError('');
-      setSecretError('');
+      setAuthError('');
       setConnectionError('');
 
       try {
@@ -284,13 +283,14 @@ const ProjectPlayground = () => {
         }
 
         if (secretRes.status === 'fulfilled') {
-          setSecret(secretRes.value.data?.project_secret || '');
-          if (!secretRes.value.data?.project_secret) {
-            setSecretError('Project secret is missing. Paste it below.');
+          // For now, we'll use project secret as token (until JWT is implemented)
+          if (secretRes.value.data?.project_secret) {
+            setToken(secretRes.value.data.project_secret);
+          } else {
+            setAuthError('No token available. Provide a token below.');
           }
         } else {
-          setSecret('');
-          setSecretError('Could not fetch project secret. Paste it below.');
+          setAuthError('Could not fetch authentication. Provide a token below.');
         }
       } catch (err) {
         console.error(err);
@@ -387,7 +387,7 @@ const ProjectPlayground = () => {
             <button
               className="btn btn-primary btn-md join-item shadow-none rounded-lg"
               onClick={connected ? disconnect : connect}
-              disabled={(!connected && !secret) || busy}
+              disabled={!token || busy}
             >
               {connected ? (
                 <>
@@ -485,25 +485,28 @@ const ProjectPlayground = () => {
 
         <div className="space-y-6">
           {/* Authentication */}
-          {!secret ? (
+          {!token ? (
             <section className="border border-warning/20 rounded-lg">
               <div className="p-6 border-b border-warning/20 bg-warning/5 rounded-t-lg">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-warning">Authentication Required</h2>
                 <p className="text-xs text-base-content/60 mt-1">
-                  {secretError || 'Paste your project secret to connect.'}
+                  {authError || 'Provide a token to connect.'}
                 </p>
               </div>
               <div className="p-6">
-                <input
-                  type="password"
-                  className="input input-bordered input-md w-full font-mono rounded-lg"
-                  value={secret}
-                  onChange={(event) => {
-                    setSecret(event.target.value);
-                    setSecretError('');
-                  }}
-                  placeholder="Project secret"
-                />
+                <div>
+                  <label className="block text-xs font-medium text-base-content/70 mb-2">JWT Token</label>
+                  <input
+                    type="text"
+                    className="input input-bordered input-md w-full font-mono rounded-lg"
+                    value={token}
+                    onChange={(event) => {
+                      setToken(event.target.value);
+                      setAuthError('');
+                    }}
+                    placeholder="Enter JWT token"
+                  />
+                </div>
               </div>
             </section>
           ) : null}
