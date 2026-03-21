@@ -1,0 +1,15 @@
+{
+  "project_id": "project_id",
+  "rooms": {
+    ".*": {
+      "publish": true,
+      "subscribe": true
+    },
+    "^main-room$": {
+      "publish": false,
+      "subscribe": false
+    }
+  },
+  
+  "exp": 1408639878
+}

@@ -46,7 +46,7 @@ const ProjectSettings = () => {
         setError('');
         try {
             const client = createClient(`/api/projects/${projectId}`);
-            const { data } = await client.put('/', {
+            const { data } = await client.put('/update', {
                 name: formData.name,
                 auth_type: formData.authType,
                 history_enabled: formData.historyEnabled
@@ -127,10 +127,17 @@ const ProjectSettings = () => {
                             onChange={(e) => setFormData({ ...formData, authType: e.target.value })}
                             disabled={!isEditing}
                         >
-                            <option value="none">No Authentication</option>
-                            <option value="api_key">API Key Required</option>
-                            <option value="jwt">JWT Required</option>
+                            <option value="none">None - No authentication required</option>
+                            <option value="publishing_only">Publishing Only - Publishing requires auth, subscribing is free</option>
+                            <option value="all">All - Both publishing and subscribing require auth</option>
                         </select>
+                        <label className="label">
+                            <span className="label-text-alt text-base-content/60">
+                                {formData.authType === 'none' && 'Anyone can publish and subscribe to any room without authentication'}
+                                {formData.authType === 'publishing_only' && 'Anyone can subscribe to rooms, but publishing requires JWT token authentication'}
+                                {formData.authType === 'all' && 'Both publishing and subscribing require JWT token authentication'}
+                            </span>
+                        </label>
                     </div>
 
                     <div className="form-control">

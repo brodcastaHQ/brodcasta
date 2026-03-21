@@ -87,7 +87,7 @@ async def get_project(request: Request, response: Response):
     return await project.detail()
 
 
-@router.put("/{project_id}", 
+@router.put("/{project_id}/update", 
            summary="Update project",
            request_model=ProjectUpdate,
            responses=ProjectResponse)
