@@ -21,14 +21,13 @@ class JWTValidator:
     def __init__(self):
         self.algorithm = "HS256"
     
-    async def validate_token(self, token: str, project_id: str, secret_key: str = None) -> Dict[str, Any]:
+    async def validate_token(self, token: str, project_id: str) -> Dict[str, Any]:
         """
         Validate JWT token and return payload
         
         Args:
             token: JWT token string
-            project_id: Project ID for validation
-            secret_key: Project secret key (optional, will fetch if not provided)
+            project_id: Project ID to get secret key
             
         Returns:
             Dict containing decoded payload
@@ -36,12 +35,12 @@ class JWTValidator:
         Raises:
             JWTValidationError: If token is invalid or expired
         """
-        # Get secret key if not provided
-        if not secret_key:
-            project = await Project.get_or_none(id=project_id)
-            if not project:
-                raise JWTValidationError("Project not found")
-            secret_key = project.project_secret
+        # Get project to retrieve secret key
+        project = await Project.get_or_none(id=project_id)
+        if not project:
+            raise JWTValidationError("Project not found")
+        
+        secret_key = project.project_secret
         
         try:
             # Decode and validate token

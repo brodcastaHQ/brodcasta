@@ -34,14 +34,15 @@ class SomalMiddleware:
         Returns:
             True if authentication successful, False otherwise
         """
+       
         try:
             # Handle different auth types
-            if project.auth_type == AuthType.NONE:
+            if project.auth_type == AuthType.NONE.value:
                 # No authentication required - allow all operations
                 self._attach_no_auth_permissions(channel, project)
                 return True
             
-            elif project.auth_type == AuthType.PUBLISHING_ONLY:
+            elif project.auth_type == AuthType.PUBLISHING_ONLY.value:
                 # Publishing requires auth, subscribing is free for all
                 if token:
                     # If token provided, validate and attach permissions
@@ -53,7 +54,7 @@ class SomalMiddleware:
                     self._attach_publishing_only_permissions(channel, None, None, project)
                 return True
             
-            elif project.auth_type == AuthType.ALL:
+            elif project.auth_type == AuthType.ALL.value:
                 # Both publishing and subscribing require authentication
                 if not token:
                     print(f"Token required for auth_type=ALL: {project.id}")

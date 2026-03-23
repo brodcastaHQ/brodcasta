@@ -31,6 +31,7 @@ async def poll_connect(request: Request, response: Response):
     
     # Authenticate channel with SOMAL (handles different auth types)
     authenticated = await somal_middleware.authenticate_channel(channel, token, project)
+    print(authenticated)
     if not authenticated:
         return response.json({"error": "Authentication failed"}, status_code=403)
     

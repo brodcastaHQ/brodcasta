@@ -140,7 +140,8 @@ const ProjectPlayground = () => {
   };
 
   const connect = async () => {
-    if (!token) {
+    // Only require token if project needs authentication
+    if (project?.auth_type !== 'none' && !token) {
       setAuthError('Token required to connect.');
       return;
     }
@@ -182,7 +183,8 @@ const ProjectPlayground = () => {
     ];
 
     try {
-      await client.connect(token);
+      // Pass token only if authentication is required
+      await client.connect(project?.auth_type !== 'none' ? token : null);
     } catch (err) {
       console.error(err);
       setConnectionError(err?.message || 'Failed to connect');
@@ -283,14 +285,17 @@ const ProjectPlayground = () => {
         }
 
         if (secretRes.status === 'fulfilled') {
-          // For now, we'll use project secret as token (until JWT is implemented)
-          if (secretRes.value.data?.project_secret) {
+          // Only set token if project requires authentication
+          if (projectRes.value.data?.auth_type !== 'none' && secretRes.value.data?.project_secret) {
             setToken(secretRes.value.data.project_secret);
-          } else {
+          } else if (projectRes.value.data?.auth_type !== 'none') {
             setAuthError('No token available. Provide a token below.');
           }
         } else {
-          setAuthError('Could not fetch authentication. Provide a token below.');
+          // Only show auth error if project requires authentication
+          if (projectRes.value.data?.auth_type !== 'none') {
+            setAuthError('Could not fetch authentication. Provide a token below.');
+          }
         }
       } catch (err) {
         console.error(err);
@@ -350,27 +355,27 @@ const ProjectPlayground = () => {
     (eventType === 'message.send' && (!room.trim() || !rooms.includes(room.trim())));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 pb-20">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-base-300 pb-8">
-        <div>
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-base-300 pb-8">
+        <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <Terminal size={18} />
+            <Terminal size={20} />
             <h1 className="text-3xl font-bold tracking-tight">Playground</h1>
           </div>
-          <p className="text-base-content/60 mt-1">
+          <p className="text-base-content/60">
             Real-time testing environment for <span className="font-semibold">{project?.name || 'Project'}</span>.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${statusTone}`}
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${statusTone}`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
+            <span className={`h-2 w-2 rounded-full ${statusDot}`} />
             <span>{statusText}</span>
             {connected && transport ? (
-              <span className="font-mono text-[11px] opacity-70">({String(transport).toUpperCase()})</span>
+              <span className="font-mono text-xs opacity-70">({String(transport).toUpperCase()})</span>
             ) : null}
           </div>
 
@@ -381,13 +386,13 @@ const ProjectPlayground = () => {
               onChange={(event) => setPrefer(event.target.value)}
               disabled={connected || busy}
             >
-              <option value="ws">WS</option>
+              <option value="ws">WebSocket</option>
               <option value="sse">SSE</option>
             </select>
             <button
               className="btn btn-primary btn-md join-item shadow-none rounded-lg"
               onClick={connected ? disconnect : connect}
-              disabled={!token || busy}
+              disabled={(project?.auth_type !== 'none' && !token) || busy}
             >
               {connected ? (
                 <>
@@ -407,16 +412,16 @@ const ProjectPlayground = () => {
 
       {connectionError ? (
         <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
-          <AlertTriangle size={14} />
+          <AlertTriangle size={16} />
           <span className="text-sm font-bold uppercase tracking-wide">{connectionError}</span>
         </div>
       ) : null}
 
       {/* Event Logs */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-8">
         <section className="border border-base-300 rounded-lg flex flex-col">
           <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between flex-shrink-0">
-            <div>
+            <div className="space-y-1">
               <h2 className="text-sm font-bold uppercase tracking-widest">Event Logs</h2>
               <p className="text-[11px] text-base-content/50">
                 Real-time events and messages
@@ -483,94 +488,104 @@ const ProjectPlayground = () => {
           </div>
         </section>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Authentication */}
-          {!token ? (
+          {project?.auth_type !== 'none' && (
             <section className="border border-warning/20 rounded-lg">
               <div className="p-6 border-b border-warning/20 bg-warning/5 rounded-t-lg">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-warning">Authentication Required</h2>
-                <p className="text-xs text-base-content/60 mt-1">
-                  {authError || 'Provide a token to connect.'}
+                <p className="text-xs text-base-content/60 mt-2">
+                  {authError || 'Provide a token to connect to the playground.'}
                 </p>
               </div>
-              <div className="p-6">
+              <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-base-content/70 mb-2">JWT Token</label>
-                  <input
-                    type="text"
-                    className="input input-bordered input-md w-full font-mono rounded-lg"
+                  <label className="block text-xs font-medium text-base-content/70 mb-3">JWT Token</label>
+                  <textarea
+                    className="textarea textarea-bordered textarea-md w-full font-mono rounded-lg min-h-[100px] resize-none"
                     value={token}
                     onChange={(event) => {
                       setToken(event.target.value);
                       setAuthError('');
                     }}
-                    placeholder="Enter JWT token"
+                    placeholder="Paste your JWT token here..."
+                    rows={4}
                   />
+                  <p className="text-[11px] text-base-content/50 mt-2">
+                    Enter your authentication token to enable real-time connections.
+                  </p>
                 </div>
               </div>
             </section>
-          ) : null}
+          )}
 
           {/* Room Management */}
           <section className="border border-base-300 rounded-lg">
             <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-              <h2 className="text-sm font-bold uppercase tracking-widest">Room Management</h2>
-              <p className="text-[11px] text-base-content/50">Attach rooms to receive and send events</p>
+              <div className="space-y-1">
+                <h2 className="text-sm font-bold uppercase tracking-widest">Room Management</h2>
+                <p className="text-[11px] text-base-content/50">Attach rooms to receive and send events</p>
+              </div>
             </div>
             <div className="p-6 space-y-6">
-              <div className="flex gap-3">
-                <input
-                  className="input input-bordered input-md flex-1 font-mono rounded-lg"
-                  value={room}
-                  onChange={(event) => setRoom(event.target.value)}
-                  placeholder="Enter a room name"
-                />
-                <button
-                  className={`btn btn-md shadow-none rounded-lg ${
-                    canDetach 
-                      ? 'btn-error' 
-                      : 'btn-primary'
-                  }`}
-                  onClick={canDetach ? detachRoom : attachRoom}
-                  disabled={!connected || !room.trim()}
-                >
-                  {canDetach ? (
-                    <>
-                      <Link2Off size={14} />
-                      Detach
-                    </>
-                  ) : (
-                    <>
-                      <Link size={14} />
-                      Attach
-                    </>
-                  )}
-                </button>
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <input
+                    className="input input-bordered input-md flex-1 font-mono rounded-lg"
+                    value={room}
+                    onChange={(event) => setRoom(event.target.value)}
+                    placeholder="Enter a room name"
+                  />
+                  <button
+                    className={`btn btn-md shadow-none rounded-lg min-w-[100px] ${
+                      canDetach 
+                        ? 'btn-error' 
+                        : 'btn-primary'
+                    }`}
+                    onClick={canDetach ? detachRoom : attachRoom}
+                    disabled={!connected || !room.trim()}
+                  >
+                    {canDetach ? (
+                      <>
+                        <Link2Off size={14} />
+                        Detach
+                      </>
+                    ) : (
+                      <>
+                        <Link size={14} />
+                        Attach
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {rooms.length === 0 ? (
-                  <div className="text-xs text-base-content/40">No rooms attached yet.</div>
-                ) : (
-                  rooms.map((item) => (
-                    <button
-                      key={item}
-                      className={`px-3 py-1 rounded-full border text-[11px] font-mono transition-colors shadow-none ${
-                        item === room.trim()
-                          ? 'border-primary/30 bg-primary/10 text-primary'
-                          : 'border-base-200 bg-base-200/40 text-base-content/70 hover:bg-base-200'
-                      }`}
-                      onClick={() => switchRoom(item)}
-                      type="button"
-                    >
-                      {item}
-                    </button>
-                  ))
-                )}
+              <div className="space-y-3">
+                <div className="text-xs font-medium text-base-content/70 uppercase tracking-wider">Attached Rooms</div>
+                <div className="flex flex-wrap gap-2">
+                  {rooms.length === 0 ? (
+                    <div className="text-xs text-base-content/40 italic">No rooms attached yet.</div>
+                  ) : (
+                    rooms.map((item) => (
+                      <button
+                        key={item}
+                        className={`px-3 py-1.5 rounded-full border text-[11px] font-mono transition-colors shadow-none ${
+                          item === room.trim()
+                            ? 'border-primary/30 bg-primary/10 text-primary'
+                            : 'border-base-200 bg-base-200/40 text-base-content/70 hover:bg-base-200'
+                        }`}
+                        onClick={() => switchRoom(item)}
+                        type="button"
+                      >
+                        {item}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
 
               {!connected ? (
-                <div className="text-[11px] text-base-content/40">Connect to attach rooms.</div>
+                <div className="text-[11px] text-base-content/40 italic">Connect to attach rooms.</div>
               ) : null}
             </div>
           </section>
@@ -578,15 +593,17 @@ const ProjectPlayground = () => {
           {/* Message Publisher */}
           <section className="border border-base-300 rounded-lg">
             <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-              <h2 className="text-sm font-bold uppercase tracking-widest">Message Publisher</h2>
-              <p className="text-[11px] text-base-content/50">Send messages using the SDK</p>
+              <div className="space-y-1">
+                <h2 className="text-sm font-bold uppercase tracking-widest">Message Publisher</h2>
+                <p className="text-[11px] text-base-content/50">Send messages using the SDK</p>
+              </div>
             </div>
             <div className="p-6 space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  {/* <label className="text-xs font-bold text-base-content/70 uppercase">Event Type</label> */}
+              <div className="space-y-5">
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Event Type</label>
                   <select
-                    className="select select-bordered  w-full rounded-lg"
+                    className="select select-bordered w-full rounded-lg"
                     value={eventType}
                     onChange={(event) => setEventType(event.target.value)}
                     disabled={!connected}
@@ -598,10 +615,10 @@ const ProjectPlayground = () => {
                 </div>
 
                 {eventType === 'message.direct' && (
-                  <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-base-content/70 uppercase">Target Client ID</label>
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Target Client ID</label>
                     <input
-                      className="input input-bordered input-sm font-mono rounded-lg flex-1"
+                      className="input input-bordered input-sm font-mono rounded-lg w-full"
                       value={targetClientId}
                       onChange={(event) => setTargetClientId(event.target.value)}
                       placeholder="Target client ID"
@@ -610,9 +627,9 @@ const ProjectPlayground = () => {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-base-content/70 uppercase">Message Content</label>
+                    <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Message Content</label>
                     <button
                       className="btn btn-ghost btn-xs rounded-lg"
                       onClick={() => setMessage(prettifyJson(message))}
@@ -622,14 +639,13 @@ const ProjectPlayground = () => {
                     </button>
                   </div>
                   
-                  {/* JSON Warning */}
                   <div className="alert alert-warning">
                     <AlertTriangle size={14} />
                     <span className="text-xs font-medium">Only JSON messages are allowed</span>
                   </div>
                   
                   <textarea
-                    className="textarea w-full textarea-bordered rounded-lg font-mono text-sm min-h-[120px]"
+                    className="textarea w-full textarea-bordered rounded-lg font-mono text-sm min-h-[140px] resize-none"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder={eventType === 'message.send' 
@@ -653,7 +669,7 @@ const ProjectPlayground = () => {
                 </div>
 
                 <button
-                  className="btn btn-primary btn-md shadow-none rounded-lg"
+                  className="btn btn-primary btn-md shadow-none rounded-lg w-full sm:w-auto"
                   onClick={publish}
                   disabled={publishDisabled}
                 >
@@ -663,7 +679,7 @@ const ProjectPlayground = () => {
               </div>
 
               {!connected ? (
-                <div className="text-[11px] text-base-content/40">Connect to publish events.</div>
+                <div className="text-[11px] text-base-content/40 italic">Connect to publish events.</div>
               ) : null}
             </div>
           </section>
