@@ -1,4 +1,4 @@
-.PHONY: help build dev prod clean logs stop
+.PHONY: help build dev prod clean logs stop restart-backend restart-frontend restart-db restart-redis rebuild-backend rebuild-frontend rebuild-db rebuild-redis
 
 # Default target
 help:
@@ -12,6 +12,14 @@ help:
 	@echo "  clean     - Remove containers and volumes"
 	@echo "  migrate   - Run database migrations"
 	@echo "  test      - Run tests"
+	@echo "  restart-backend  - Restart backend service"
+	@echo "  restart-frontend - Restart frontend service"
+	@echo "  restart-db       - Restart database service"
+	@echo "  restart-redis    - Restart Redis service"
+	@echo "  rebuild-backend  - Rebuild and restart backend service"
+	@echo "  rebuild-frontend - Rebuild and restart frontend service"
+	@echo "  rebuild-db       - Rebuild and restart database service"
+	@echo "  rebuild-redis    - Rebuild and restart Redis service"
 	@echo ""
 
 # Build all images
@@ -116,3 +124,41 @@ update-deps:
 	@echo "Updating dependencies..."
 	docker compose exec backend pip install -r requirements.txt
 	docker compose exec frontend npm update
+
+# Restart individual services
+restart-backend:
+	@echo "Restarting backend service..."
+	docker compose restart backend
+
+restart-frontend:
+	@echo "Restarting frontend service..."
+	docker compose restart frontend
+
+restart-db:
+	@echo "Restarting database service..."
+	docker compose restart postgres
+
+restart-redis:
+	@echo "Restarting Redis service..."
+	docker compose restart redis
+
+# Rebuild and restart individual services
+rebuild-backend:
+	@echo "Rebuilding and restarting backend service..."
+	docker compose build --no-cache backend
+	docker compose up -d backend
+
+rebuild-frontend:
+	@echo "Rebuilding and restarting frontend service..."
+	docker compose build --no-cache frontend
+	docker compose up -d frontend
+
+rebuild-db:
+	@echo "Rebuilding and restarting database service..."
+	docker compose build --no-cache postgres
+	docker compose up -d postgres
+
+rebuild-redis:
+	@echo "Rebuilding and restarting Redis service..."
+	docker compose build --no-cache redis
+	docker compose up -d redis
