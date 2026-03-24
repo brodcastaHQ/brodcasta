@@ -271,31 +271,19 @@ const ProjectPlayground = () => {
 
       try {
         const client = createClient(`/api/projects/${projectId}`);
-        const [projectRes, secretRes] = await Promise.allSettled([
-          client.get('/'),
-          client.get('/secret'),
-        ]);
+        const projectRes = await client.get('/');
 
         if (cancelled) return;
 
-        if (projectRes.status === 'fulfilled') {
-          setProject(projectRes.value.data);
+        if (projectRes.status === 200) {
+          setProject(projectRes.data);
         } else {
           setError('Failed to load project.');
         }
 
-        if (secretRes.status === 'fulfilled') {
-          // Only set token if project requires authentication
-          if (projectRes.value.data?.auth_type !== 'none' && secretRes.value.data?.project_secret) {
-            setToken(secretRes.value.data.project_secret);
-          } else if (projectRes.value.data?.auth_type !== 'none') {
-            setAuthError('No token available. Provide a token below.');
-          }
-        } else {
-          // Only show auth error if project requires authentication
-          if (projectRes.value.data?.auth_type !== 'none') {
-            setAuthError('Could not fetch authentication. Provide a token below.');
-          }
+        // Only show auth error if project requires authentication
+        if (projectRes.data?.auth_type !== 'none') {
+          setAuthError('Provide a token below to authenticate.');
         }
       } catch (err) {
         console.error(err);
