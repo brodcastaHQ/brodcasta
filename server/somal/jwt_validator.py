@@ -21,7 +21,7 @@ class JWTValidator:
     def __init__(self):
         self.algorithm = "HS256"
     
-    async def validate_token(self, token: str, project_id: str) -> Dict[str, Any]:
+    async def validate_token(self, token: str, project: Project) -> Dict[str, Any]:
         """
         Validate JWT token and return payload
         
@@ -36,9 +36,7 @@ class JWTValidator:
             JWTValidationError: If token is invalid or expired
         """
         # Get project to retrieve secret key
-        project = await Project.get_or_none(id=project_id)
-        if not project:
-            raise JWTValidationError("Project not found")
+     
         
         secret_key = project.project_secret
         
@@ -60,7 +58,7 @@ class JWTValidator:
             if 'project_id' not in payload:
                 raise JWTValidationError("Missing project_id in token")
             
-            if payload['project_id'] != project_id:
+            if payload['project_id'] != project.id:
                 raise JWTValidationError("Token project_id mismatch")
             
             # Validate rooms structure
@@ -92,7 +90,7 @@ class JWTValidator:
             raise JWTValidationError(f"Token validation failed: {str(e)}")
     
     def create_token(self, project_id: str, rooms: Dict[str, Dict[str, bool]], 
-                    expires_in: int = 3600, secret_key: str = None) -> str:
+                    expires_in: int = 3600, secret_key: Optional[str] = None) -> str:
         """
         Create JWT token for testing purposes
         

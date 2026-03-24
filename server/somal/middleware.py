@@ -46,7 +46,7 @@ class SomalMiddleware:
                 # Publishing requires auth, subscribing is free for all
                 if token:
                     # If token provided, validate and attach permissions
-                    payload = await self.jwt_validator.validate_token(token, str(project.id), project.project_secret)
+                    payload = await self.jwt_validator.validate_token(token, project)
                     permission_manager = PermissionManager(payload)
                     self._attach_publishing_only_permissions(channel, permission_manager, payload, project)
                 else:
@@ -60,7 +60,7 @@ class SomalMiddleware:
                     print(f"Token required for auth_type=ALL: {project.id}")
                     return False
                 
-                payload = await self.jwt_validator.validate_token(token, str(project.id), project.project_secret)
+                payload = await self.jwt_validator.validate_token(token, project)
                 permission_manager = PermissionManager(payload)
                 self._attach_permissions(channel, permission_manager, payload)
                 return True
