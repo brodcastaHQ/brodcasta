@@ -1,43 +1,84 @@
-import { HelpCircle, Menu, MessageSquare, Search } from 'lucide-react';
+import { BookOpen, Menu, ShieldCheck } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { cn } from '../utils/cn';
+import { StatusBadge } from './ui/System';
 
-const Topbar = () => {
-    return (
-        <header className="h-16 border-b border-base-200 bg-base-100 flex items-center justify-between px-6 sticky top-0 z-10">
-            {/* Left: could be breadcrumbs or mobile toggle */}
-            <div className="flex items-center gap-4">
-                <button className="lg:hidden btn btn-ghost btn-square btn-md">
-                    <Menu size={20} />
-                </button>
-                <div className="hidden md:flex items-center px-3 py-1.5 bg-base-200 rounded-full text-xs font-medium text-base-content/70">
-                    <div className="w-2 h-2 rounded-full bg-success mr-2"></div>
-                    Free account
-                </div>
+const routeLabels = {
+  dashboard: 'Workspace',
+  new: 'Create Project',
+  admin: 'Administration',
+  users: 'User Management',
+  settings: 'Settings',
+  analytics: 'Analytics',
+  'api-keys': 'Credentials',
+  messages: 'Messages',
+  playground: 'Playground',
+};
+
+const formatPathLabel = (pathname) => {
+  const segments = pathname.split('/').filter(Boolean);
+  const last = segments.at(-1);
+
+  if (!last) return 'Overview';
+  if (last === 'dashboard' && segments.length === 1) return 'Control Center';
+  if (last === segments[segments.length - 2] && last === 'projects') return 'Projects';
+  return routeLabels[last] || 'Overview';
+};
+
+const Topbar = ({ onMenuClick, className = '' }) => {
+  const location = useLocation();
+  const title = formatPathLabel(location.pathname);
+  const inProject = location.pathname.includes('/dashboard/projects/');
+
+  return (
+    <header className={cn('shell-panel rounded-[1.75rem] px-4 py-4 sm:px-5', className)}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button
+            type="button"
+            className="button-secondary px-3 py-3 xl:hidden"
+            onClick={onMenuClick}
+            aria-label="Open navigation"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="section-eyebrow">{inProject ? 'Project Console' : 'Brodcasta Self-Hosted'}</span>
             </div>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3">
-                <button className="btn btn-ghost btn-md gap-2 font-normal text-base-content/70">
-                    <Search size={16} />
-                    <span className="hidden sm:inline">Ask AI</span>
-                </button>
-
-                <button className="btn btn-ghost btn-md gap-2 font-normal text-base-content/70">
-                    <MessageSquare size={16} />
-                    <span className="hidden sm:inline">Feedback</span>
-                </button>
-
-                <button className="btn btn-ghost btn-square btn-md text-base-content/70">
-                    <HelpCircle size={18} />
-                </button>
-
-                <div className="divider divider-horizontal mx-1 my-3"></div>
-
-                <button className="btn btn-circle btn-md bg-neutral text-neutral-content text-xs font-medium">
-                    CD
-                </button>
+            <div>
+              <p className="text-lg font-semibold text-white sm:text-xl">{title}</p>
+              <p className="text-sm text-[var(--app-muted)]">
+                {inProject
+                  ? 'Keep transports, credentials, and traffic trends visible in one place.'
+                  : 'A cleaner control surface for projects, admins, and self-hosted operations.'}
+              </p>
             </div>
-        </header>
-    );
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <StatusBadge tone="success">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Self-hosted online
+          </StatusBadge>
+          <a
+            href="https://docs.Brodcasta.dev"
+            target="_blank"
+            rel="noreferrer"
+            className="button-secondary"
+          >
+            <BookOpen className="h-4 w-4" />
+            Docs
+          </a>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-white">
+            BC
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 };
 
 export default Topbar;

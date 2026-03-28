@@ -1,13 +1,3 @@
-import { useState } from 'react';
+import Homepage from './index';
 
-const LandingPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-base-100">
-      
-    </div>
-  );
-};
-
-export default LandingPage;
+export default Homepage;

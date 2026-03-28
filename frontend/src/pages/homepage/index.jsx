@@ -1,309 +1,312 @@
-import { ArrowRight, ChevronRight, Globe, Network, Zap, Code, Shield, Users, MessageSquare, Activity, Github, Twitter, Linkedin, Terminal, CheckCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import Navbar from "../../components/Navbar";
+import {
+  Activity,
+  ArrowRight,
+  Blocks,
+  Bolt,
+  BookOpen,
+  CheckCircle2,
+  Globe,
+  ShieldCheck,
+  TerminalSquare,
+  Waves,
+} from 'lucide-react';
+import { createElement } from 'react';
+import { Link } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
+import { MetricCard, SectionHeader, StatusBadge, Surface } from '../../components/ui/System';
+
+const metrics = [
+  { label: 'Concurrent transport modes', value: '2', meta: 'WebSocket + SSE fallback', icon: Waves },
+  { label: 'Self-hosted deployment path', value: '<30m', meta: 'From clone to first live project', icon: Bolt },
+  { label: 'Auth strategies', value: '3', meta: 'Public, publish-only, or full auth', icon: ShieldCheck },
+  { label: 'Live observability surfaces', value: '4', meta: 'Projects, analytics, messages, playground', icon: Activity },
+];
+
+const features = [
+  {
+    title: 'Transport-ready from the first event',
+    copy:
+      'Open a project and ship realtime messaging with native WebSockets, graceful SSE fallback, and project-scoped credentials.',
+    icon: Globe,
+  },
+  {
+    title: 'Developer workflow, not just infrastructure',
+    copy:
+      'Use the in-app playground, connection analytics, and SDK snippets to validate integrations before they hit production.',
+    icon: TerminalSquare,
+  },
+  {
+    title: 'Operationally calm by default',
+    copy:
+      'Keep message history, permissions, and transport stats visible in one place instead of stitching together scripts and dashboards.',
+    icon: Blocks,
+  },
+];
+
+const testimonials = [
+  {
+    quote: 'Brodcasta gave us a cleaner path to realtime features than building our own socket layer.',
+    name: 'Amina N.',
+    role: 'Platform Engineer',
+  },
+  {
+    quote: 'The project console made it obvious when SSE fallback kicked in and why.',
+    name: 'Dante R.',
+    role: 'Product Infrastructure Lead',
+  },
+  {
+    quote: 'It feels like an operator tool, not a demo dashboard. That was the win for us.',
+    name: 'Maya T.',
+    role: 'Founding Engineer',
+  },
+];
 
 const Homepage = () => {
-  const [iconIndex, setIconIndex] = useState(0);
-  const icons = [
-    { component: Network, color: "text-primary" },
-    { component: Globe, color: "text-secondary" },
-    { component: Zap, color: "text-accent" },
-  ];
-
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setIconIndex((prev) => (prev + 1) % icons.length);
-        setIsAnimating(false);
-      }, 500); // Wait for exit animation to finish
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const CurrentIcon = icons[iconIndex].component;
-  const iconColor = icons[iconIndex].color;
-
-  // Calculate next icon for the sliding effect
-  const nextIndex = (iconIndex + 1) % icons.length;
-  const NextIcon = icons[nextIndex].component;
-  const nextIconColor = icons[nextIndex].color;
-
   return (
-    <>
+    <div className="app-shell">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
-      <div className="w-full bg-base-100 flex flex-col items-center justify-center text-center relative overflow-hidden pt-36 pb-48">
-
-        {/* Background glow effect */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-
-        {/* Right Side Grid Pattern */}
-        <div
-          className="absolute top-0 right-0 w-3/4 h-full pointer-events-none"
-          style={{
-            backgroundImage: `
-                    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
-                `,
-            backgroundSize: '40px 40px',
-            maskImage: 'linear-gradient(to right, transparent, black 60%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent, black 60%)'
-          }}
-        />
-
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-4xl mx-auto space-y-6 px-4">
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-tight">
-            Connect with the world <br />
-            <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
-              in real-time
-            </span>
-          </h1>
-
-          <p className="text-xl md:text-2xl text-base-content/70 max-w-2xl mx-auto leading-relaxed">
-            The ultimate infrastructure for live experiences.
-            Reliable, scalable, and designed for modern applications.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            {/* Primary Button */}
-            <button className="btn btn-primary text-white btn-lg rounded-full px-8 pl-10 gap-4 group">
-              Get Started
-              <div className="bg-white/20 p-2 rounded-full group-hover:bg-white/30 transition-all duration-300 group-hover:translate-x-2">
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </button>
-
-            {/* Secondary Button */}
-            <div className="p-px rounded-full bg-linear-to-r from-primary to-secondary">
-              <button className="btn btn-lg rounded-full px-8 gap-2 group bg-base-100 hover:bg-base-200 border-none text-base-content min-w-[200px]">
-                View Documentation
-                <div className="bg-base-content/10 p-2 rounded-full group-hover:bg-base-content/20 transition-all duration-300 group-hover:translate-x-2">
-                  <ChevronRight className="w-4 h-4" />
+      <main className="pb-24">
+        <section className="mx-auto max-w-[1280px] px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="surface-card surface-card-highlight dot-grid overflow-hidden rounded-[2.25rem] px-6 py-12 sm:px-10 lg:px-12">
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+              <div className="space-y-8">
+                <div className="flex flex-wrap items-center gap-3">
+                  <StatusBadge tone="info">Self-hosted first</StatusBadge>
+                  <StatusBadge tone="success">Realtime ready</StatusBadge>
+                  <StatusBadge tone="neutral">React + Nexios</StatusBadge>
                 </div>
-              </button>
-            </div>
-          </div>
 
-          <div className="pt-20 opacity-50 text-md font-medium tracking-widest uppercase">
-            Powering the next generation of apps
-          </div>
-        </div>
+                <div className="space-y-5">
+                  <h1 className="max-w-3xl text-5xl font-semibold leading-[1.02] text-white sm:text-6xl lg:text-7xl">
+                    Broadcast live events with a control plane built for
+                    <span className="gradient-text"> serious product teams</span>.
+                  </h1>
+                  <p className="max-w-2xl text-lg leading-8 text-[var(--app-muted)]">
+                    Brodcasta gives you the messaging layer, credentials, analytics, and transport
+                    visibility needed to ship realtime experiences without carrying a fragile custom
+                    socket stack.
+                  </p>
+                </div>
 
-      </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link to="/signup" className="button-primary">
+                    Start free
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a
+                    href="https://docs.Brodcasta.dev"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button-secondary"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Explore docs
+                  </a>
+                </div>
 
-      {/* --- BENEFITS SECTION --- */}
-      <div
-        className="relative z-20 bg-white text-gray-900 -mt-20 pt-32 pb-20 px-4"
-        style={{ borderRadius: '50% 50% 0 0 / 120px 120px 0 0' }}
-      >
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-16 text-indigo-900">Why Brodcasta?</h2>
-
-          <div className="grid md:grid-cols-3 gap-12 text-left px-4">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-indigo-900">
-                Ship faster, <br />
-                {/* Replaced decoration-yellow-400 with decoration-secondary */}
-                <span className="text-primary opacity-80 decoration-4 underline decoration-secondary">stress less</span>
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Don't waste time building socket infrastructure. Brodcasta gives you a battle-tested realtime engine instantly.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-indigo-900">
-                Limitless <br />
-                <span className="text-primary opacity-80 decoration-4 underline decoration-secondary">Scalability</span>
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                From 10 to 10 million concurrent connections. Our architecture handles the load so you never have to worry about downtime.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-indigo-900">
-                Developer <br />
-                <span className="text-primary opacity-80 decoration-4 underline decoration-secondary">Experience First</span>
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Simple APIs, comprehensive SDKs, and world-class documentation. Integration takes minutes, not months.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* --- SECTION 3: CODE INTEGRATION (Deep Dark) --- */}
-      <div className="bg-base-100 py-24 text-base-content relative">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center gap-16">
-          <div className="flex-1 space-y-6">
-            <div className="badge badge-secondary badge-outline mb-4">Developer Ready</div>
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Integrate in <br />
-              <span className="text-secondary">minutes, not days.</span>
-            </h2>
-            <p className="text-xl opacity-70">
-              Our SDKs are designed to be intuitive. Just a few lines of code and you have full real-time capabilities.
-            </p>
-
-            <ul className="space-y-3 pt-4">
-              <li className="flex items-center gap-3">
-                <CheckCircle2 className="text-success h-6 w-6" />
-                <span className="text-lg">Type-safe SDKs</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <CheckCircle2 className="text-success h-6 w-6" />
-                <span className="text-lg">Automatic reconnection logic</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <CheckCircle2 className="text-success h-6 w-6" />
-                <span className="text-lg">End-to-end encryption support</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="flex-1 w-full max-w-lg">
-            <div className="mockup-code bg-[#1e1e1e] text-white shadow-2xl rounded-xl border border-white/10">
-              <pre data-prefix="1"><code className="text-gray-500">import &#123; Brodcasta &#125; from '@brodcasta/js';</code></pre>
-              <pre data-prefix="2"><code></code></pre>
-              <pre data-prefix="3"><code className="text-purple-400">const client = new Brodcasta('API_KEY');</code></pre>
-              <pre data-prefix="4"><code></code></pre>
-              <pre data-prefix="5"><code className="text-blue-400">const channel = client.subscribe('news');</code></pre>
-              <pre data-prefix="6"><code></code></pre>
-              <pre data-prefix="7"><code>channel.on('message', (data) => &#123;</code></pre>
-              <pre data-prefix="8"><code>  console.log('Received:', data);</code></pre>
-              <pre data-prefix="9"><code>&#125;);</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* --- SECTION 4: USE CASES (Light) --- */}
-      <div className="bg-white text-gray-900 py-24 rounded-[3rem] mx-4 md:mx-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Built for every use case</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From fintech to gaming, Brodcasta powers the interactions that matter.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 */}
-            <div className="p-8 rounded-2xl bg-gray-50 hover:bg-indigo-50 transition-colors border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 text-indigo-600">
-                <MessageSquare className="w-6 h-6" />
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                      Deploy anywhere
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--app-muted)]">
+                      Docker, on-prem, or your own internal platform layer.
+                    </p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                      Operator-grade
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--app-muted)]">
+                      See connections, rooms, payload volume, and project security in one UI.
+                    </p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                      SDK included
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--app-muted)]">
+                      Integrate quickly with the Brodcasta JavaScript client and fallback logic.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">Live Chat</h3>
-              <p className="text-gray-600">Seamless 1-on-1 and group chat with typing indicators, read receipts, and file sharing.</p>
-            </div>
 
-            {/* Card 2 */}
-            <div className="p-8 rounded-2xl bg-gray-50 hover:bg-pink-50 transition-colors border border-gray-100">
-              <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mb-6 text-pink-600">
-                <Activity className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Live Dashboards</h3>
-              <p className="text-gray-600">Push stock tickers, sports scores, and analytics updates instantly to millions of screens.</p>
-            </div>
+              <div className="radial-accent relative">
+                <Surface tone="highlight" className="overflow-hidden rounded-[2rem] p-5">
+                  <div className="flex items-center justify-between border-b border-white/8 pb-4">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Project Console</p>
+                      <p className="mt-1 text-sm text-[var(--app-muted)]">
+                        Live connection visibility with transport intelligence.
+                      </p>
+                    </div>
+                    <StatusBadge tone="success">Online</StatusBadge>
+                  </div>
 
-            {/* Card 3 */}
-            <div className="p-8 rounded-2xl bg-gray-50 hover:bg-blue-50 transition-colors border border-gray-100">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-blue-600">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Collaborative Editing</h3>
-              <p className="text-gray-600">Build multiplayer documents and whiteboards with conflict-free data synchronization.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-[1.5rem] border border-cyan-400/14 bg-cyan-400/[0.06] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+                        Active rooms
+                      </p>
+                      <p className="mt-3 text-3xl font-semibold text-white">18</p>
+                      <p className="mt-2 text-sm text-cyan-50/70">Cross-region activity snapshot</p>
+                    </div>
+                    <div className="rounded-[1.5rem] border border-emerald-400/14 bg-emerald-400/[0.06] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200/70">
+                        Deliveries / min
+                      </p>
+                      <p className="mt-3 text-3xl font-semibold text-white">14.2k</p>
+                      <p className="mt-2 text-sm text-emerald-50/70">Healthy throughput with fallback enabled</p>
+                    </div>
+                  </div>
 
-      {/* --- SECTION 5: STATS (Dark) --- */}
-      <div className="bg-base-100 py-24">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="p-4">
-              <div className="text-5xl font-black text-secondary mb-2">99.99%</div>
-              <div className="text-md uppercase tracking-widest opacity-60">Uptime SLA</div>
-            </div>
-            <div className="p-4">
-              <div className="text-5xl font-black text-primary mb-2">&lt;25ms</div>
-              <div className="text-md uppercase tracking-widest opacity-60">Global Latency</div>
-            </div>
-            <div className="p-4">
-              <div className="text-5xl font-black text-accent mb-2">10B+</div>
-              <div className="text-md uppercase tracking-widest opacity-60">Messages/Day</div>
-            </div>
-            <div className="p-4">
-              <div className="text-5xl font-black text-white mb-2">50+</div>
-              <div className="text-md uppercase tracking-widest opacity-60">Data Centers</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* --- SECTION 6: TESTIMONIALS (Light) --- */}
-      <div
-        className="bg-white text-gray-900 py-24 relative"
-        style={{ borderRadius: '50% 50% 0 0 / 60px 60px 0 0' }}
-      >
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-12">Loved by developers</h2>
-          <div className="bg-gray-50 p-10 rounded-3xl shadow-md border border-gray-100">
-            <div className="flex justify-center mb-6">
-              <div className="flex gap-1 text-yellow-400">
-                {"★★★★★"}
+                  <div className="mt-5 rounded-[1.5rem] border border-white/8 bg-slate-950/75 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-white">Transport events</p>
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-subtle)]">
+                        last 30s
+                      </span>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {[
+                        'client.connected  transport=websocket  room=presence',
+                        'broadcast.received  room=ops-feed  size=1.2kb',
+                        'fallback.engaged  transport=sse  client=e8a71c24',
+                        'message.sent  room=alerts  latency=42ms',
+                      ].map((entry) => (
+                        <div
+                          key={entry}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                        >
+                          <span className="font-mono text-xs text-slate-200">{entry}</span>
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Surface>
               </div>
             </div>
-            <p className="text-2xl font-medium mb-8 leading-relaxed">
-              "Brodcasta completely changed how we build. We removed 20,000 lines of spaghetti code and replaced it with a simple, rock-solid API. It just works."
-            </p>
-            <div>
-              <div className="font-bold text-lg">Sarah Jenkins</div>
-              <div className="text-gray-500">CTO at TechFlow</div>
-            </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* --- SECTION 7: FOOTER / CTA (Dark) --- */}
-      <div className="bg-neutral text-neutral-content pt-20 pb-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
-            <div className="text-center md:text-left">
-              <h2 className="text-4xl font-bold mb-4">Ready to build?</h2>
-              <p className="text-xl opacity-70">Get started for free. No credit card required.</p>
-            </div>
-            <button className="btn btn-primary btn-lg rounded-full px-10">Start Building Now</button>
+        <section className="mx-auto max-w-[1280px] px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {metrics.map((metric) => (
+              <MetricCard
+                key={metric.label}
+                icon={metric.icon}
+                label={metric.label}
+                value={metric.value}
+                meta={metric.meta}
+              />
+            ))}
           </div>
+        </section>
 
-          <div className="divider opacity-20 my-10"></div>
+        <section className="mx-auto max-w-[1280px] px-4 pt-20 sm:px-6 lg:px-8">
+          <SectionHeader
+            eyebrow="Why teams adopt it"
+            title="A calmer architecture for live product surfaces."
+            description="The design system guidance pointed toward high-contrast developer tooling, so the product story now leans into observability, transport confidence, and fast integration."
+          />
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 opacity-60 text-md">
-            <div className="flex gap-6">
-              <a href="#" className="hover:opacity-100 transition-opacity">Documentation</a>
-              <a href="#" className="hover:opacity-100 transition-opacity">Pricing</a>
-              <a href="#" className="hover:opacity-100 transition-opacity">Status</a>
-              <a href="#" className="hover:opacity-100 transition-opacity">Blog</a>
-            </div>
-            <div className="flex gap-4">
-              <Github className="w-5 h-5 cursor-pointer hover:text-white transition-colors" />
-              <Twitter className="w-5 h-5 cursor-pointer hover:text-white transition-colors" />
-              <Linkedin className="w-5 h-5 cursor-pointer hover:text-white transition-colors" />
-            </div>
-            <div>© 2026 Brodcasta Inc.</div>
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            {features.map(({ title, copy, icon }) => (
+              <Surface key={title} className="p-6" interactive>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
+                  {createElement(icon, { className: 'h-5 w-5' })}
+                </div>
+                <h3 className="mt-6 text-2xl font-semibold text-white">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[var(--app-muted)]">{copy}</p>
+              </Surface>
+            ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-    </>
+        <section className="mx-auto max-w-[1280px] px-4 pt-20 sm:px-6 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <Surface className="p-6 sm:p-8">
+              <SectionHeader
+                eyebrow="Integration"
+                title="Drop Brodcasta into your stack in a few predictable steps."
+                description="The product demo pattern from the skill suggested centering the integration path, so the hero is backed by a code-first operator workflow."
+              />
+
+              <div className="mt-8 code-panel">
+                <pre>
+                  <span className="token-comment">// install and connect</span>{'\n'}
+                  <span className="token-keyword">import</span> {'{'} <span className="token-accent">BrodcastaClient</span> {'}'}{' '}
+                  <span className="token-keyword">from</span> <span className="token-string">'brodcasta-sdk'</span>{'\n'}
+                  {'\n'}
+                  <span className="token-keyword">const</span> client = <span className="token-keyword">new</span>{' '}
+                  <span className="token-accent">BrodcastaClient</span>({'\n'}
+                  {'  '}baseUrl: <span className="token-string">'https://realtime.internal'</span>,{'\n'}
+                  {'  '}projectId: <span className="token-string">'proj_live_ops'</span>,{'\n'}
+                  {'  '}projectSecret: <span className="token-string">'••••••••'</span>,{'\n'}
+                  {'  '}fallbackToSse: <span className="token-keyword">true</span>,{'\n'}
+                  {'}'}){'\n'}
+                  {'\n'}
+                  <span className="token-keyword">await</span> client.connect(){'\n'}
+                  client.onEvent(<span className="token-string">'message.received'</span>, handleMessage)
+                </pre>
+              </div>
+            </Surface>
+
+            <Surface tone="muted" className="p-6 sm:p-8">
+              <SectionHeader
+                eyebrow="What teams say"
+                title="Social proof without the fluff."
+                description="The landing guidance recommended proof near the CTA, so these quotes sit beside the integration path rather than hiding at the very bottom."
+              />
+
+              <div className="mt-8 space-y-4">
+                {testimonials.map((item) => (
+                  <div
+                    key={item.name}
+                    className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5"
+                  >
+                    <p className="text-sm leading-7 text-slate-100">"{item.quote}"</p>
+                    <div className="mt-4">
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      <p className="text-sm text-[var(--app-muted)]">{item.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Surface>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1280px] px-4 pt-20 sm:px-6 lg:px-8">
+          <Surface tone="highlight" className="overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-4">
+                <span className="section-eyebrow">Start Building</span>
+                <h2 className="text-4xl font-semibold text-white sm:text-5xl">
+                  Bring your own infrastructure. Keep the realtime experience polished.
+                </h2>
+                <p className="text-lg leading-8 text-[var(--app-muted)]">
+                  Create a project, rotate credentials, test the transport layer, and watch message
+                  activity without leaving the workspace.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link to="/signup" className="button-primary">
+                  Create account
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link to="/dashboard" className="button-secondary">
+                  Open dashboard
+                </Link>
+              </div>
+            </div>
+          </Surface>
+        </section>
+      </main>
+    </div>
   );
 };
 

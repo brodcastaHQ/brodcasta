@@ -3,6 +3,7 @@ import { AlertTriangle, Link, Link2Off, PlugZap, RefreshCcw, Send, Terminal } fr
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
+import { Field, PageHeader, SectionHeader, StatusBadge, Surface } from '../../../components/ui/System';
 import { createClient } from '../../../utils/client';
 
 const DEFAULT_ROOM = 'brodcasta_default';
@@ -96,11 +97,11 @@ const ProjectPlayground = () => {
   const connected = state === 'open';
   const busy = state === 'connecting' || state === 'reconnecting';
 
-  const pushEventLog = (eventName, payload, room = null) => {
-    const logEntry = { time: new Date(), event: eventName, data: payload, room };
+  const pushEventLog = (eventName, payload, roomId = null) => {
+    const logEntry = { time: new Date(), event: eventName, data: payload, room: roomId };
     
     setAllLogs((prev) => {
-      const roomKey = room || 'global';
+      const roomKey = roomId || 'global';
       const currentRoomLogs = prev[roomKey] || [];
       const nextLogs = [logEntry, ...currentRoomLogs].slice(0, MAX_LOGS);
       return {
@@ -110,7 +111,8 @@ const ProjectPlayground = () => {
     });
     
     // Only update displayed logs if this belongs to current room
-    if (room === room.trim() || (!room && room.trim() === DEFAULT_ROOM)) {
+    const activeRoom = room.trim();
+    if (roomId === activeRoom || (!roomId && activeRoom === DEFAULT_ROOM)) {
       setLogs((prev) => {
         const next = [logEntry, ...prev];
         return next.slice(0, MAX_LOGS);
@@ -300,14 +302,12 @@ const ProjectPlayground = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   useEffect(() => {
     return () => {
       disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) return <Loading fullScreen />;
@@ -320,19 +320,8 @@ const ProjectPlayground = () => {
     );
   }
 
-  const statusTone = connected
-    ? 'border-success/20 bg-success/5 text-success'
-    : busy
-      ? 'border-warning/20 bg-warning/5 text-warning'
-      : 'border-base-200 bg-base-200/40 text-base-content/60';
-
-  const statusDot = connected
-    ? 'bg-success'
-    : busy
-      ? 'bg-warning'
-      : 'bg-base-content/30';
-
   const statusText = connected ? 'Connected' : busy ? 'Connecting' : 'Disconnected';
+  const statusTone = connected ? 'success' : busy ? 'warning' : 'neutral';
 
   const canDetach = rooms.includes(room.trim());
 
@@ -343,33 +332,22 @@ const ProjectPlayground = () => {
     (eventType === 'message.send' && (!room.trim() || !rooms.includes(room.trim())));
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
-      {/* Header */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-base-300 pb-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <Terminal size={20} />
-            <h1 className="text-3xl font-bold tracking-tight">Playground</h1>
-          </div>
-          <p className="text-base-content/60">
-            Real-time testing environment for <span className="font-semibold">{project?.name || 'Project'}</span>.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${statusTone}`}
-          >
-            <span className={`h-2 w-2 rounded-full ${statusDot}`} />
-            <span>{statusText}</span>
-            {connected && transport ? (
-              <span className="font-mono text-xs opacity-70">({String(transport).toUpperCase()})</span>
-            ) : null}
-          </div>
-
-          <div className="join">
+    <div className="space-y-8 pb-10">
+      <PageHeader
+        eyebrow="Playground"
+        title={`Interactive testing for ${project?.name || 'this project'}`}
+        description="Connect with WebSocket or SSE, join rooms, publish JSON payloads, and watch the event stream from a calmer operator layout."
+        meta={
+          <>
+            <StatusBadge tone={statusTone}>{statusText}</StatusBadge>
+            {transport ? <StatusBadge tone="info">{String(transport).toUpperCase()}</StatusBadge> : null}
+            <StatusBadge tone="neutral">Room {room || DEFAULT_ROOM}</StatusBadge>
+          </>
+        }
+        actions={
+          <div className="flex flex-col gap-3 sm:flex-row">
             <select
-              className="select select-bordered select-md join-item shadow-none rounded-lg"
+              className="select-shell"
               value={prefer}
               onChange={(event) => setPrefer(event.target.value)}
               disabled={connected || busy}
@@ -378,192 +356,176 @@ const ProjectPlayground = () => {
               <option value="sse">SSE</option>
             </select>
             <button
-              className="btn btn-primary btn-md join-item shadow-none rounded-lg"
+              type="button"
+              className="button-primary"
               onClick={connected ? disconnect : connect}
               disabled={(project?.auth_type !== 'none' && !token) || busy}
             >
-              {connected ? (
-                <>
-                  <RefreshCcw size={14} />
-                  Disconnect
-                </>
-              ) : (
-                <>
-                  <PlugZap size={14} />
-                  Connect
-                </>
-              )}
+              {connected ? <RefreshCcw className="h-4 w-4" /> : <PlugZap className="h-4 w-4" />}
+              {connected ? 'Disconnect' : 'Connect'}
             </button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {connectionError ? (
-        <div className="flex items-center gap-3 p-4 border border-error text-error bg-error/5 rounded-lg">
-          <AlertTriangle size={16} />
-          <span className="text-sm font-bold uppercase tracking-wide">{connectionError}</span>
+        <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+          {connectionError}
         </div>
       ) : null}
 
-      {/* Event Logs */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-8">
-        <section className="border border-base-300 rounded-lg flex flex-col">
-          <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg flex items-center justify-between flex-shrink-0">
-            <div className="space-y-1">
-              <h2 className="text-sm font-bold uppercase tracking-widest">Event Logs</h2>
-              <p className="text-[11px] text-base-content/50">
-                Real-time events and messages
-                {room !== DEFAULT_ROOM && (
-                  <> for room: <span className="font-mono text-primary">{room}</span></>
-                )}
-              </p>
-            </div>
-            <button className="btn btn-ghost btn-xs rounded-lg" onClick={() => {
-              setAllLogs(prev => ({ ...prev, [room || 'global']: [] }));
-              setLogs([]);
-            }}>
-              Clear
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <Surface className="flex min-h-[640px] flex-col rounded-[2rem] p-6">
+          <div className="flex flex-col gap-4 border-b border-white/8 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <SectionHeader
+              eyebrow="Event Stream"
+              title="Live logs"
+              description={
+                room !== DEFAULT_ROOM
+                  ? `Streaming recent events for ${room}.`
+                  : 'Streaming recent events and payload summaries.'
+              }
+            />
+            <button
+              type="button"
+              className="button-secondary"
+              onClick={() => {
+                setAllLogs((prev) => ({ ...prev, [room || 'global']: [] }));
+                setLogs([]);
+              }}
+            >
+              Clear logs
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto max-h-[640px]">
-            <table className="table table-md text-xs">
-              <thead className="sticky top-0 z-10 bg-base-100">
-                <tr>
-                  <th className="w-[130px]">Time</th>
-                  <th className="w-[240px]">Event</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="text-base-content/40">
-                      No events yet.
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((entry, index) => (
-                    <tr key={`${entry.time?.getTime?.() || index}-${index}`}>
-                      <td className="font-mono whitespace-nowrap text-[11px]">
-                        {entry.time ? formatTime(entry.time) : '--:--:--.---'}
-                      </td>
-                      <td className="font-mono text-[11px]">{entry.event}</td>
-                      <td className="text-[11px]">
-                        <div className="flex items-center gap-2">
-                          {entry.room && (
-                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono">
-                              {entry.room}
-                            </span>
-                          )}
-                          <div className="text-base-content/70">{summarize(entry.event, entry.data)}</div>
-                        </div>
-                        {entry.data && typeof entry.data === 'object' ? (
-                          
-                          <details className="mt-2">
-                            <summary className="cursor-pointer text-base-content/60 select-none">JSON</summary>
-                            <pre className="mt-2 p-3 rounded-lg bg-base-200/40 border border-base-200 whitespace-pre-wrap text-[11px] text-base-content/70">
-                              {safeJson(entry.data)}
-                            </pre>
-                          </details>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <div className="space-y-8">
-          {/* Authentication */}
-          {project?.auth_type !== 'none' && (
-            <section className="border border-warning/20 rounded-lg">
-              <div className="p-6 border-b border-warning/20 bg-warning/5 rounded-t-lg">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-warning">Authentication Required</h2>
-                <p className="text-xs text-base-content/60 mt-2">
-                  {authError || 'Provide a token to connect to the playground.'}
-                </p>
+          <div className="mt-6 flex-1 overflow-auto">
+            {logs.length === 0 ? (
+              <div className="flex h-full min-h-[420px] items-center justify-center rounded-[1.75rem] border border-white/8 bg-white/[0.03] text-center">
+                <div className="space-y-3 px-6">
+                  <Terminal className="mx-auto h-6 w-6 text-cyan-200" />
+                  <p className="text-lg font-semibold text-white">No events yet</p>
+                  <p className="text-sm text-[var(--app-muted)]">
+                    Connect the playground and publish a payload to see the stream populate.
+                  </p>
+                </div>
               </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-base-content/70 mb-3">JWT Token</label>
+            ) : (
+              <div className="space-y-4">
+                {logs.map((entry, index) => (
+                  <div
+                    key={`${entry.time?.getTime?.() || index}-${index}`}
+                    className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge tone="info" className="font-mono">
+                          {entry.event}
+                        </StatusBadge>
+                        {entry.room ? (
+                          <StatusBadge tone="neutral" className="font-mono">
+                            {entry.room}
+                          </StatusBadge>
+                        ) : null}
+                      </div>
+                      <p className="font-mono text-xs text-[var(--app-subtle)]">
+                        {entry.time ? formatTime(entry.time) : '--:--:--.---'}
+                      </p>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-7 text-slate-100">
+                      {summarize(entry.event, entry.data)}
+                    </p>
+
+                    {entry.data && typeof entry.data === 'object' ? (
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-sm text-[var(--app-muted)]">
+                          Inspect JSON
+                        </summary>
+                        <pre className="mt-3 rounded-[1.25rem] border border-white/8 bg-slate-950/70 p-4 whitespace-pre-wrap font-mono text-xs text-slate-100">
+                          {safeJson(entry.data)}
+                        </pre>
+                      </details>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Surface>
+
+        <div className="space-y-6">
+          {project?.auth_type !== 'none' ? (
+            <Surface tone="highlight" className="rounded-[2rem] p-6">
+              <SectionHeader
+                eyebrow="Authentication"
+                title="Provide a token before connecting"
+                description={authError || 'This project requires authentication for playground connections.'}
+              />
+              <div className="mt-6">
+                <Field htmlFor="playground-token" label="JWT token">
                   <textarea
-                    className="textarea textarea-bordered textarea-md w-full font-mono rounded-lg min-h-[100px] resize-none"
+                    id="playground-token"
+                    className="textarea-shell min-h-[110px] font-mono"
                     value={token}
                     onChange={(event) => {
                       setToken(event.target.value);
                       setAuthError('');
                     }}
-                    placeholder="Paste your JWT token here..."
+                    placeholder="Paste your JWT token here"
                     rows={4}
                   />
-                  <p className="text-[11px] text-base-content/50 mt-2">
-                    Enter your authentication token to enable real-time connections.
-                  </p>
-                </div>
+                </Field>
               </div>
-            </section>
-          )}
+            </Surface>
+          ) : null}
 
-          {/* Room Management */}
-          <section className="border border-base-300 rounded-lg">
-            <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-              <div className="space-y-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest">Room Management</h2>
-                <p className="text-[11px] text-base-content/50">Attach rooms to receive and send events</p>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="space-y-3">
-                <div className="flex gap-3">
+          <Surface className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Room Management"
+              title="Attach or detach rooms"
+              description="Joined rooms are where room-level sends can publish and receive traffic."
+            />
+
+            <div className="mt-6 space-y-5">
+              <Field htmlFor="playground-room" label="Room">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <input
-                    className="input input-bordered input-md flex-1 font-mono rounded-lg"
+                    id="playground-room"
+                    className="input-shell font-mono"
                     value={room}
                     onChange={(event) => setRoom(event.target.value)}
                     placeholder="Enter a room name"
                   />
                   <button
-                    className={`btn btn-md shadow-none rounded-lg min-w-[100px] ${
-                      canDetach 
-                        ? 'btn-error' 
-                        : 'btn-primary'
-                    }`}
+                    type="button"
+                    className="button-primary"
                     onClick={canDetach ? detachRoom : attachRoom}
                     disabled={!connected || !room.trim()}
                   >
-                    {canDetach ? (
-                      <>
-                        <Link2Off size={14} />
-                        Detach
-                      </>
-                    ) : (
-                      <>
-                        <Link size={14} />
-                        Attach
-                      </>
-                    )}
+                    {canDetach ? <Link2Off className="h-4 w-4" /> : <Link className="h-4 w-4" />}
+                    {canDetach ? 'Detach' : 'Attach'}
                   </button>
                 </div>
-              </div>
+              </Field>
 
               <div className="space-y-3">
-                <div className="text-xs font-medium text-base-content/70 uppercase tracking-wider">Attached Rooms</div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                  Attached rooms
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {rooms.length === 0 ? (
-                    <div className="text-xs text-base-content/40 italic">No rooms attached yet.</div>
+                    <span className="text-sm text-[var(--app-muted)]">No rooms attached yet.</span>
                   ) : (
                     rooms.map((item) => (
                       <button
                         key={item}
-                        className={`px-3 py-1.5 rounded-full border text-[11px] font-mono transition-colors shadow-none ${
+                        type="button"
+                        className={`rounded-full border px-3 py-2 font-mono text-xs ${
                           item === room.trim()
-                            ? 'border-primary/30 bg-primary/10 text-primary'
-                            : 'border-base-200 bg-base-200/40 text-base-content/70 hover:bg-base-200'
+                            ? 'border-cyan-400/28 bg-cyan-400/10 text-cyan-100'
+                            : 'border-white/8 bg-white/[0.03] text-[var(--app-muted)]'
                         }`}
                         onClick={() => switchRoom(item)}
-                        type="button"
                       >
                         {item}
                       </button>
@@ -571,74 +533,69 @@ const ProjectPlayground = () => {
                   )}
                 </div>
               </div>
-
-              {!connected ? (
-                <div className="text-[11px] text-base-content/40 italic">Connect to attach rooms.</div>
-              ) : null}
             </div>
-          </section>
+          </Surface>
 
-          {/* Message Publisher */}
-          <section className="border border-base-300 rounded-lg">
-            <div className="p-6 border-b border-base-300 bg-base-200/50 rounded-t-lg">
-              <div className="space-y-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest">Message Publisher</h2>
-                <p className="text-[11px] text-base-content/50">Send messages using the SDK</p>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="space-y-5">
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Event Type</label>
-                  <select
-                    className="select select-bordered w-full rounded-lg"
-                    value={eventType}
-                    onChange={(event) => setEventType(event.target.value)}
+          <Surface className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Publisher"
+              title="Send JSON payloads"
+              description="Ctrl+Enter submits quickly once the playground is connected."
+            />
+
+            <div className="mt-6 space-y-5">
+              <Field htmlFor="playground-event-type" label="Event type">
+                <select
+                  id="playground-event-type"
+                  className="select-shell"
+                  value={eventType}
+                  onChange={(event) => setEventType(event.target.value)}
+                  disabled={!connected}
+                >
+                  <option value="message.send">message.send</option>
+                  <option value="message.broadcast">message.broadcast</option>
+                  <option value="message.direct">message.direct</option>
+                </select>
+              </Field>
+
+              {eventType === 'message.direct' ? (
+                <Field htmlFor="playground-target" label="Target client ID">
+                  <input
+                    id="playground-target"
+                    className="input-shell font-mono"
+                    value={targetClientId}
+                    onChange={(event) => setTargetClientId(event.target.value)}
+                    placeholder="Target client ID"
                     disabled={!connected}
-                  >
-                    <option value="message.send">message.send</option>
-                    <option value="message.broadcast">message.broadcast</option>
-                    <option value="message.direct">message.direct</option>
-                  </select>
-                </div>
+                  />
+                </Field>
+              ) : null}
 
-                {eventType === 'message.direct' && (
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Target Client ID</label>
-                    <input
-                      className="input input-bordered input-sm font-mono rounded-lg w-full"
-                      value={targetClientId}
-                      onChange={(event) => setTargetClientId(event.target.value)}
-                      placeholder="Target client ID"
-                      disabled={!connected}
-                    />
-                  </div>
-                )}
+              <div className="rounded-[1.5rem] border border-amber-400/18 bg-amber-400/[0.08] p-4 text-sm text-amber-50">
+                Only JSON payloads are accepted in the playground. Use the prettify action to clean up malformed spacing before sending.
+              </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-base-content/70 uppercase tracking-wider">Message Content</label>
+              <Field htmlFor="playground-message" label="Message content">
+                <div className="space-y-3">
+                  <div className="flex justify-end">
                     <button
-                      className="btn btn-ghost btn-xs rounded-lg"
+                      type="button"
+                      className="button-secondary"
                       onClick={() => setMessage(prettifyJson(message))}
                       disabled={!connected}
                     >
                       Prettify JSON
                     </button>
                   </div>
-                  
-                  <div className="alert alert-warning">
-                    <AlertTriangle size={14} />
-                    <span className="text-xs font-medium">Only JSON messages are allowed</span>
-                  </div>
-                  
                   <textarea
-                    className="textarea w-full textarea-bordered rounded-lg font-mono text-sm min-h-[140px] resize-none"
+                    id="playground-message"
+                    className="textarea-shell min-h-[180px] font-mono text-sm"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    placeholder={eventType === 'message.send' 
-                      ? `JSON message to ${room.trim() || 'room'} (e.g., {"text": "Hello!"})` 
-                      : 'JSON message content (e.g., {"text": "Hello!"})'
+                    placeholder={
+                      eventType === 'message.send'
+                        ? `JSON message to ${room.trim() || 'room'} (e.g. {"text":"Hello"})`
+                        : 'JSON message content (e.g. {"text":"Hello"})'
                     }
                     disabled={!connected}
                     onKeyDown={(event) => {
@@ -648,29 +605,20 @@ const ProjectPlayground = () => {
                       }
                     }}
                   />
-                  <p className="text-[11px] text-base-content/50">
-                    {eventType === 'message.send' 
-                      ? `Room must be attached before publishing. Ctrl+Enter to send. Messages must be valid JSON.`
-                      : 'Ctrl+Enter to send. Messages must be valid JSON.'
-                    }
-                  </p>
                 </div>
+              </Field>
 
-                <button
-                  className="btn btn-primary btn-md shadow-none rounded-lg w-full sm:w-auto"
-                  onClick={publish}
-                  disabled={publishDisabled}
-                >
-                  <Send size={14} />
-                  Publish Message
-                </button>
-              </div>
-
-              {!connected ? (
-                <div className="text-[11px] text-base-content/40 italic">Connect to publish events.</div>
-              ) : null}
+              <button
+                type="button"
+                className="button-primary w-full"
+                onClick={publish}
+                disabled={publishDisabled}
+              >
+                <Send className="h-4 w-4" />
+                Publish message
+              </button>
             </div>
-          </section>
+          </Surface>
         </div>
       </div>
     </div>

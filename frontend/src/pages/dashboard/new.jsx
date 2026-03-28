@@ -1,145 +1,234 @@
-import { ChevronLeft, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info, ShieldCheck, Waves } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Loading from '../../components/ui/Loading';
+import { Field, PageHeader, SectionHeader, StatusBadge, Surface } from '../../components/ui/System';
 import { createClient } from '../../utils/client';
 
+const authOptions = [
+  {
+    value: 'none',
+    title: 'Public',
+    copy: 'Anyone can publish and subscribe without authentication.',
+  },
+  {
+    value: 'publishing_only',
+    title: 'Publish protected',
+    copy: 'Publishing requires auth while reads remain public.',
+  },
+  {
+    value: 'all',
+    title: 'Full auth',
+    copy: 'Publishing and subscribing both require authentication.',
+  },
+];
+
 const NewProject = () => {
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    auth_type: 'none',
+    history_enabled: true,
+  });
 
-    // AuthType options: 'none', 'publishing_only', 'all'
-    const [formData, setFormData] = useState({
-        name: '',
-        auth_type: 'none',
-        history_enabled: true
-    });
+  const handleChange = (event) => {
+    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+    setFormData((current) => ({ ...current, [event.target.name]: value }));
+  };
 
-    const handleChange = (e) => {
-        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-        setFormData({ ...formData, [e.target.name]: value });
-    };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+    try {
+      const client = createClient('/api/projects');
+      const response = await client.post('/', formData);
+      navigate(`/dashboard/projects/${response.data.id}`);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.detail || 'Failed to create project.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            const client = createClient('/api/projects');
-            const response = await client.post('/', formData);
-            // Redirect to the dashboard project list or the new project's specific dashboard
-            // Based on plan, we have a project dashboard at /dashboard/projects/:id
-            navigate(`/dashboard/projects/${response.data.id}`);
-        } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.detail || 'Failed to create project.');
-        } finally {
-            setLoading(false);
+  return (
+    <div className="space-y-8">
+      {loading ? <Loading fullScreen label="Creating project" /> : null}
+
+      <PageHeader
+        eyebrow="Project Setup"
+        title="Create a new realtime project."
+        description="The project creator now keeps the form short, the auth choices explicit, and the launch implications visible before you hit save."
+        actions={
+          <Link to="/dashboard" className="button-ghost">
+            <ArrowLeft className="h-4 w-4" />
+            Back to dashboard
+          </Link>
         }
-    };
+      />
 
-    return (
-        <div className="max-w-2xl mx-auto py-8">
-            <button onClick={() => navigate(-1)} className="btn btn-ghost btn-md gap-2 mb-6 text-base-content/60 px-0 hover:bg-transparent hover:text-primary">
-                <ChevronLeft size={18} />
-                Back
-            </button>
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface className="rounded-[2rem] p-6 sm:p-8">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <SectionHeader
+              eyebrow="Basics"
+              title="Name and configure the project"
+              description="Use a project name your team will recognize inside the control panel and during credential rotation."
+            />
 
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Create new app</h1>
-                <p className="text-base-content/60">Configure your new application settings.</p>
+            {error ? (
+              <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                {error}
+              </div>
+            ) : null}
+
+            <Field
+              htmlFor="project-name"
+              label="Project name"
+              hint="This appears in the control panel, analytics views, and credential screens."
+            >
+              <input
+                id="project-name"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g. Production notifications"
+                className="input-shell"
+                required
+              />
+            </Field>
+
+            <div className="space-y-4">
+              <Field
+                htmlFor="project-auth"
+                label="Authentication model"
+                hint="Choose the strictness level that matches how publishers and subscribers should connect."
+              >
+                <select
+                  id="project-auth"
+                  name="auth_type"
+                  value={formData.auth_type}
+                  onChange={handleChange}
+                  className="select-shell"
+                >
+                  {authOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.title}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                {authOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className={`rounded-[1.5rem] border p-4 ${
+                      formData.auth_type === option.value
+                        ? 'border-cyan-400/28 bg-cyan-400/10'
+                        : 'border-white/8 bg-white/[0.03]'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-white">{option.title}</p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">{option.copy}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {error && (
-                <div role="alert" className="alert alert-error mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>{error}</span>
+            <label className="flex cursor-pointer items-start gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
+              <input
+                type="checkbox"
+                name="history_enabled"
+                checked={formData.history_enabled}
+                onChange={handleChange}
+                className="mt-1 h-5 w-5 rounded border border-white/12 bg-slate-950/80 text-cyan-300"
+              />
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-white">Enable message history</p>
+                <p className="text-sm leading-7 text-[var(--app-muted)]">
+                  Keep message records available for debugging, analytics, and new-subscriber replay scenarios.
+                </p>
+              </div>
+            </label>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button type="button" className="button-secondary" onClick={() => navigate(-1)} disabled={loading}>
+                Cancel
+              </button>
+              <button type="submit" className="button-primary" disabled={loading}>
+                Create project
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </form>
+        </Surface>
+
+        <div className="space-y-6">
+          <Surface tone="highlight" className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="What happens next"
+              title="Your project console becomes available immediately."
+              description="After creation, you'll land inside the project console with credentials, analytics, messages, and the playground ready."
+            />
+
+            <div className="mt-6 space-y-4">
+              <div className="flex gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/18 bg-cyan-400/10 text-cyan-200">
+                  <ShieldCheck className="h-4 w-4" />
                 </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Basic Info */}
-                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -md">
-                    <h2 className="text-lg font-bold mb-4">General Information</h2>
-
-                    <div className="form-control w-full">
-                        <label className="label">
-                            <span className="label-text font-medium">App Name</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="e.g. Production API"
-                            className="input input-bordered w-full"
-                            required
-                        />
-                        <label className="label">
-                            <span className="label-text-alt text-base-content/50">Used to identify your app in the dashboard.</span>
-                        </label>
-                    </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Credentials and auth</p>
+                  <p className="mt-1 text-sm leading-7 text-[var(--app-muted)]">
+                    Copy project secrets, rotate them when needed, and validate auth posture per project.
+                  </p>
                 </div>
+              </div>
 
-                {/* Configuration */}
-                <div className="bg-base-100 rounded-xl border border-base-200 p-6 -md">
-                    <h2 className="text-lg font-bold mb-4">Configuration</h2>
-
-                    <div className="form-control w-full mb-6">
-                        <label className="label">
-                            <span className="label-text font-medium">Authentication Type</span>
-                        </label>
-                        <select
-                            name="auth_type"
-                            value={formData.auth_type}
-                            onChange={handleChange}
-                            className="select select-bordered w-full"
-                        >
-                            <option value="none">None (Public)</option>
-                            <option value="publishing_only">Publishing Only (Subscribers are public)</option>
-                            <option value="all">All (Full Authentication)</option>
-                        </select>
-                        <div className="mt-2 flex gap-2 text-xs text-base-content/60 bg-base-200 p-3 rounded-lg">
-                            <Info size={16} className="shrink-0 mt-0.5" />
-                            <p>
-                                <strong>None:</strong> Open access.
-                                <strong> Publishing Only:</strong> Requires auth to publish, but reading is open.
-                                <strong> All:</strong> Requires auth for both publishing and subscribing.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="form-control">
-                        <label className="label cursor-pointer justify-start gap-4 items-start">
-                            <input
-                                type="checkbox"
-                                name="history_enabled"
-                                checked={formData.history_enabled}
-                                onChange={handleChange}
-                                className="toggle toggle-primary"
-                            />
-                            <div>
-                                <span className="label-text font-medium block">Enable Message History</span>
-                                <span className="label-text-alt text-base-content/50 block mt-1">
-                                    Automatically store and retrieve recent messages for new subscribers.
-                                </span>
-                            </div>
-                        </label>
-                    </div>
+              <div className="flex gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/18 bg-emerald-400/10 text-emerald-300">
+                  <Waves className="h-4 w-4" />
                 </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                    <button type="button" onClick={() => navigate(-1)} className="btn btn-ghost" disabled={loading}>
-                        Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary min-w-[120px]" disabled={loading}>
-                        {loading ? <span className="loading loading-spinner text-white"></span> : 'Create App'}
-                    </button>
+                <div>
+                  <p className="text-sm font-semibold text-white">Transport analytics</p>
+                  <p className="mt-1 text-sm leading-7 text-[var(--app-muted)]">
+                    Watch message volume, connection types, and fallback behavior as soon as traffic starts.
+                  </p>
                 </div>
-            </form>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface tone="muted" className="rounded-[2rem] p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/18 bg-amber-400/10 text-amber-300">
+                <Info className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Recommended default</p>
+                <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                  Start with <span className="text-white">publish protected</span> if you expect trusted
+                  producers but public consumers. It gives you a safer default without complicating reads.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <StatusBadge tone={formData.history_enabled ? 'success' : 'neutral'}>
+                History {formData.history_enabled ? 'enabled' : 'disabled'}
+              </StatusBadge>
+              <StatusBadge tone="info">{authOptions.find((item) => item.value === formData.auth_type)?.title}</StatusBadge>
+            </div>
+          </Surface>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default NewProject;

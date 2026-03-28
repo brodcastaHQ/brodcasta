@@ -1,222 +1,201 @@
-import { AlertTriangle, Check, Copy, Eye, EyeOff, Key, RefreshCw, Shield } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Loading from '../../../components/ui/Loading';
+import { Field, PageHeader, SectionHeader, StatusBadge, Surface } from '../../../components/ui/System';
 import { createClient } from '../../../utils/client';
+import { maskSecret } from '../../../utils/formatters';
 
 const ApiKeys = () => {
-    const { projectId } = useParams();
-    const [projectSecret, setProjectSecret] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [copiedSecret, setCopiedSecret] = useState(false);
-    const [revealedSecret, setRevealedSecret] = useState(false);
-    const [rotatingSecret, setRotatingSecret] = useState(false);
+  const { projectId } = useParams();
+  const [projectSecret, setProjectSecret] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [copiedValue, setCopiedValue] = useState('');
+  const [revealedSecret, setRevealedSecret] = useState(false);
+  const [rotatingSecret, setRotatingSecret] = useState(false);
 
-    useEffect(() => {
-        fetchProjectSecret();
-    }, [projectId]);
-
+  useEffect(() => {
     const fetchProjectSecret = async () => {
-        try {
-            const client = createClient(`/api`);
-            const response = await client.get(`/projects/${projectId}/secret`);
-            setProjectSecret(response.data);
-        } catch (err) {
-            console.error('Failed to fetch project secret:', err);
-            setError('Failed to load project secret.');
-        } finally {
-            setLoading(false);
-        }
+      try {
+        const client = createClient('/api');
+        const response = await client.get(`/projects/${projectId}/secret`);
+        setProjectSecret(response.data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load project credentials.');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const rotateProjectSecret = async () => {
-        setRotatingSecret(true);
-        try {
-            const client = createClient(`/api`);
-            const response = await client.post(`/projects/${projectId}/rotate-secret`);
-            
-            setProjectSecret(response.data);
-            setRevealedSecret(true);
-        } catch (err) {
-            console.error('Failed to rotate project secret:', err);
-            setError('Failed to rotate project secret.');
-        } finally {
-            setRotatingSecret(false);
-        }
-    };
+    fetchProjectSecret();
+  }, [projectId]);
 
-    const copyToClipboard = async (text) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopiedSecret(true);
-            setTimeout(() => setCopiedSecret(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy:', err);
-        }
-    };
-
-    const maskSecret = (secret) => {
-        return secret ? secret.substring(0, 8) + '...' + secret.substring(secret.length - 4) : '';
-    };
-
-    if (loading) return <Loading fullScreen />;
-
-    if (error) {
-        return (
-            <div role="alert" className="alert alert-error shadow-lg">
-                <AlertTriangle className="h-6 w-6" />
-                <span>{error}</span>
-            </div>
-        );
+  const rotateProjectSecret = async () => {
+    setRotatingSecret(true);
+    setError('');
+    try {
+      const client = createClient('/api');
+      const response = await client.post(`/projects/${projectId}/rotate-secret`);
+      setProjectSecret(response.data);
+      setRevealedSecret(true);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to rotate project secret.');
+    } finally {
+      setRotatingSecret(false);
     }
+  };
 
-    return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-base-content flex items-center gap-3">
-                        <Key className="text-primary" />
-                        Project Secret
-                    </h1>
-                    <p className="text-base-content/60 mt-2">
-                        Manage your project's secret for secure access to Brodcasta services
-                    </p>
-                </div>
-                <button
-                    onClick={rotateProjectSecret}
-                    className="btn btn-primary gap-2 font-bold"
-                    disabled={rotatingSecret}
-                >
-                    {rotatingSecret ? <span className="loading loading-spinner loading-sm"></span> : <RefreshCw size={18} />}
-                    Rotate Secret
-                </button>
-            </div>
+  const copyToClipboard = async (text, key) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedValue(key);
+      setTimeout(() => setCopiedValue(''), 1800);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
-            {/* Success Alert for Rotated Secret */}
-            {projectSecret && projectSecret.message && revealedSecret && (
-                <div className="alert alert-success shadow-lg">
-                    <Check className="h-6 w-6" />
-                    <div className="flex-1">
-                        <div className="font-bold">Secret Rotated Successfully!</div>
-                        <div className="text-sm opacity-90">
-                            Save this new secret securely. The previous secret is now invalid.
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setRevealedSecret(false)}
-                        className="btn btn-ghost btn-sm"
-                    >
-                        Dismiss
-                    </button>
-                </div>
-            )}
+  if (loading) {
+    return <Loading fullScreen label="Loading credentials" />;
+  }
 
-            {/* Project Secret Card */}
-            {projectSecret ? (
-                <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-all">
-                    <div className="card-body p-8">
-                        <div className="flex items-start justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 rounded-xl bg-primary/10">
-                                    <Key className="text-primary" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-base-content">Project Secret</h3>
-                                    <p className="text-base-content/60 text-sm">Your unique project identifier and secret</p>
-                                </div>
-                            </div>
-                            <span className="badge badge-success text-xs">ACTIVE</span>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider w-24">Project ID</span>
-                                <div className="flex items-center gap-2 flex-1">
-                                    <code className="bg-base-200 px-4 py-2 rounded-lg text-sm font-mono flex-1">
-                                        {projectId}
-                                    </code>
-                                    <button
-                                        onClick={() => copyToClipboard(projectId)}
-                                        className="btn btn-ghost btn-sm"
-                                    >
-                                        {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider w-24">Secret</span>
-                                <div className="flex items-center gap-2 flex-1">
-                                    <code className="bg-base-200 px-4 py-2 rounded-lg text-sm font-mono flex-1">
-                                        {revealedSecret ? projectSecret.project_secret : maskSecret(projectSecret.project_secret)}
-                                    </code>
-                                    <button
-                                        onClick={() => setRevealedSecret(!revealedSecret)}
-                                        className="btn btn-ghost btn-sm"
-                                    >
-                                        {revealedSecret ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                    <button
-                                        onClick={() => copyToClipboard(projectSecret.project_secret)}
-                                        className="btn btn-ghost btn-sm"
-                                    >
-                                        {copiedSecret ? <Check size={16} /> : <Copy size={16} />}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Credentials"
+        title="Project credentials with clearer guardrails."
+        description="The credentials page now puts copy, reveal, rotate, and integration guidance into a more deliberate security-first layout."
+        meta={<StatusBadge tone="warning">Handle secrets carefully</StatusBadge>}
+        actions={
+          <button type="button" className="button-primary" onClick={rotateProjectSecret} disabled={rotatingSecret}>
+            <RefreshCw className={`h-4 w-4 ${rotatingSecret ? 'animate-spin' : ''}`} />
+            Rotate secret
+          </button>
+        }
+      />
 
-                        <div className="alert alert-warning mt-6">
-                            <Shield size={16} />
-                            <div>
-                                <div className="font-bold">Security Notice</div>
-                                <div className="text-sm">
-                                    {projectSecret.message}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="text-center py-12 bg-base-100 rounded-xl border border-base-200">
-                    <Key className="mx-auto h-16 w-16 text-base-content/20 mb-4" />
-                    <h3 className="text-lg font-semibold text-base-content mb-2">No Secret Available</h3>
-                    <p className="text-base-content/60 mb-6 max-w-md mx-auto">
-                        Generate a project secret to start integrating with Brodcasta services
-                    </p>
-                    <button
-                        onClick={rotateProjectSecret}
-                        className="btn btn-primary gap-2"
-                        disabled={rotatingSecret}
-                    >
-                        {rotatingSecret ? <span className="loading loading-spinner loading-sm"></span> : <RefreshCw size={18} />}
-                        Generate Secret
-                    </button>
-                </div>
-            )}
-
-            {/* Integration Guide */}
-            <div className="card bg-base-100 border border-base-200 shadow-none hover:border-primary/30 transition-colors">
-                <div className="card-body p-8">
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                        Quick Integration
-                    </h2>
-                    <div className="bg-neutral/5 rounded-xl p-6 font-mono text-md relative border border-base-200/40">
-                        <div className="text-base-content/40 mb-2">// Connect to Brodcasta</div>
-                        <div className="text-primary">const<span className="text-base-content"> socket = </span>new<span className="text-secondary"> WebSocket</span><span className="text-base-content">(</span><span className="text-success">'ws://.../{projectId}?secret=...'</span><span className="text-base-content">);</span></div>
-                        <div className="my-2"></div>
-                        <div className="text-base-content">socket.onmessage = (event) =&gt; {'{'}</div>
-                        <div className="pl-4 text-base-content">  console.log(<span className="text-success">'Message received:'</span>, event.data);</div>
-                        <div className="text-base-content">{'}'};</div>
-                    </div>
-                </div>
-            </div>
+      {error ? (
+        <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+          {error}
         </div>
-    );
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface className="rounded-[2rem] p-6 sm:p-8">
+          <SectionHeader
+            eyebrow="Credential Set"
+            title="Protect the project secret and keep rotation explicit."
+            description="The masked secret stays hidden by default, and rotate remains the primary high-risk action."
+          />
+
+          <div className="mt-6 space-y-5">
+            <Field
+              htmlFor="project-secret"
+              label="Project secret"
+              hint={projectSecret?.message || 'Store this securely and rotate it if exposure is suspected.'}
+            >
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  id="project-secret"
+                  type="text"
+                  className="input-shell font-mono"
+                  value={
+                    revealedSecret
+                      ? projectSecret?.project_secret || ''
+                      : maskSecret(projectSecret?.project_secret || '')
+                  }
+                  readOnly
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    className="button-secondary shrink-0"
+                    onClick={() => setRevealedSecret((value) => !value)}
+                  >
+                    {revealedSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {revealedSecret ? 'Hide' : 'Reveal'}
+                  </button>
+                  <button
+                    type="button"
+                    className="button-secondary shrink-0"
+                    onClick={() => copyToClipboard(projectSecret?.project_secret || '', 'projectSecret')}
+                  >
+                    {copiedValue === 'projectSecret' ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </Field>
+          </div>
+        </Surface>
+
+        <div className="space-y-6">
+          <Surface tone="highlight" className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Security Guidance"
+              title="Keep secret management explicit."
+              description="The redesign makes sensitive actions feel separate from routine copy actions."
+            />
+
+            <div className="mt-6 space-y-4">
+              <div className="flex items-start gap-4 rounded-[1.5rem] border border-emerald-400/18 bg-emerald-400/[0.08] p-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/18 bg-emerald-400/10 text-emerald-300">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Private by default</p>
+                  <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                    Only reveal the secret when you actually need to move it into a trusted system.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-[1.5rem] border border-amber-400/18 bg-amber-400/[0.08] p-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/18 bg-amber-400/10 text-amber-300">
+                  <RefreshCw className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Rotate intentionally</p>
+                  <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                    Rotating the secret invalidates the previous one, so update any dependent clients immediately.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Integration"
+              title="Use the credentials in your client setup"
+              description="Keep the secret server-side or in trusted infrastructure only."
+            />
+
+            <div className="mt-6 code-panel">
+              <pre>
+                <span className="token-keyword">const</span> projectConfig = <span className="token-keyword">await</span>{' '}
+                <span className="token-accent">loadProjectConfig</span>(){'\n'}
+                {'\n'}
+                <span className="token-keyword">const</span> client = <span className="token-keyword">new</span>{' '}
+                <span className="token-accent">BrodcastaClient</span>({'\n'}
+                {'  '}baseUrl: <span className="token-string">'https://your-instance.example'</span>,{'\n'}
+                {'  '}...projectConfig,{'\n'}
+                {'  '}projectSecret: <span className="token-string">'server-only-secret'</span>,{'\n'}
+                {'}'})
+              </pre>
+            </div>
+          </Surface>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ApiKeys;
-
-

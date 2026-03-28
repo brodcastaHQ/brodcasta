@@ -1,7 +1,15 @@
+import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Loading from '../../components/ui/Loading';
+import { Field, StatusBadge, Surface } from '../../components/ui/System';
 import { createClient } from '../../utils/client';
+
+const signupBenefits = [
+  'Create and manage multiple realtime projects from one control panel.',
+  'Rotate credentials, review analytics, and inspect message flow.',
+  'Switch between public and protected auth models per project.',
+];
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -14,26 +22,18 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Prefix is empty here because the router prefix is /accounts, 
-      // but we can make the client specific to accounts or generic.
-      // Let's make it generic and pass the full path or Specific.
-      // Using /accounts as prefix
       const client = createClient('/api/accounts');
-
-      // The endpoint is /signup relative to /accounts
-      const response = await client.post('/signup', formData);
-
-      // If successful, redirect to home or login. Since cookies are set, redirect to home.
+      await client.post('/signup', formData);
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
@@ -44,139 +44,161 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-base-100">
-      {/* Left Side - Visual */}
-      <div className="hidden lg:flex w-1/2 bg-neutral relative overflow-hidden items-center justify-center p-12 text-primary-content">
-        <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-secondary/20 z-0"></div>
-        <div className="relative z-10 max-w-lg">
-          <Link to="/" className="flex items-center gap-2 mb-12 opacity-80 hover:opacity-100 transition-opacity text-white">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-              </svg>
-            </div>
-            <span className="font-medium">Back to Home</span>
-          </Link>
+    <div className="app-shell min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1280px] items-stretch">
+        <div className="grid w-full gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <Surface tone="highlight" className="hidden rounded-[2.25rem] p-10 lg:flex lg:flex-col lg:justify-between">
+            <div className="space-y-6">
+              <Link to="/" className="inline-flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12">
+                  <img src="/logo.svg" alt="Brodcasta" className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Brodcasta</p>
+                  <p className="text-xs text-[var(--app-muted)]">Realtime messaging infrastructure</p>
+                </div>
+              </Link>
 
-          <h2 className="text-4xl font-bold mb-6 text-white">Join the community of innovators.</h2>
-          <p className="text-white/70 text-lg leading-relaxed mb-8">
-            Create an account to access powerful tools, real-time analytics, and a seamless development experience.
-          </p>
+              <div className="space-y-5">
+                <div className="flex flex-wrap gap-3">
+                  <StatusBadge tone="success">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Start shipping faster
+                  </StatusBadge>
+                  <StatusBadge tone="info">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Security controls included
+                  </StatusBadge>
+                </div>
 
-          <div className="grid grid-cols-2 gap-4 text-white">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md">
-              <h3 className="font-bold text-xl mb-1">10k+</h3>
-              <p className="text-white/50 text-md">Active Developers</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md">
-              <h3 className="font-bold text-xl mb-1">99.9%</h3>
-              <p className="text-white/50 text-md">Uptime Guarantee</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 relative">
-        {loading && <Loading fullScreen />}
-        <div className="max-w-md w-full">
-          <div className="mb-10 text-center lg:text-left">
-            <Link to="/" className="lg:hidden inline-flex items-center gap-2 mb-8 text-md font-medium text-base-content/60">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-              </svg>
-              Back to Home
-            </Link>
-            <h1 className="text-3xl font-bold text-base-content mb-2">Create an account</h1>
-            <p className="text-base-content/60">Enter your details to get started.</p>
-          </div>
-
-          {error && (
-            <div role="alert" className="alert alert-error mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="fieldset">
-                <legend className="fieldset-legend font-medium text-base-content/70">Full Name</legend>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  className="input input-bordered w-full"
-                  required
-                />
-              </div>
-              <div className="fieldset">
-                <legend className="fieldset-legend font-medium text-base-content/70">Company (Optional)</legend>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                  placeholder="Acme Inc."
-                  className="input input-bordered w-full"
-                />
+                <h1 className="text-5xl font-semibold leading-[1.04] text-white">
+                  Create an operator account for the parts of self-hosted realtime systems that usually stay messy.
+                </h1>
+                <p className="max-w-xl text-lg leading-8 text-[var(--app-muted)]">
+                  The new frontend leans into clarity: tighter forms, better hierarchy, and a
+                  more operational product story from signup through the project console.
+                </p>
               </div>
             </div>
 
-            <div className="fieldset">
-              <legend className="fieldset-legend font-medium text-base-content/70">Email Address</legend>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="name@company.com"
-                className="input input-bordered w-full"
-                required
-              />
+            <div className="rounded-[2rem] border border-white/8 bg-white/[0.04] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                Included after signup
+              </p>
+              <div className="mt-4 space-y-3">
+                {signupBenefits.map((benefit) => (
+                  <div key={benefit} className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-1 h-4 w-4 text-emerald-300" />
+                    <p className="text-sm leading-7 text-slate-100">{benefit}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+          </Surface>
 
-            <div className="fieldset">
-              <legend className="fieldset-legend font-medium text-base-content/70">Password</legend>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="input input-bordered w-full"
-                required
-              />
+          <Surface className="relative flex items-center justify-center rounded-[2.25rem] p-6 sm:p-10">
+            {loading ? <Loading fullScreen label="Creating account" /> : null}
+
+            <div className="w-full max-w-xl space-y-8">
+              <div className="space-y-4">
+                <Link to="/" className="inline-flex items-center gap-3 lg:hidden">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12">
+                    <img src="/logo.svg" alt="Brodcasta" className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-semibold text-white">Back to product</span>
+                </Link>
+
+                <div className="space-y-3">
+                  <span className="section-eyebrow">Create account</span>
+                  <h2 className="text-4xl font-semibold text-white">Create your Brodcasta operator account</h2>
+                  <p className="text-base leading-7 text-[var(--app-muted)]">
+                    Create an account to manage projects, credentials, analytics, and transport flows
+                    for your self-hosted deployment from a single cleaner interface.
+                  </p>
+                </div>
+              </div>
+
+              {error ? (
+                <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                  {error}
+                </div>
+              ) : null}
+
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field htmlFor="signup-name" label="Full name">
+                    <input
+                      id="signup-name"
+                      name="name"
+                      type="text"
+                      className="input-shell"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Field>
+
+                  <Field htmlFor="signup-company" label="Company">
+                    <input
+                      id="signup-company"
+                      name="company"
+                      type="text"
+                      className="input-shell"
+                      placeholder="Acme Inc."
+                      value={formData.company}
+                      onChange={handleChange}
+                    />
+                  </Field>
+                </div>
+
+                <Field htmlFor="signup-email" label="Email address">
+                  <input
+                    id="signup-email"
+                    name="email"
+                    type="email"
+                    className="input-shell"
+                    placeholder="name@company.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </Field>
+
+                <Field
+                  htmlFor="signup-password"
+                  label="Password"
+                  hint="Use a password you can comfortably keep secure. You can change it later from account settings."
+                >
+                  <input
+                    id="signup-password"
+                    name="password"
+                    type="password"
+                    className="input-shell"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </Field>
+
+                <button type="submit" className="button-primary w-full">
+                  Create account
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+
+              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-sm leading-7 text-[var(--app-muted)]">
+                  Already have an account?{' '}
+                  <Link to="/login" className="font-semibold text-cyan-200 hover:text-cyan-100">
+                    Sign in here
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
-
-            <div className="form-control">
-              <label className="label cursor-pointer justify-start gap-3">
-                <input type="checkbox" className="checkbox checkbox-primary checkbox-md" required />
-                <span className="label-text text-base-content/70">I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a></span>
-              </label>
-            </div>
-
-            <button type="submit" className="btn btn-primary w-full text-white text-lg rounded-xl shadow-lg shadow-primary/20 mt-2" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="divider text-base-content/40 text-md my-8">OR CONTINUE WITH</div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <button type="button" className="btn btn-outline font-medium">
-              Google
-            </button>
-            <button type="button" className="btn btn-outline font-medium">
-              GitHub
-            </button>
-          </div>
-
-          <p className="mt-8 text-center text-base-content/60">
-            Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
-          </p>
+          </Surface>
         </div>
       </div>
     </div>

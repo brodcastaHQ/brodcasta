@@ -1,291 +1,272 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
 
-const Chart = ({ type, data, labels, height = 300, width = null }) => {
-    const svgRef = useRef(null);
-    const containerRef = useRef(null);
+const palette = ['#22d3ee', '#22c55e', '#38bdf8', '#f59e0b', '#fb7185'];
+const axisColor = '#94a3b8';
+const gridColor = 'rgba(148, 163, 184, 0.14)';
+const tooltipBackground = 'rgba(8, 17, 32, 0.96)';
 
-    useEffect(() => {
-        if (!svgRef.current || !data || !labels) return;
+const sumValues = (values) => values.reduce((total, value) => total + value, 0);
 
-        const container = containerRef.current;
-        const svg = d3.select(svgRef.current);
-        svg.selectAll("*").remove();
+const Chart = ({ type, data = [], labels = [], height = 280, width = null }) => {
+  const svgRef = useRef(null);
+  const containerRef = useRef(null);
 
-        const containerWidth = container?.offsetWidth || 600;
-        const chartWidth = width || containerWidth;
-        const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-        const innerWidth = chartWidth - margin.left - margin.right;
-        const innerHeight = height - margin.top - margin.bottom;
+  useEffect(() => {
+    if (!svgRef.current || !data.length || !labels.length) return;
 
-        if (type === 'bar') {
-            const xScale = d3.scaleBand()
-                .domain(labels)
-                .range([0, innerWidth])
-                .padding(0.1);
+    const container = containerRef.current;
+    const containerWidth = width || container?.offsetWidth || 640;
+    const margin = { top: 16, right: 20, bottom: 36, left: 42 };
+    const innerWidth = containerWidth - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-            const yScale = d3.scaleLinear()
-                .domain([0, d3.max(data)])
-                .nice()
-                .range([innerHeight, 0]);
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
 
-            const g = svg.append('g')
-                .attr('transform', `translate(${margin.left},${margin.top})`);
+    const tooltip = d3
+      .select('body')
+      .append('div')
+      .style('position', 'absolute')
+      .style('pointer-events', 'none')
+      .style('opacity', 0)
+      .style('padding', '8px 10px')
+      .style('border-radius', '12px')
+      .style('border', '1px solid rgba(148, 163, 184, 0.18)')
+      .style('background', tooltipBackground)
+      .style('box-shadow', '0 18px 40px rgba(2, 6, 23, 0.4)')
+      .style('color', '#f8fafc')
+      .style('font-size', '12px')
+      .style('font-family', '"IBM Plex Sans", sans-serif');
 
-            // Add grid lines
-            g.append('g')
-                .attr('class', 'grid')
-                .attr('transform', `translate(0,${innerHeight})`)
-                .call(d3.axisBottom(xScale)
-                    .tickSize(-innerHeight)
-                    .tickFormat('')
-                )
-                .style('stroke-dasharray', '3,3')
-                .style('opacity', 0.3);
+    const chart = svg
+      .attr('viewBox', `0 0 ${containerWidth} ${height}`)
+      .attr('width', '100%')
+      .attr('height', height)
+      .append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-            g.append('g')
-                .attr('class', 'grid')
-                .call(d3.axisLeft(yScale)
-                    .tickSize(-innerWidth)
-                    .tickFormat('')
-                )
-                .style('stroke-dasharray', '3,3')
-                .style('opacity', 0.3);
+    const showTooltip = (event, label, value) => {
+      tooltip
+        .style('opacity', 1)
+        .html(`<strong>${label}</strong><br/>${value}`)
+        .style('left', `${event.pageX + 12}px`)
+        .style('top', `${event.pageY - 28}px`);
+    };
 
-            // Add bars with animation
-            const bars = g.selectAll('.bar')
-                .data(data)
-                .enter().append('rect')
-                .attr('class', 'bar')
-                .attr('x', (d, i) => xScale(labels[i]))
-                .attr('width', xScale.bandwidth())
-                .attr('y', innerHeight)
-                .attr('height', 0)
-                .attr('fill', '#3b82f6')
-                .attr('rx', 4)
-                .style('cursor', 'pointer')
-                .on('mouseover', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('fill', '#2563eb');
-                    
-                    // Show tooltip
-                    const tooltip = d3.select('body').append('div')
-                        .attr('class', 'tooltip')
-                        .style('position', 'absolute')
-                        .style('background', '#1f2937')
-                        .style('color', 'white')
-                        .style('padding', '8px')
-                        .style('border-radius', '4px')
-                        .style('font-size', '12px')
-                        .style('pointer-events', 'none')
-                        .style('opacity', 0);
-                    
-                    tooltip.transition()
-                        .duration(200)
-                        .style('opacity', 1);
-                    
-                    tooltip.html(`Value: ${d}`)
-                        .style('left', (event.pageX + 10) + 'px')
-                        .style('top', (event.pageY - 28) + 'px');
-                })
-                .on('mouseout', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('fill', '#3b82f6');
-                    
-                    d3.selectAll('.tooltip').remove();
-                });
+    const hideTooltip = () => {
+      tooltip.style('opacity', 0);
+    };
 
-            // Animate bars
-            bars.transition()
-                .duration(800)
-                .delay((d, i) => i * 50)
-                .attr('y', d => yScale(d))
-                .attr('height', d => innerHeight - yScale(d));
+    if (type === 'bar') {
+      const entries = data.map((value, index) => ({ value, label: labels[index] }));
+      const x = d3.scaleBand().domain(labels).range([0, innerWidth]).padding(0.18);
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(data) || 0])
+        .nice()
+        .range([innerHeight, 0]);
 
-            // Add x-axis
-            g.append('g')
-                .attr('transform', `translate(0,${innerHeight})`)
-                .call(d3.axisBottom(xScale))
-                .selectAll('text')
-                .style('text-anchor', 'end')
-                .attr('dx', '-.8em')
-                .attr('dy', '.15em')
-                .attr('transform', 'rotate(-45)');
+      chart
+        .append('g')
+        .attr('class', 'grid')
+        .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(''))
+        .selectAll('line')
+        .attr('stroke', gridColor);
 
-            // Add y-axis
-            g.append('g')
-                .call(d3.axisLeft(yScale).ticks(5));
-        }
+      chart
+        .append('g')
+        .selectAll('rect')
+        .data(entries)
+        .join('rect')
+        .attr('x', (entry) => x(entry.label))
+        .attr('y', innerHeight)
+        .attr('width', x.bandwidth())
+        .attr('height', 0)
+        .attr('rx', 12)
+        .attr('fill', palette[0])
+        .on('mouseenter', function (event, entry) {
+          d3.select(this).attr('fill', '#67e8f9');
+          showTooltip(event, entry.label, entry.value);
+        })
+        .on('mousemove', function (event, entry) {
+          showTooltip(event, entry.label, entry.value);
+        })
+        .on('mouseleave', function () {
+          d3.select(this).attr('fill', palette[0]);
+          hideTooltip();
+        })
+        .transition()
+        .duration(500)
+        .ease(d3.easeCubicOut)
+        .attr('y', (entry) => y(entry.value))
+        .attr('height', (entry) => innerHeight - y(entry.value));
 
-        if (type === 'line') {
-            const xScale = d3.scaleLinear()
-                .domain([0, labels.length - 1])
-                .range([0, innerWidth]);
+      chart
+        .append('g')
+        .attr('transform', `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(x))
+        .call((group) => group.selectAll('text').attr('fill', axisColor).style('font-size', '11px'))
+        .call((group) => group.selectAll('path, line').attr('stroke', 'rgba(148, 163, 184, 0.24)'));
 
-            const yScale = d3.scaleLinear()
-                .domain([0, d3.max(data)])
-                .nice()
-                .range([innerHeight, 0]);
+      chart
+        .append('g')
+        .call(d3.axisLeft(y).ticks(4))
+        .call((group) => group.selectAll('text').attr('fill', axisColor).style('font-size', '11px'))
+        .call((group) => group.selectAll('path, line').attr('stroke', 'rgba(148, 163, 184, 0.24)'));
+    }
 
-            const g = svg.append('g')
-                .attr('transform', `translate(${margin.left},${margin.top})`);
+    if (type === 'line') {
+      const entries = data.map((value, index) => ({ value, label: labels[index] }));
+      const x = d3.scalePoint().domain(labels).range([0, innerWidth]).padding(0.5);
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(data) || 0])
+        .nice()
+        .range([innerHeight, 0]);
 
-            // Add grid
-            g.append('g')
-                .attr('class', 'grid')
-                .call(d3.axisLeft(yScale)
-                    .tickSize(-innerWidth)
-                    .tickFormat('')
-                )
-                .style('stroke-dasharray', '3,3')
-                .style('opacity', 0.3);
+      chart
+        .append('g')
+        .call(d3.axisLeft(y).ticks(4).tickSize(-innerWidth).tickFormat(''))
+        .selectAll('line')
+        .attr('stroke', gridColor);
 
-            // Create line generator
-            const line = d3.line()
-                .x((d, i) => xScale(i))
-                .y(d => yScale(d))
-                .curve(d3.curveMonotoneX);
+      const area = d3
+        .area()
+        .x((entry) => x(entry.label))
+        .y0(innerHeight)
+        .y1((entry) => y(entry.value))
+        .curve(d3.curveMonotoneX);
 
-            // Add area under line
-            const area = d3.area()
-                .x((d, i) => xScale(i))
-                .y0(innerHeight)
-                .y1(d => yScale(d))
-                .curve(d3.curveMonotoneX);
+      const line = d3
+        .line()
+        .x((entry) => x(entry.label))
+        .y((entry) => y(entry.value))
+        .curve(d3.curveMonotoneX);
 
-            // Add area
-            g.append('path')
-                .datum(data)
-                .attr('fill', '#3b82f6')
-                .attr('fill-opacity', 0.1)
-                .attr('d', area);
+      chart
+        .append('path')
+        .datum(entries)
+        .attr('fill', 'rgba(34, 211, 238, 0.12)')
+        .attr('d', area);
 
-            // Add line
-            const path = g.append('path')
-                .datum(data)
-                .attr('fill', 'none')
-                .attr('stroke', '#3b82f6')
-                .attr('stroke-width', 3)
-                .attr('d', line);
+      const linePath = chart
+        .append('path')
+        .datum(entries)
+        .attr('fill', 'none')
+        .attr('stroke', palette[0])
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .attr('d', line);
 
-            // Animate line drawing
-            const totalLength = path.node().getTotalLength();
-            path
-                .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-                .attr('stroke-dashoffset', totalLength)
-                .transition()
-                .duration(1500)
-                .ease(d3.easeLinear)
-                .attr('stroke-dashoffset', 0);
+      const totalLength = linePath.node().getTotalLength();
+      linePath
+        .attr('stroke-dasharray', `${totalLength} ${totalLength}`)
+        .attr('stroke-dashoffset', totalLength)
+        .transition()
+        .duration(700)
+        .ease(d3.easeCubicOut)
+        .attr('stroke-dashoffset', 0);
 
-            // Add dots
-            g.selectAll('.dot')
-                .data(data)
-                .enter().append('circle')
-                .attr('class', 'dot')
-                .attr('cx', (d, i) => xScale(i))
-                .attr('cy', d => yScale(d))
-                .attr('r', 0)
-                .attr('fill', '#3b82f6')
-                .style('cursor', 'pointer')
-                .on('mouseover', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('r', 6);
-                })
-                .on('mouseout', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('r', 4);
-                })
-                .transition()
-                .duration(800)
-                .delay((d, i) => i * 100)
-                .attr('r', 4);
+      chart
+        .selectAll('circle')
+        .data(entries)
+        .join('circle')
+        .attr('cx', (entry) => x(entry.label))
+        .attr('cy', (entry) => y(entry.value))
+        .attr('r', 0)
+        .attr('fill', '#07111f')
+        .attr('stroke', '#67e8f9')
+        .attr('stroke-width', 2)
+        .on('mouseenter', function (event, entry) {
+          d3.select(this).attr('r', 7);
+          showTooltip(event, entry.label, entry.value);
+        })
+        .on('mousemove', function (event, entry) {
+          showTooltip(event, entry.label, entry.value);
+        })
+        .on('mouseleave', function () {
+          d3.select(this).attr('r', 5);
+          hideTooltip();
+        })
+        .transition()
+        .duration(500)
+        .ease(d3.easeCubicOut)
+        .attr('r', 5);
 
-            // Add x-axis
-            g.append('g')
-                .attr('transform', `translate(0,${innerHeight})`)
-                .call(d3.axisBottom(xScale).tickFormat(i => labels[i] || ''));
+      chart
+        .append('g')
+        .attr('transform', `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(x))
+        .call((group) => group.selectAll('text').attr('fill', axisColor).style('font-size', '11px'))
+        .call((group) => group.selectAll('path, line').attr('stroke', 'rgba(148, 163, 184, 0.24)'));
 
-            // Add y-axis
-            g.append('g')
-                .call(d3.axisLeft(yScale).ticks(5));
-        }
+      chart
+        .append('g')
+        .call(d3.axisLeft(y).ticks(4))
+        .call((group) => group.selectAll('text').attr('fill', axisColor).style('font-size', '11px'))
+        .call((group) => group.selectAll('path, line').attr('stroke', 'rgba(148, 163, 184, 0.24)'));
+    }
 
-        if (type === 'pie') {
-            const radius = Math.min(innerWidth, innerHeight) / 2;
-            const color = d3.scaleOrdinal(['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']);
+    if (type === 'pie') {
+      const radius = Math.min(innerWidth, innerHeight) / 2;
+      const pie = d3.pie().value((value) => value).sort(null);
+      const arc = d3.arc().innerRadius(radius * 0.45).outerRadius(radius);
+      const hoverArc = d3.arc().innerRadius(radius * 0.45).outerRadius(radius + 6);
+      const slices = pie(data);
+      const total = sumValues(data);
 
-            const g = svg.append('g')
-                .attr('transform', `translate(${margin.left + innerWidth/2},${margin.top + innerHeight/2})`);
+      const group = chart
+        .append('g')
+        .attr('transform', `translate(${innerWidth / 2}, ${innerHeight / 2})`);
 
-            const pie = d3.pie()
-                .value(d => d)
-                .sort(null);
+      group
+        .selectAll('path')
+        .data(slices)
+        .join('path')
+        .attr('fill', (_, index) => palette[index % palette.length])
+        .attr('d', arc)
+        .attr('stroke', '#07111f')
+        .attr('stroke-width', 2)
+        .on('mouseenter', function (event, slice) {
+          d3.select(this).attr('d', hoverArc);
+          showTooltip(event, labels[slice.index], slice.data);
+        })
+        .on('mousemove', function (event, slice) {
+          showTooltip(event, labels[slice.index], slice.data);
+        })
+        .on('mouseleave', function () {
+          d3.select(this).attr('d', arc);
+          hideTooltip();
+        });
 
-            const arc = d3.arc()
-                .innerRadius(0)
-                .outerRadius(radius);
+      group
+        .selectAll('text')
+        .data(slices)
+        .join('text')
+        .attr('transform', (slice) => `translate(${arc.centroid(slice)})`)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('fill', '#f8fafc')
+        .style('font-size', '11px')
+        .style('font-weight', '600')
+        .text((slice) => {
+          const percentage = total ? Math.round((slice.data / total) * 100) : 0;
+          return percentage > 6 ? `${percentage}%` : '';
+        });
+    }
 
-            const arcHover = d3.arc()
-                .innerRadius(0)
-                .outerRadius(radius * 1.1);
+    return () => {
+      tooltip.remove();
+    };
+  }, [data, height, labels, type, width]);
 
-            const arcs = g.selectAll('.arc')
-                .data(pie(data))
-                .enter().append('g')
-                .attr('class', 'arc');
-
-            arcs.append('path')
-                .attr('d', arc)
-                .attr('fill', (d, i) => color(i))
-                .style('cursor', 'pointer')
-                .on('mouseover', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('d', arcHover);
-                })
-                .on('mouseout', function(event, d) {
-                    d3.select(this)
-                        .transition()
-                        .duration(200)
-                        .attr('d', arc);
-                });
-
-            // Add labels
-            arcs.append('text')
-                .attr('transform', d => `translate(${arc.centroid(d)})`)
-                .attr('text-anchor', 'middle')
-                .style('fill', 'white')
-                .style('font-size', '12px')
-                .style('font-weight', 'bold')
-                .text(d => {
-                    const percentage = ((d.data / data.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
-                    return percentage > 5 ? `${percentage}%` : '';
-                });
-        }
-
-    }, [type, data, labels, height, width]);
-
-    return (
-        <div ref={containerRef} className="w-full">
-            <svg
-                ref={svgRef}
-                width="100%"
-                height={height}
-                viewBox={`0 0 ${width || 600} ${height}`}
-                preserveAspectRatio="xMidYMid meet"
-            />
-        </div>
-    );
+  return (
+    <div ref={containerRef} className="w-full">
+      <svg ref={svgRef} />
+    </div>
+  );
 };
 
 export default Chart;

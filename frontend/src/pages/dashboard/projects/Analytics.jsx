@@ -1,542 +1,310 @@
-import { Activity, Calendar, Download, Filter, MessageSquare, RefreshCw, TrendingUp, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import Chart from '../../../components/ui/Chart'
-import { createClient } from '../../../utils/client'
+import { Activity, CalendarRange, Download, RefreshCw, Waves } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import Chart from '../../../components/ui/Chart';
+import Loading from '../../../components/ui/Loading';
+import { Field, MetricCard, PageHeader, SectionHeader, StatusBadge, Surface } from '../../../components/ui/System';
+import { createClient } from '../../../utils/client';
+import { formatBytes, formatCount, titleCase } from '../../../utils/formatters';
+
+const requestAnalytics = async ({ projectId, filterType, startDate, endDate }) => {
+  const client = createClient(`/api/analytics/projects/${projectId}`);
+  const params = new URLSearchParams({ filter_type: filterType });
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+
+  return client.get(`/overview?${params}`);
+};
 
 const Analytics = () => {
-  const { projectId } = useParams()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [analyticsData, setAnalyticsData] = useState(null)
-  const [filterType, setFilterType] = useState('day')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [refreshing, setRefreshing] = useState(false)
+  const { projectId } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [filterType, setFilterType] = useState('day');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchAnalyticsData = async () => {
-    setLoading(true)
     try {
-      console.log('Fetching analytics for project:', projectId)
-      
-      if (!projectId) {
-        setError('No project ID found')
-        return
-      }
-      
-      const client = createClient(`/api/analytics/projects/${projectId}`)
-      const params = new URLSearchParams({ filter_type: filterType })
-      
-      if (startDate) params.append('start_date', startDate)
-      if (endDate) params.append('end_date', endDate)
-
-      console.log('Fetching from endpoint:', `/overview?${params}`)
-
-      const response = await client.get(`/overview?${params}`)
-
-      console.log('Response received:', response.data)
-      setAnalyticsData(response.data)
-      setError(null)
+      const response = await requestAnalytics({ projectId, filterType, startDate, endDate });
+      setAnalyticsData(response.data);
+      setError('');
     } catch (err) {
-      console.error('Analytics fetch error:', err)
+      console.error(err);
       if (err.response?.status === 404) {
-        setError('Analytics endpoint not found. The backend analytics module may not be implemented yet.')
-      } else if (err.response?.status === 401) {
-        setError('Authentication failed. Please log in again.')
+        setError('Analytics are not available for this project yet.');
       } else {
-        setError(`Failed to load analytics data: ${err.response?.data?.detail || err.message}`)
+        setError(err.response?.data?.detail || 'Failed to load analytics.');
       }
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (projectId) {
-      fetchAnalyticsData()
-    } else {
-      setLoading(false)
-      setError('No project ID found')
+    if (!projectId) {
+      setLoading(false);
+      setError('Missing project ID.');
+      return;
     }
-  }, [projectId, filterType, startDate, endDate])
+
+    let active = true;
+
+    const load = async () => {
+      try {
+        const response = await requestAnalytics({ projectId, filterType, startDate, endDate });
+        if (!active) return;
+        setAnalyticsData(response.data);
+        setError('');
+      } catch (err) {
+        console.error(err);
+        if (!active) return;
+        if (err.response?.status === 404) {
+          setError('Analytics are not available for this project yet.');
+        } else {
+          setError(err.response?.data?.detail || 'Failed to load analytics.');
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    setLoading(true);
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [projectId, filterType, startDate, endDate]);
 
   const handleRefresh = () => {
-    setRefreshing(true)
-    fetchAnalyticsData()
-  }
+    setRefreshing(true);
+    fetchAnalyticsData();
+  };
 
   const handleExportData = () => {
-    if (!analyticsData) return
-    
-    const dataStr = JSON.stringify(analyticsData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: 'application/json' })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `analytics-${projectId}-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
+    if (!analyticsData) return;
 
-  const StatCard = ({ icon: Icon, title, value, change, changeType, color }) => (
-    <div className="bg-base-100 rounded-xl border border-base-300 p-6 hover:shadow-sm transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${color}`}>
-            <Icon className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="mt-4 text-sm font-medium text-base-content/60">{title}</h3>
-          <p className="mt-2 text-3xl font-bold text-base-content">{value?.toLocaleString() || 0}</p>
-          {change && (
-            <div className={`mt-2 flex items-center text-sm ${
-              changeType === 'positive' ? 'text-success' : 'text-error'
-            }`}>
-              <TrendingUp className="w-4 h-4 mr-1" />
-              {change}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
+    const dataStr = JSON.stringify(analyticsData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `analytics-${projectId}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) {
-    return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Dot Pattern Background */}
-        <div className="absolute inset-0">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
-              </radialGradient>
-            </defs>
-            
-            {/* Dot grid pattern */}
-            <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
-            
-            <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
-            
-            <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
-          </svg>
-        </div>
-        
-        {/* Overlay for readability */}
-        <div className="absolute inset-0 bg-base-200/80"></div>
-        
-        {/* Loading Content */}
-        <div className="relative z-10 flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    )
+    return <Loading fullScreen label="Loading analytics" />;
   }
 
-  if (error) {
+  if (error || !analyticsData) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Dot Pattern Background */}
-        <div className="absolute inset-0">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
-              </radialGradient>
-            </defs>
-            
-            {/* Dot grid pattern */}
-            <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
-            <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
-            
-            <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
-            <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
-            
-            <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
-            <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
-          </svg>
+      <Surface className="rounded-[2rem] p-8">
+        <p className="text-xl font-semibold text-white">Analytics unavailable</p>
+        <p className="mt-3 text-[var(--app-muted)]">{error || 'Try again shortly.'}</p>
+        <div className="mt-6">
+          <button type="button" className="button-secondary" onClick={handleRefresh}>
+            Retry
+          </button>
         </div>
-        
-        {/* Overlay for readability */}
-        <div className="absolute inset-0 bg-base-200/80"></div>
-        
-        {/* Error Content */}
-        <div className="relative z-10 flex items-center justify-center h-screen">
-          <div className="bg-error/10 border border-error/20 rounded-lg p-4 max-w-md mx-auto">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <Activity className="h-5 w-5 text-error" />
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-error">Error</h3>
-                <div className="mt-2 text-sm text-error/80">{error}</div>
-                <button
-                  onClick={handleRefresh}
-                  className="btn btn-error btn-sm mt-3"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+      </Surface>
+    );
   }
 
-  const stats = analyticsData?.current_stats
-  const charts = analyticsData
+  const stats = analyticsData.current_stats;
+  const hourlyMessages = analyticsData.hourly_chart.datasets.messages_sent || [];
+  const dailyConnections = analyticsData.daily_chart.datasets.connections || [];
+  const eventDistribution = analyticsData.event_type_chart.datasets.count || [];
+  const connectionDistribution = analyticsData.connection_type_chart.datasets.count || [];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Dot Pattern Background */}
-      <div className="absolute inset-0">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8"/>
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2"/>
-            </radialGradient>
-          </defs>
-          
-          {/* Dot grid pattern */}
-          <circle cx="50" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="150" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="250" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="350" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="450" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="550" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="650" cy="50" r="10" fill="url(#dotGradient)" />
-          <circle cx="750" cy="50" r="10" fill="url(#dotGradient)" />
-          
-          <circle cx="50" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="150" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="250" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="350" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="450" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="550" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="650" cy="200" r="6" fill="url(#dotGradient)" />
-          <circle cx="750" cy="200" r="6" fill="url(#dotGradient)" />
-          
-          <circle cx="50" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="150" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="250" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="350" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="450" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="550" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="650" cy="400" r="3" fill="url(#dotGradient)" />
-          <circle cx="750" cy="400" r="3" fill="url(#dotGradient)" />
-        </svg>
-      </div>
-      
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-base-200/80"></div>
-      
-      {/* Content */}
-      <div className="relative z-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-base-content">Analytics</h1>
-          <p className="mt-1 text-sm text-base-content/60">
-            Monitor your project's real-time metrics and performance
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="btn btn-primary btn-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-          <button
-            onClick={handleExportData}
-            className="btn btn-secondary btn-sm"
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Analytics"
+        title="See the shape of traffic, not just the totals."
+        description="The analytics surface now uses calmer charts, shorter controls, and cleaner summary cards so trends are easier to read."
+        meta={
+          <>
+            <StatusBadge tone="info">{titleCase(filterType)}</StatusBadge>
+            <StatusBadge tone="success">Events {formatCount(stats.total_events)}</StatusBadge>
+          </>
+        }
+        actions={
+          <>
+            <button type="button" className="button-secondary" onClick={handleRefresh} disabled={refreshing}>
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            <button type="button" className="button-primary" onClick={handleExportData}>
+              <Download className="h-4 w-4" />
+              Export JSON
+            </button>
+          </>
+        }
+      />
 
-      {/* Filters */}
-      <div className="bg-base-100 rounded-xl border border-base-300 p-6 mb-8">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-base-content/60" />
-            <span className="text-sm font-medium text-base-content">Filter:</span>
-          </div>
-          
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="select select-bordered select-sm"
-          >
-            <option value="hour">Last Hour</option>
-            <option value="day">Last 24 Hours</option>
-            <option value="week">Last Week</option>
-            <option value="month">Last Month</option>
-            <option value="all">All Time</option>
-          </select>
+      <Surface className="rounded-[2rem] p-6">
+        <SectionHeader
+          eyebrow="Filters"
+          title="Adjust the observation window"
+          description="Use predefined ranges or a custom date window to inspect transport and message activity."
+        />
 
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-base-content/60" />
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <Field htmlFor="analytics-filter" label="Range preset">
+            <select
+              id="analytics-filter"
+              value={filterType}
+              onChange={(event) => setFilterType(event.target.value)}
+              className="select-shell"
+            >
+              <option value="hour">Hour</option>
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+              <option value="all">All</option>
+            </select>
+          </Field>
+          <Field htmlFor="analytics-start" label="Start date">
             <input
+              id="analytics-start"
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="input input-bordered input-sm"
-              placeholder="Start date"
+              onChange={(event) => setStartDate(event.target.value)}
+              className="input-shell"
             />
-            <span className="text-base-content/60">to</span>
+          </Field>
+          <Field htmlFor="analytics-end" label="End date">
             <input
+              id="analytics-end"
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="input input-bordered input-sm"
-              placeholder="End date"
+              onChange={(event) => setEndDate(event.target.value)}
+              className="input-shell"
+            />
+          </Field>
+        </div>
+      </Surface>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          icon={Activity}
+          label="Total Events"
+          value={formatCount(stats.total_events)}
+          meta="All tracked analytics events in the selected window."
+        />
+        <MetricCard
+          icon={Waves}
+          label="Messages Sent"
+          value={formatCount(stats.messages_sent)}
+          meta="Outbound room, direct, and broadcast activity."
+          tone="success"
+        />
+        <MetricCard
+          icon={CalendarRange}
+          label="Connections"
+          value={formatCount(stats.connections)}
+          meta="Clients connected during the selected period."
+        />
+        <MetricCard
+          icon={Download}
+          label="Payload Volume"
+          value={formatBytes(stats.total_message_size)}
+          meta={`Average payload ${formatBytes(stats.avg_message_size)}`}
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Surface className="rounded-[2rem] p-6">
+          <SectionHeader
+            eyebrow="Hourly messages"
+            title="Message volume by hour"
+            description="A tighter line chart replaces the older decorative treatment."
+          />
+          <div className="mt-6">
+            <Chart type="line" data={hourlyMessages} labels={analyticsData.hourly_chart.labels} />
+          </div>
+        </Surface>
+
+        <Surface className="rounded-[2rem] p-6">
+          <SectionHeader
+            eyebrow="Daily connections"
+            title="Connection trend over the last week"
+            description="Connection counts help explain when load or engagement changes."
+          />
+          <div className="mt-6">
+            <Chart type="bar" data={dailyConnections} labels={analyticsData.daily_chart.labels} />
+          </div>
+        </Surface>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Surface className="rounded-[2rem] p-6">
+          <SectionHeader
+            eyebrow="Event mix"
+            title="Which event types dominate"
+            description="Distribution views make it easier to spot unusual traffic shapes."
+          />
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+              <Chart
+                type="pie"
+                data={eventDistribution}
+                labels={analyticsData.event_type_chart.labels}
+                height={260}
+              />
+            </div>
+            <div className="space-y-3">
+              {analyticsData.event_type_chart.labels.map((label, index) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-3"
+                >
+                  <p className="text-sm font-medium text-white">{titleCase(label)}</p>
+                  <p className="text-sm text-[var(--app-muted)]">{formatCount(eventDistribution[index])}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Surface>
+
+        <Surface tone="muted" className="rounded-[2rem] p-6">
+          <SectionHeader
+            eyebrow="Transport split"
+            title="How clients connected"
+            description="This gives you a quick read on fallback usage versus native sockets."
+          />
+          <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+            <Chart
+              type="pie"
+              data={connectionDistribution}
+              labels={analyticsData.connection_type_chart.labels}
+              height={260}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          icon={Activity}
-          title="Total Events"
-          value={stats?.total_events}
-          color="bg-blue-500"
-        />
-        <StatCard
-          icon={MessageSquare}
-          title="Messages Sent"
-          value={stats?.messages_sent}
-          color="bg-green-500"
-        />
-        <StatCard
-          icon={Users}
-          title="Connections"
-          value={stats?.connections}
-          color="bg-purple-500"
-        />
-        <StatCard
-          icon={TrendingUp}
-          title="Avg Message Size"
-          value={`${Math.round(stats?.avg_message_size || 0)} bytes`}
-          color="bg-orange-500"
-        />
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Hourly Chart */}
-        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-          <h3 className="text-lg font-semibold text-base-content mb-4">Hourly Activity</h3>
-          <Chart
-            type="line"
-            data={charts?.hourly_chart?.datasets?.messages_sent || []}
-            labels={charts?.hourly_chart?.labels || []}
-            height={300}
-          />
-        </div>
-
-        {/* Daily Chart */}
-        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-          <h3 className="text-lg font-semibold text-base-content mb-4">Daily Trends</h3>
-          <Chart
-            type="bar"
-            data={charts?.daily_chart?.datasets?.messages_sent || []}
-            labels={charts?.daily_chart?.labels || []}
-            height={300}
-          />
-        </div>
-
-        {/* Event Types Distribution */}
-        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-          <h3 className="text-lg font-semibold text-base-content mb-4">Event Types</h3>
-          <Chart
-            type="pie"
-            data={charts?.event_type_chart?.datasets?.count || []}
-            labels={charts?.event_type_chart?.labels || []}
-            height={300}
-          />
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-base-content mb-2">Legend</h4>
-            <div className="flex flex-wrap gap-3">
-              {charts?.event_type_chart?.labels?.map((label, index) => {
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                const color = colors[index % colors.length];
-                return (
-                  <div key={label} className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded" 
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-xs text-base-content/60">{label}</span>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="mt-6 space-y-3">
+            {analyticsData.connection_type_chart.labels.map((label, index) => (
+              <div
+                key={label}
+                className="flex items-center justify-between rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-3"
+              >
+                <p className="text-sm font-medium text-white">{titleCase(label)}</p>
+                <p className="text-sm text-[var(--app-muted)]">{formatCount(connectionDistribution[index])}</p>
+              </div>
+            ))}
           </div>
-        </div>
-
-        {/* Connection Types Distribution */}
-        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-          <h3 className="text-lg font-semibold text-base-content mb-4">Connection Types</h3>
-          <Chart
-            type="pie"
-            data={charts?.connection_type_chart?.datasets?.count || []}
-            labels={charts?.connection_type_chart?.labels || []}
-            height={300}
-          />
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-base-content mb-2">Legend</h4>
-            <div className="flex flex-wrap gap-3">
-              {charts?.connection_type_chart?.labels?.map((label, index) => {
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                const color = colors[index % colors.length];
-                return (
-                  <div key={label} className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded" 
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-xs text-base-content/60">{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Detailed Stats Table */}
-      <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-        <h3 className="text-lg font-semibold text-base-content mb-4">Detailed Statistics</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-base-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
-                  Metric
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
-                  Value
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
-                  Description
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-base-100 divide-y divide-base-300">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-base-content">
-                  Messages Sent
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/60">
-                  {stats?.messages_sent?.toLocaleString() || 0}
-                </td>
-                <td className="px-6 py-4 text-sm text-base-content/60">
-                  Total messages sent from your application
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-base-content">
-                  Messages Received
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/60">
-                  {stats?.messages_received?.toLocaleString() || 0}
-                </td>
-                <td className="px-6 py-4 text-sm text-base-content/60">
-                  Total messages received by your application
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-base-content">
-                  WebSocket Connections
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/60">
-                  {stats?.websocket_connections?.toLocaleString() || 0}
-                </td>
-                <td className="px-6 py-4 text-sm text-base-content/60">
-                  Total WebSocket connections established
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-base-content">
-                  SSE Connections
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/60">
-                  {stats?.sse_connections?.toLocaleString() || 0}
-                </td>
-                <td className="px-6 py-4 text-sm text-base-content/60">
-                  Total Server-Sent Events connections
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-base-content">
-                  Total Message Size
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-base-content/60">
-                  {(stats?.total_message_size / 1024).toFixed(2)} KB
-                </td>
-                <td className="px-6 py-4 text-sm text-base-content/60">
-                  Combined size of all messages transferred
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        </Surface>
       </div>
     </div>
-    </div>
-  )
-}
+  );
+};
 
-export default Analytics
+export default Analytics;

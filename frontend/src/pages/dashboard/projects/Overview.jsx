@@ -1,243 +1,226 @@
-import { Activity, ArrowUpRight, BookOpen, ExternalLink, Globe, Users, Zap } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  KeyRound,
+  ShieldCheck,
+  Waves,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import Loading from '../../../components/ui/Loading';
+import { MetricCard, PageHeader, SectionHeader, StatusBadge, Surface } from '../../../components/ui/System';
 import { createClient } from '../../../utils/client';
+import { formatAuthType, formatCount, formatDate } from '../../../utils/formatters';
 
 const ProjectOverview = () => {
-    const { projectId } = useParams();
-    const [project, setProject] = useState(null);
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+  const { projectId } = useParams();
+  const [project, setProject] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchProjectData = async () => {
-            try {
-                const client = createClient(`/api/projects/${projectId}`);
-                const [projectRes, statsRes] = await Promise.all([
-                    client.get('/'),
-                    client.get('/stats')
-                ]);
-                setProject(projectRes.data);
-                setStats(statsRes.data);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load project details.');
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    let isMounted = true;
 
-        fetchProjectData();
+    const fetchProjectData = async () => {
+      try {
+        const client = createClient(`/api/projects/${projectId}`);
+        const [projectResponse, statsResponse] = await Promise.all([client.get('/'), client.get('/stats')]);
 
-        // Refresh stats every 30 seconds
-        const interval = setInterval(async () => {
-            try {
-                const client = createClient(`/api/projects/${projectId}`);
-                const statsRes = await client.get('/stats');
-                setStats(statsRes.data);
-            } catch (err) {
-                console.error('Failed to refresh stats:', err);
-            }
-        }, 30000);
+        if (!isMounted) return;
+        setProject(projectResponse.data);
+        setStats(statsResponse.data);
+      } catch (err) {
+        console.error(err);
+        if (isMounted) setError('Failed to load project details.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-        return () => clearInterval(interval);
-    }, [projectId]);
+    fetchProjectData();
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-base-200">
-                <div className="flex items-center justify-center h-screen">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                </div>
-            </div>
-        )
-    }
+    const interval = setInterval(async () => {
+      try {
+        const client = createClient(`/api/projects/${projectId}`);
+        const statsResponse = await client.get('/stats');
+        if (isMounted) setStats(statsResponse.data);
+      } catch (err) {
+        console.error('Failed to refresh project stats:', err);
+      }
+    }, 30000);
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-base-200">
-                <div className="flex items-center justify-center h-screen">
-                    <div className="bg-error/10 border border-error/20 rounded-lg p-4 max-w-md mx-auto">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <Activity className="h-5 w-5 text-error" />
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-error">Error</h3>
-                                <div className="mt-2 text-sm text-error/80">{error}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [projectId]);
 
-    const StatCard = ({ title, value, icon: Icon, description }) => (
-        <div className="bg-base-100 rounded-xl border border-base-300 p-6">
-            <div className="flex items-center justify-between mb-4">
-                <div className="p-2 rounded-lg bg-base-200">
-                    <Icon className="w-6 h-6 text-base-content" />
-                </div>
-                <span className="text-xs text-success font-medium flex items-center">
-                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                    Live
-                </span>
-            </div>
-            <div className="flex flex-col">
-                <span className="text-2xl font-bold text-base-content mb-1">{value}</span>
-                <span className="text-sm font-semibold text-base-content/60">{title}</span>
-                <p className="text-xs text-base-content/40 mt-3 leading-relaxed">{description}</p>
-            </div>
-        </div>
-    );
+  if (loading) {
+    return <Loading fullScreen label="Loading project overview" />;
+  }
 
+  if (error || !project || !stats) {
     return (
-        <div className="min-h-screen bg-base-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="space-y-8 animate-in fade-in duration-500">
-                    {/* Getting Started Banner */}
-                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <div className="p-3 bg-primary/20 rounded-lg">
-                                    <BookOpen className="w-6 h-6 text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-base-content">Getting Started with {project.name}</h3>
-                                    <p className="text-base-content/70 text-sm mt-1">
-                                        Learn how to build real-time applications with WebSocket and Server-Sent Events
-                                    </p>
-                                </div>
-                            </div>
-                            <a 
-                                href="https://docs.Brodcasta.dev" 
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-4 py-2 border border-primary/30 rounded-lg text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4 mr-2" />
-                                View Docs
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Project Header */}
-                    <div className="bg-base-100 rounded-xl border border-base-300 p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <div>
-                                <h1 className="text-3xl font-bold text-base-content mb-2">{project.name}</h1>
-                                <p className="text-base-content/60">
-                                    Real-time ecosystem broadcasting from <span className="font-mono text-primary">{projectId.split('-')[0]}...</span>
-                                </p>
-                            </div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
-                                <div className="w-1.5 h-1.5 bg-success rounded-full mr-1.5"></div>
-                                ACTIVE
-                            </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Total Clients</span>
-                                <span className="text-2xl font-bold text-base-content">{stats.total_connections}</span>
-                            </div>
-                            <div>
-                                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Active Rooms</span>
-                                <span className="text-2xl font-bold text-base-content">{stats.rooms_count}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard
-                            title="Total Connections"
-                            value={stats.total_connections}
-                            icon={Users}
-                            description="Total active WebSocket and SSE clients"
-                        />
-                        <StatCard
-                            title="Active Rooms"
-                            value={stats.rooms_count}
-                            icon={Globe}
-                            description="Number of groups currently with participants"
-                        />
-                        <StatCard
-                            title="WebSocket Clients"
-                            value={stats.websocket_connections}
-                            icon={Activity}
-                            description="Connections using native WebSockets"
-                        />
-                        <StatCard
-                            title="SSE Clients"
-                            value={stats.sse_connections}
-                            icon={Zap}
-                            description="Connections using HTTP Server-Sent Events"
-                        />
-                    </div>
-
-                    {/* Quick Integration */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 bg-base-100 rounded-xl border border-base-300 p-8">
-                            <h2 className="text-xl font-bold mb-6 text-base-content">Quick Integration</h2>
-                            <div className="bg-base-200 rounded-xl p-6 font-mono text-md relative border border-base-300">
-                                <div className="text-base-content/40 mb-2">// Install the SDK</div>
-                                <div className="text-primary">npm install<span className="text-base-content"> brodcasta-sdk</span></div>
-                                <div className="my-3"></div>
-                                <div className="text-base-content/40 mb-2">// Connect to Brodcasta</div>
-                                <div className="text-primary">import<span className="text-base-content"> {'{'} BrodcastaClient {'}'} </span><span className="text-base-content">from </span><span className="text-success">'brodcasta-sdk'</span><span className="text-base-content">;</span></div>
-                                <div className="my-2"></div>
-                                <div className="text-primary">const<span className="text-base-content"> client = </span><span className="text-secondary">new</span><span className="text-base-content"> BrodcastaClient({'{'}</span></div>
-                                <div className="pl-4 text-base-content">  <span className="text-base-content">baseUrl: </span><span className="text-success">'https://your-brodcasta-instance.com'</span><span className="text-base-content">,</span></div>
-                                <div className="pl-4 text-base-content">  <span className="text-base-content">projectId: </span><span className="text-success">'{projectId}'</span><span className="text-base-content">,</span></div>
-                                <div className="pl-4 text-base-content">  <span className="text-base-content">projectSecret: </span><span className="text-success">'your-project-secret'</span><span className="text-base-content">,</span></div>
-                                <div className="pl-4 text-base-content">  <span className="text-base-content">room: </span><span className="text-success">'general'</span><span className="text-base-content">,</span></div>
-                                <div className="text-base-content">{'}'});</div>
-                                <div className="my-2"></div>
-                                <div className="text-primary">await<span className="text-base-content"> client.connect();</span></div>
-                                <div className="my-2"></div>
-                                <div className="text-primary">client.onEvent</div><span className="text-base-content">(<span className="text-success">'message.received'</span>, (data) =&gt; {'{'}</span></div>
-                                <div className="pl-4 text-base-content">  <span className="text-base-content">console.log(</span><span className="text-success">'Message:'</span><span className="text-base-content">, data.message);</span></div>
-                                <div className="text-base-content">{'}'});</div>
-                            </div>
-                        </div>
-
-                        <div className="bg-base-100 rounded-xl border border-base-300 p-8">
-                            <h2 className="text-xl font-bold mb-6 text-base-content">App Settings</h2>
-                            <div className="space-y-5">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Auth Type</span>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-base-200 text-base-content">
-                                        {project.auth_type.replace('_', ' ')}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">History</span>
-                                    <span className="text-sm font-bold text-base-content/70">{project.history_enabled ? 'Enabled' : 'Disabled'}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">Created</span>
-                                    <span className="text-sm font-bold text-base-content/70">{new Date(project.created_at).toLocaleDateString()}</span>
-                                </div>
-                            </div>
-                            <div className="border-t border-base-300 my-4 pt-4">
-                                <a 
-                                    href="https://docs.Brodcasta.dev" 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center w-full px-4 py-2 border border-base-300 rounded-lg text-sm font-medium text-base-content bg-base-100 hover:bg-base-200 transition-colors justify-center"
-                                >
-                                    Documentation
-                                    <ArrowUpRight className="w-4 h-4 ml-2" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <Surface className="rounded-[2rem] p-8">
+        <p className="text-xl font-semibold text-white">Project unavailable</p>
+        <p className="mt-3 text-[var(--app-muted)]">{error || 'Try refreshing the control panel.'}</p>
+      </Surface>
     );
+  }
+
+  return (
+    <div className="space-y-8">
+      <Surface tone="highlight" className="overflow-hidden rounded-[2.25rem] px-6 py-8 sm:px-8 sm:py-10">
+        <PageHeader
+          eyebrow="Project Overview"
+          title={project.name}
+          description="A tighter project landing surface for traffic, auth posture, and integration details."
+          meta={
+            <>
+              <StatusBadge tone="success">Project live</StatusBadge>
+              <StatusBadge tone="info">{formatAuthType(project.auth_type)}</StatusBadge>
+              <StatusBadge tone="neutral">Created {formatDate(project.created_at)}</StatusBadge>
+            </>
+          }
+          actions={
+            <a
+              href="https://docs.Brodcasta.dev"
+              target="_blank"
+              rel="noreferrer"
+              className="button-secondary"
+            >
+              <BookOpen className="h-4 w-4" />
+              Docs
+            </a>
+          }
+        />
+      </Surface>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          icon={Activity}
+          label="Connections"
+          value={formatCount(stats.total_connections)}
+          meta="Combined active clients across all transports."
+        />
+        <MetricCard
+          icon={Waves}
+          label="WebSocket Clients"
+          value={formatCount(stats.websocket_connections)}
+          meta="Connections currently using native WebSockets."
+          tone="success"
+        />
+        <MetricCard
+          icon={Waves}
+          label="SSE Clients"
+          value={formatCount(stats.sse_connections)}
+          meta="Clients currently using the fallback transport."
+        />
+        <MetricCard
+          icon={ShieldCheck}
+          label="Rooms"
+          value={formatCount(stats.rooms_count)}
+          meta="Known active room count inside this project."
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <Surface className="rounded-[2rem] p-6 sm:p-8">
+          <SectionHeader
+            eyebrow="Quick integration"
+            title="Connect the SDK with the project credentials"
+            description="The overview now leads with the code path teams need most often instead of decorative banners."
+          />
+
+          <div className="mt-6 code-panel">
+            <pre>
+              <span className="token-comment">// install</span>{'\n'}
+              npm install brodcasta-sdk{'\n'}
+              {'\n'}
+              <span className="token-comment">// connect</span>{'\n'}
+              <span className="token-keyword">import</span> {'{'} <span className="token-accent">BrodcastaClient</span> {'}'}{' '}
+              <span className="token-keyword">from</span> <span className="token-string">'brodcasta-sdk'</span>{'\n'}
+              {'\n'}
+              <span className="token-keyword">const</span> projectConfig = <span className="token-keyword">await</span>{' '}
+              <span className="token-accent">loadProjectConfig</span>(){'\n'}
+              {'\n'}
+              <span className="token-keyword">const</span> client = <span className="token-keyword">new</span>{' '}
+              <span className="token-accent">BrodcastaClient</span>({'\n'}
+              {'  '}baseUrl: <span className="token-string">'https://your-instance.example'</span>,{'\n'}
+              {'  '}...projectConfig,{'\n'}
+              {'  '}projectSecret: <span className="token-string">'rotate-from-credentials'</span>,{'\n'}
+              {'  '}room: <span className="token-string">'general'</span>,{'\n'}
+              {'}'}){'\n'}
+              {'\n'}
+              <span className="token-keyword">await</span> client.connect(){'\n'}
+              client.onEvent(<span className="token-string">'message.received'</span>, console.log)
+            </pre>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to={`/dashboard/projects/${projectId}/api-keys`} className="button-primary">
+              <KeyRound className="h-4 w-4" />
+              View credentials
+            </Link>
+            <Link to={`/dashboard/projects/${projectId}/playground`} className="button-secondary">
+              Open playground
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Surface>
+
+        <div className="space-y-6">
+          <Surface tone="muted" className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Configuration"
+              title="Project posture"
+              description="Quick answers to the things operators usually need to confirm first."
+            />
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                  Auth mode
+                </p>
+                <p className="mt-3 text-lg font-semibold text-white">{formatAuthType(project.auth_type)}</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                  History
+                </p>
+                <p className="mt-3 text-lg font-semibold text-white">
+                  {project.history_enabled ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface className="rounded-[2rem] p-6">
+            <SectionHeader
+              eyebrow="Operational note"
+              title="What the new layout optimizes for"
+              description="Fast scanning, smaller visual jumps, and clearer hierarchy between traffic metrics and project configuration."
+            />
+
+            <div className="mt-6 space-y-3">
+              {[
+                'Metrics sit first because they answer “is it healthy?” immediately.',
+                'Credentials and integration move closer together to shorten setup loops.',
+                'Project settings remain separate from live traffic to reduce accidental actions.',
+              ].map((line) => (
+                <div key={line} className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-slate-100">
+                  {line}
+                </div>
+              ))}
+            </div>
+          </Surface>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProjectOverview;

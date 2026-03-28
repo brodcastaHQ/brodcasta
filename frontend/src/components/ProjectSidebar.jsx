@@ -1,70 +1,105 @@
+import { createElement } from 'react';
 import {
-    Activity,
-    ArrowLeft,
-    Code,
-    FileText,
-    Key,
-    LayoutDashboard,
-    Settings
+  Activity,
+  ChevronLeft,
+  Code2,
+  KeyRound,
+  LayoutDashboard,
+  MessagesSquare,
+  Settings,
 } from 'lucide-react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
+import { cn } from '../utils/cn';
+import { StatusBadge } from './ui/System';
 
-const ProjectSidebar = () => {
-    const location = useLocation();
-    const { projectId } = useParams();
+const ProjectSidebar = ({ open = false, onClose = () => {} }) => {
+  const { projectId } = useParams();
 
-    const isActive = (path) => {
-        // Match exact path or subpaths if needed
-        return location.pathname === `/dashboard/projects/${projectId}${path}`;
-    };
+  const links = [
+    { to: '', label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: 'messages', label: 'Messages', icon: MessagesSquare },
+    { to: 'analytics', label: 'Analytics', icon: Activity },
+    { to: 'api-keys', label: 'Credentials', icon: KeyRound },
+    { to: 'playground', label: 'Playground', icon: Code2 },
+    { to: 'settings', label: 'Settings', icon: Settings },
+  ];
 
-    const NavItem = ({ to, icon: Icon, label, path }) => (
-        <Link
-            to={`/dashboard/projects/${projectId}${to}`}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-md transition-colors mb-1
-                ${isActive(path)
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
-                }`}
-        >
-            <Icon size={18} />
-            <span>{label}</span>
-        </Link>
+  const navLinkClassName = ({ isActive }) =>
+    cn(
+      'group flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
+      isActive
+        ? 'bg-cyan-400/12 text-white ring-1 ring-cyan-400/25'
+        : 'text-[var(--app-muted)] hover:bg-white/5 hover:text-white',
     );
 
-    return (
-        <aside className="w-64 border-r border-base-200 min-h-screen bg-base-100 flex flex-col fixed left-0 top-0 bottom-0 z-20">
-            {/* Context Switcher / Back */}
-            <div className="h-16 flex items-center px-4 border-b border-base-200">
-                <Link to="/dashboard" className="btn btn-ghost btn-md gap-2 text-base-content/70 font-normal hover:bg-base-200 transition-colors">
-                    <ArrowLeft size={16} />
-                    Back to Apps
-                </Link>
-            </div>
+  return (
+    <>
+      <div
+        className={cn(
+          'fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 xl:hidden',
+          open ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
+        onClick={onClose}
+      />
 
-            {/* Project Title branding */}
-            <div className="p-4 px-6 mt-4">
-                <div className="text-[10px] font-bold text-base-content/30 uppercase tracking-[0.25em] mb-1">Navigation</div>
+      <aside
+        className={cn(
+          'shell-panel fixed inset-y-4 left-4 z-50 flex w-[18rem] flex-col rounded-[2rem] px-4 py-5 transition-transform duration-300 ease-out xl:translate-x-0',
+          open ? 'translate-x-0' : '-translate-x-[120%] xl:translate-x-0',
+        )}
+      >
+        <div className="flex items-center justify-between px-2">
+          <NavLink to="/dashboard" className="flex items-center gap-3" onClick={onClose}>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12 text-cyan-200">
+              <ChevronLeft className="h-5 w-5" />
             </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Back to control panel</p>
+              <p className="text-xs text-[var(--app-muted)]">All projects and account views</p>
+            </div>
+          </NavLink>
 
-            {/* Navigation */}
-            <div className="flex-1 overflow-y-auto px-3">
-                <NavItem to="" path="" icon={LayoutDashboard} label="Overview" />
-                <NavItem to="/messages" path="/messages" icon={FileText} label="Messages" />
-                <NavItem to="/api-keys" path="/api-keys" icon={Key} label="API Keys" />
-                <NavItem to="/analytics" path="/analytics" icon={Activity} label="Analytics" />
-                <NavItem to="/playground" path="/playground" icon={Code} label="Playground" />
-                <NavItem to="/settings" path="/settings" icon={Settings} label="Settings" />
-            </div>
+          <button
+            type="button"
+            className="button-ghost xl:hidden"
+            onClick={onClose}
+            aria-label="Close navigation"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
 
-            <div className="p-6 border-t border-base-200">
-                <div className="text-[10px] font-bold text-base-content/30 uppercase tracking-[0.2em] mb-3">Project ID</div>
-                <div className="font-mono text-[11px] bg-base-200/50 text-base-content/50 p-2.5 rounded-lg break-all select-all border border-base-200/40">
-                    {projectId}
-                </div>
-            </div>
-        </aside>
-    );
+        <div className="mt-8 rounded-[1.75rem] border border-white/8 bg-white/[0.04] p-4">
+          <span className="section-eyebrow">Project Console</span>
+          <h2 className="mt-3 text-xl font-semibold text-white">Operational cockpit</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--app-muted)]">
+            Inspect transport health, credentials, message history, and integration paths for this
+            project.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <StatusBadge tone="info">Realtime</StatusBadge>
+            <StatusBadge tone="success">Secure</StatusBadge>
+          </div>
+        </div>
+
+        <nav className="mt-8 flex-1 space-y-2 overflow-y-auto pr-1">
+          {links.map(({ to, label, icon, end }) => (
+            <NavLink
+              key={to || 'overview'}
+              to={`/dashboard/projects/${projectId}${to ? `/${to}` : ''}`}
+              end={end}
+              className={navLinkClassName}
+              onClick={onClose}
+            >
+              {createElement(icon, { className: 'h-4 w-4' })}
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+      </aside>
+    </>
+  );
 };
 
 export default ProjectSidebar;

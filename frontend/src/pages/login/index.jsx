@@ -1,113 +1,164 @@
+import { ArrowRight, ShieldCheck, Waves } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Loading from '../../components/ui/Loading';
+import { Field, StatusBadge, Surface } from '../../components/ui/System';
 import { createClient } from '../../utils/client';
 
 const Login = () => {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
 
-        try {
-            const client = createClient('/api/accounts');
-            await client.post('/login', { email, password });
-            navigate('/dashboard');
-        } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.detail || 'Invalid credentials. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const client = createClient('/api/accounts');
+      await client.post('/login', { email, password });
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.detail || 'Invalid credentials. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen w-full bg-base-100 flex items-center justify-center relative overflow-hidden">
-                {/* Background glow effect */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-
-                {/* Grid Pattern */}
-                <div
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                    style={{
-                        backgroundImage: `
-                    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
-                `,
-                        backgroundSize: '40px 40px',
-                        maskImage: 'radial-gradient(circle at center, black 40%, transparent 100%)',
-                        WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 100%)'
-                    }}
-                />
-
-                {/* Login Card */}
-                <div className="relative">
-                    {loading && <Loading fullScreen />}
-                    <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold mb-2">
-                            Welcome back
-                        </h1>
-                        <p className="text-md text-base-content/60">
-                            Enter your credentials to access your workspace.
-                        </p>
-                    </div>
-
-                    {error && (
-                        <div role="alert" className="alert alert-error mb-4 max-w-md mx-auto">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>{error}</span>
-                        </div>
-                    )}
-
-                    <form className="space-y-4 w-full max-w-md mx-auto" onSubmit={handleSubmit}>
-                        <div className="form-control">
-                            <label className="label pt-0 pb-1.5">
-                                <span className="label-text text-xs font-medium uppercase tracking-wider opacity-60">Email</span>
-                            </label>
-                            <input
-                                type="email"
-                                placeholder="you@example.com"
-                                className="input w-full bg-base-200 border-transparent focus:border-primary/20 focus:bg-base-100 transition-all rounded-lg"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label pt-0 pb-1.5">
-                                <span className="label-text text-xs font-medium uppercase tracking-wider opacity-60">Password</span>
-                            </label>
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                className="input w-full bg-base-200 border-transparent focus:border-primary/20 focus:bg-base-100 transition-all rounded-lg"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <label className="label pb-0">
-                                <a href="#" className="label-text-alt link link-hover text-primary font-medium">Forgot password?</a>
-                            </label>
-                        </div>
-
-                        <button type="submit" className="btn btn-primary w-full rounded-lg text-white mt-2" disabled={loading}>
-                            {loading ? 'Signing In...' : 'Sign In'}
-                        </button>
-                    </form>
-
-                    <div className="text-center mt-6 text-md opacity-60">
-                        Don't have an account? <a href="/signup" className="link link-primary font-bold">Sign up</a>
-                    </div>
+  return (
+    <div className="app-shell min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1280px] items-stretch">
+        <div className="grid w-full gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <Surface tone="highlight" className="hidden overflow-hidden rounded-[2.25rem] p-10 lg:flex lg:flex-col lg:justify-between">
+            <div className="space-y-6">
+              <Link to="/" className="inline-flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12">
+                  <img src="/logo.svg" alt="Brodcasta" className="h-6 w-6" />
                 </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Brodcasta</p>
+                  <p className="text-xs text-[var(--app-muted)]">Realtime messaging infrastructure</p>
+                </div>
+              </Link>
+
+              <div className="space-y-5">
+                <div className="flex flex-wrap gap-3">
+                  <StatusBadge tone="success">Self-hosted</StatusBadge>
+                  <StatusBadge tone="info">Transport aware</StatusBadge>
+                </div>
+                <h1 className="text-5xl font-semibold leading-[1.04] text-white">
+                  Sign into the self-hosted control panel that keeps live systems understandable.
+                </h1>
+                <p className="max-w-xl text-lg leading-8 text-[var(--app-muted)]">
+                  Inspect credentials, project traffic, analytics, and fallback behavior from a UI
+                  that is finally as disciplined as the infrastructure behind it.
+                </p>
+              </div>
             </div>
-    );
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-[1.75rem] border border-white/8 bg-white/[0.04] p-5">
+                <Waves className="h-6 w-6 text-cyan-200" />
+                <h2 className="mt-5 text-xl font-semibold text-white">Transport visibility</h2>
+                <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                  Know when clients connect, reconnect, or fall back to SSE without opening another tool.
+                </p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/8 bg-white/[0.04] p-5">
+                <ShieldCheck className="h-6 w-6 text-emerald-300" />
+                <h2 className="mt-5 text-xl font-semibold text-white">Project security</h2>
+                <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                  Rotate credentials and control auth rules per project from one consistent surface.
+                </p>
+              </div>
+            </div>
+          </Surface>
+
+          <Surface className="relative flex items-center justify-center rounded-[2.25rem] p-6 sm:p-10">
+            {loading ? <Loading fullScreen label="Signing you in" /> : null}
+
+            <div className="w-full max-w-md space-y-8">
+              <div className="space-y-4">
+                <Link to="/" className="inline-flex items-center gap-3 lg:hidden">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12">
+                    <img src="/logo.svg" alt="Brodcasta" className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-semibold text-white">Back to product</span>
+                </Link>
+
+                <div className="space-y-3">
+                  <span className="section-eyebrow">Welcome back</span>
+                  <h2 className="text-4xl font-semibold text-white">Sign in to your control panel</h2>
+                  <p className="text-base leading-7 text-[var(--app-muted)]">
+                    Use your account credentials to manage projects, credentials, analytics, and live traffic on your own deployment.
+                  </p>
+                </div>
+              </div>
+
+              {error ? (
+                <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                  {error}
+                </div>
+              ) : null}
+
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <Field htmlFor="login-email" label="Email address">
+                  <input
+                    id="login-email"
+                    type="email"
+                    className="input-shell"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                  />
+                </Field>
+
+                <Field
+                  htmlFor="login-password"
+                  label="Password"
+                  hint={
+                    <Link to="/signup" className="text-cyan-200 hover:text-cyan-100">
+                      Need an account instead?
+                    </Link>
+                  }
+                >
+                  <input
+                    id="login-password"
+                    type="password"
+                    className="input-shell"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </Field>
+
+                <button type="submit" className="button-primary w-full">
+                  Sign in
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+
+              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--app-subtle)]">
+                  Session note
+                </p>
+                <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
+                  Authentication uses your Brodcasta account cookies and keeps project API calls
+                  scoped to your self-hosted control panel after sign in.
+                </p>
+              </div>
+            </div>
+          </Surface>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Login;
