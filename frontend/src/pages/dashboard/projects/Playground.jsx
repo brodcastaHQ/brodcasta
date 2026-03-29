@@ -223,10 +223,13 @@ const ProjectPlayground = () => {
   };
 
   const publish = async () => {
+    
     if (!clientRef.current || !connected) return;
 
     const text = message.trim();
     if (!text) return;
+
+    console.log('publish', eventType, text);
 
     try {
       if (eventType === 'message.send') {

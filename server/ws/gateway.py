@@ -41,6 +41,7 @@ async def ws_gateway(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
+            print("_"*100,data)
             if "event_type" not in data:
                 continue
             
@@ -54,14 +55,14 @@ async def ws_gateway(websocket: WebSocket):
             
             # Check room permissions before emitting events
             room_name = event_data.get("room") if event_data else None
-            if room_name and event_type in [ClientEvent.JOIN_ROOM, ClientEvent.LEAVE_ROOM]:
+            if room_name and event_type in [ClientEvent.JOIN, ClientEvent.LEAVE]:
                 # For room events, check subscribe permission
                 if not await somal_middleware.check_room_permission(channel, room_name, "subscribe"):
                     logger.warning(f"Permission denied for room: {room_name}")
                     continue
             
             # For publishing events, check publish permission
-            if event_type == ClientEvent.PUBLISH_MESSAGE and room_name:
+            if event_type == ClientEvent.PUBLISH and room_name:
                 if not await somal_middleware.check_room_permission(channel, room_name, "publish"):
                     logger.warning(f"Publish permission denied for room: {room_name}")
                     continue
@@ -69,4 +70,5 @@ async def ws_gateway(websocket: WebSocket):
             emitter.emit(event_type.value, channel, project_id, event_data)
             
     except WebSocketDisconnect:
+        print("_"*100,"something just snapped")
         emitter.emit("client.disconnected", channel, project_id)

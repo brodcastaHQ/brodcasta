@@ -31,7 +31,6 @@ async def poll_connect(request: Request, response: Response):
     
     # Authenticate channel with SOMAL (handles different auth types)
     authenticated = await somal_middleware.authenticate_channel(channel, token, project)
-    print(authenticated)
     if not authenticated:
         return response.json({"error": "Authentication failed"}, status_code=403)
     
@@ -46,10 +45,10 @@ async def poll_connect(request: Request, response: Response):
         await channel.wait_and_send()
     except Exception as e:
         print(f"Long poll error: {e}")
-    # finally:
-    #     # Clean up connection
-    #     await ConnectionStore.remove_channel(channel, project_id)
-    #     emitter.emit("client.disconnected", channel, project_id)
+    finally:
+        # Clean up connection
+        await ConnectionStore.remove_channel(channel, project_id)
+        emitter.emit("client.disconnected", channel, project_id)
 
 
 @router.post("/{project_id}/send")

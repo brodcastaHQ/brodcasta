@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  brodcasta-sdk: link:../../../.local/share/pnpm/global/5/node_modules/file:/home/dunamix/my-oss/brodcasta-sdk
+
 importers:
 
   .:
@@ -18,8 +21,8 @@ importers:
         specifier: ^1.13.4
         version: 1.13.6
       brodcasta-sdk:
-        specifier: github:brodcastaHQ/brodcasta-js-sdk
-        version: https://codeload.github.com/brodcastaHQ/brodcasta-js-sdk/tar.gz/0c12f300c211908efc026ebbf882e915cfe94dcb
+        specifier: file:/home/dunamix/my-oss/brodcasta-sdk
+        version: file:../../brodcasta-sdk
       d3:
         specifier: ^7.9.0
         version: 7.9.0
@@ -688,9 +691,8 @@ packages:
   brace-expansion@1.1.12:
     resolution: {integrity: sha512-9T9UjW3r0UW5c1Q7GTwllptXwhvYmEzFhzMfZ9H7FQWt+uZePjZPjBP/W1ZEyZ1twGWom5/56TF4lPcqjnDHcg==}
 
-  brodcasta-sdk@https://codeload.github.com/brodcastaHQ/brodcasta-js-sdk/tar.gz/0c12f300c211908efc026ebbf882e915cfe94dcb:
-    resolution: {tarball: https://codeload.github.com/brodcastaHQ/brodcasta-js-sdk/tar.gz/0c12f300c211908efc026ebbf882e915cfe94dcb}
-    version: 0.1.0
+  brodcasta-sdk@file:../../brodcasta-sdk:
+    resolution: {directory: ../../brodcasta-sdk, type: directory}
 
   browserslist@4.28.1:
     resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
@@ -1997,7 +1999,7 @@ snapshots:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
-  brodcasta-sdk@https://codeload.github.com/brodcastaHQ/brodcasta-js-sdk/tar.gz/0c12f300c211908efc026ebbf882e915cfe94dcb: {}
+  brodcasta-sdk@file:../../brodcasta-sdk: {}
 
   browserslist@4.28.1:
     dependencies:

@@ -1,0 +1,2 @@
+overrides:
+  brodcasta-sdk: link:../../../.local/share/pnpm/global/5/node_modules/file:/home/dunamix/my-oss/brodcasta-sdk
