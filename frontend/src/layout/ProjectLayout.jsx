@@ -7,13 +7,13 @@ const ProjectLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-[var(--app-bg)]">
       <ProjectSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="min-h-screen xl:pl-[20rem]">
-        <div className="mx-auto max-w-[1280px] px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+      <div className="xl:pl-60">
+        <div className="px-4 py-4 sm:px-6">
           <Topbar onMenuClick={() => setSidebarOpen(true)} />
-          <main className="pt-6">
+          <main className="py-4">
             <Outlet />
           </main>
         </div>

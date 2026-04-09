@@ -11,8 +11,8 @@ const navigation = [
 
 const linkClassName = ({ isActive }) =>
   cn(
-    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-    isActive ? 'bg-white/8 text-white' : 'text-[var(--app-muted)] hover:bg-white/5 hover:text-white',
+    'text-sm transition-colors',
+    isActive ? 'text-[var(--app-text)]' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]',
   );
 
 const Navbar = () => {
@@ -21,19 +21,14 @@ const Navbar = () => {
   return (
     <>
       <nav className="sticky top-4 z-50 mx-4 sm:mx-6">
-        <div className="shell-panel mx-auto max-w-[1280px] rounded-[1.75rem] px-4 py-3 sm:px-5">
+        <div className="mx-auto max-w-xl rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3">
           <div className="flex items-center justify-between gap-3">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/25 bg-cyan-400/12">
-                <img src="/logo.svg" alt="Brodcasta" className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">Brodcasta</p>
-                <p className="text-xs text-[var(--app-muted)]">Realtime messaging infrastructure</p>
-              </div>
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.svg" alt="Brodcasta" className="h-5 w-5" />
+              <p className="text-sm font-medium text-[var(--app-text)]">Brodcasta</p>
             </Link>
 
-            <div className="hidden items-center gap-2 lg:flex">
+            <div className="hidden items-center gap-4 lg:flex">
               {navigation.map((item) =>
                 item.external ? (
                   <a
@@ -41,7 +36,7 @@ const Navbar = () => {
                     href={item.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full px-4 py-2 text-sm font-medium text-[var(--app-muted)] transition-colors hover:bg-white/5 hover:text-white"
+                    className="text-sm text-[var(--app-muted)] hover:text-[var(--app-text)]"
                   >
                     {item.label}
                   </a>
@@ -53,18 +48,18 @@ const Navbar = () => {
               )}
             </div>
 
-            <div className="hidden items-center gap-3 lg:flex">
-              <Link to="/login" className="button-ghost px-4 py-3">
+            <div className="hidden items-center gap-2 lg:flex">
+              <Link to="/login" className="text-sm text-[var(--app-muted)] hover:text-[var(--app-text)]">
                 Sign in
               </Link>
-              <Link to="/signup" className="button-primary">
-                Create account
+              <Link to="/signup" className="button-primary px-3 py-1.5 text-sm">
+                Sign up
               </Link>
             </div>
 
             <button
               type="button"
-              className="button-secondary px-3 py-3 lg:hidden"
+              className="p-2 lg:hidden"
               onClick={() => setMobileOpen((value) => !value)}
               aria-label="Toggle navigation"
             >
@@ -75,8 +70,8 @@ const Navbar = () => {
       </nav>
 
       {mobileOpen ? (
-        <div className="fixed inset-0 z-40 bg-slate-950/72 px-4 pt-24 backdrop-blur-xl lg:hidden">
-          <div className="surface-card mx-auto max-w-md space-y-3 p-4">
+        <div className="fixed inset-0 z-40 bg-[var(--app-bg)]/95 px-4 pt-24 backdrop-blur-sm lg:hidden">
+          <div className="mx-auto max-w-md space-y-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
             {navigation.map((item) =>
               item.external ? (
                 <a
@@ -84,7 +79,7 @@ const Navbar = () => {
                   href={item.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="block rounded-2xl px-4 py-3 text-sm font-medium text-[var(--app-muted)] transition-colors hover:bg-white/5 hover:text-white"
+                  className="block rounded-md px-3 py-2 text-sm text-[var(--app-muted)]"
                   onClick={() => setMobileOpen(false)}
                 >
                   {item.label}
@@ -94,19 +89,19 @@ const Navbar = () => {
                   key={item.label}
                   to={item.to}
                   end={item.end}
-                  className={linkClassName}
+                  className="block rounded-md px-3 py-2 text-sm text-[var(--app-muted)]"
                   onClick={() => setMobileOpen(false)}
                 >
                   {item.label}
                 </NavLink>
               ),
             )}
-            <div className="flex flex-col gap-3 border-t border-white/8 pt-4">
-              <Link to="/login" className="button-secondary" onClick={() => setMobileOpen(false)}>
+            <div className="flex flex-col gap-2 border-t border-[var(--app-border)] pt-3">
+              <Link to="/login" className="button-secondary text-center" onClick={() => setMobileOpen(false)}>
                 Sign in
               </Link>
-              <Link to="/signup" className="button-primary" onClick={() => setMobileOpen(false)}>
-                Create account
+              <Link to="/signup" className="button-primary text-center" onClick={() => setMobileOpen(false)}>
+                Sign up
               </Link>
             </div>
           </div>

@@ -1,31 +1,21 @@
-import { Plus, Search, ShieldCheck, Trash2, UserCog } from 'lucide-react';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { Plus, Trash2, UserCog } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import Loading from '../../components/ui/Loading';
-import { Field, PageHeader, SectionHeader, StatusBadge, Surface } from '../../components/ui/System';
 import { createClient } from '../../utils/client';
 import { formatDate } from '../../utils/formatters';
-
-const USERS_PER_PAGE = 8;
-
-const initialForm = {
-  name: '',
-  email: '',
-  password: '',
-  role: 'MEMBER',
-};
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [mode, setMode] = useState('create');
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [formData, setFormData] = useState(initialForm);
-
-  const deferredSearch = useDeferredValue(searchTerm.trim().toLowerCase());
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'MEMBER',
+  });
+  const [showForm, setShowForm] = useState(false);
+  const [editUser, setEditUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -36,7 +26,7 @@ const AdminUsers = () => {
       setUsers(response.data.users || []);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Failed to load users.');
+      setError('Failed to load users.');
     } finally {
       setLoading(false);
     }
@@ -46,45 +36,6 @@ const AdminUsers = () => {
     fetchUsers();
   }, []);
 
-  const filteredUsers = !deferredSearch
-    ? users
-    : users.filter((user) =>
-        [user.name, user.email, user.role].some((value) =>
-          String(value || '')
-            .toLowerCase()
-            .includes(deferredSearch),
-        ),
-      );
-
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * USERS_PER_PAGE,
-    currentPage * USERS_PER_PAGE,
-  );
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [deferredSearch]);
-
-  const openCreatePanel = () => {
-    setMode('create');
-    setSelectedUser(null);
-    setFormData(initialForm);
-    setPanelOpen(true);
-  };
-
-  const openEditPanel = (user) => {
-    setMode('edit');
-    setSelectedUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      password: '',
-      role: user.role,
-    });
-    setPanelOpen(true);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
@@ -92,22 +43,21 @@ const AdminUsers = () => {
     try {
       const adminClient = createClient('/api/accounts/admin');
 
-      if (mode === 'create') {
-        await adminClient.post('/users', formData);
-      } else if (selectedUser) {
+      if (editUser) {
         const payload = {
           name: formData.name,
           email: formData.email,
           role: formData.role,
         };
-
         if (formData.password) payload.password = formData.password;
-        await adminClient.put(`/users/${selectedUser.id}`, payload);
+        await adminClient.put(`/users/${editUser.id}`, payload);
+      } else {
+        await adminClient.post('/users', formData);
       }
 
-      setPanelOpen(false);
-      setFormData(initialForm);
-      setSelectedUser(null);
+      setShowForm(false);
+      setEditUser(null);
+      setFormData({ name: '', email: '', password: '', role: 'MEMBER' });
       await fetchUsers();
     } catch (err) {
       console.error(err);
@@ -116,7 +66,7 @@ const AdminUsers = () => {
   };
 
   const handleDeleteUser = async (user) => {
-    const shouldDelete = window.confirm(`Delete ${user.email}? This cannot be undone.`);
+    const shouldDelete = window.confirm(`Delete ${user.email}?`);
     if (!shouldDelete) return;
 
     try {
@@ -129,224 +79,160 @@ const AdminUsers = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditUser(null);
+    setFormData({ name: '', email: '', password: '', role: 'MEMBER' });
+    setShowForm(true);
+  };
+
+  const openEdit = (user) => {
+    setEditUser(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: '',
+      role: user.role,
+    });
+    setShowForm(true);
+  };
+
   if (loading) {
     return <Loading fullScreen label="Loading users" />;
   }
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow="Administration"
-        title="User management without the visual clutter."
-        description="This redesign replaces the old dense table-and-modal flow with a searchable, cleaner admin surface and a focused side editor."
-        actions={
-          <button type="button" className="button-primary" onClick={openCreatePanel}>
-            <Plus className="h-4 w-4" />
-            Add user
-          </button>
-        }
-      />
+    <div>
+      <div className="flex items-center justify-between pb-4">
+        <h1 className="text-lg font-medium text-[var(--app-text)]">Users</h1>
+        <button type="button" className="button-primary text-sm px-3 py-1.5" onClick={openCreate}>
+          <Plus className="mr-1 inline h-4 w-4" />
+          Add user
+        </button>
+      </div>
 
       {error ? (
-        <div className="rounded-[1.25rem] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+        <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
           {error}
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Surface className="rounded-[2rem] p-6">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <SectionHeader
-              eyebrow="Directory"
-              title="Workspace users"
-              description="Search current members and adjust their roles from the editor panel."
-            />
-
-            <div className="relative w-full md:max-w-sm">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--app-subtle)]" />
+      {showForm && (
+        <div className="mb-6 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
+          <h2 className="mb-4 text-base font-semibold text-[var(--app-text)]">
+            {editUser ? 'Edit user' : 'Create user'}
+          </h2>
+          <form className="space-y-3" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-medium text-[var(--app-text)]">Name</label>
               <input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="input-shell pl-11"
-                placeholder="Search users"
+                type="text"
+                value={formData.name}
+                onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
+                className="input-shell mt-1"
+                required
               />
             </div>
-          </div>
-
-          <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-white/8">
-            <div className="overflow-x-auto">
-              <table className="table-shell min-w-full bg-transparent">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Created</th>
-                    <th className="text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedUsers.map((user) => (
-                    <tr key={user.id}>
-                      <td>
-                        <div className="space-y-1">
-                          <p className="font-semibold text-white">{user.name}</p>
-                          <p className="text-sm text-[var(--app-muted)]">{user.email}</p>
-                        </div>
-                      </td>
-                      <td>
-                        <StatusBadge tone={user.role === 'ADMIN' ? 'warning' : 'info'}>
-                          {user.role}
-                        </StatusBadge>
-                      </td>
-                      <td className="text-sm text-[var(--app-muted)]">{formatDate(user.created_at)}</td>
-                      <td>
-                        <div className="flex justify-end gap-3">
-                          <button type="button" className="button-secondary" onClick={() => openEditPanel(user)}>
-                            <UserCog className="h-4 w-4" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="button-ghost text-rose-200 hover:bg-rose-400/10 hover:text-rose-100"
-                            onClick={() => handleDeleteUser(user)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginatedUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="py-12 text-center text-[var(--app-muted)]">
-                        No users match the current search.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
+            <div>
+              <label className="block text-sm font-medium text-[var(--app-text)]">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
+                className="input-shell mt-1"
+                required
+              />
             </div>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-[var(--app-muted)]">
-              Showing {paginatedUsers.length} of {filteredUsers.length} users
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                className="button-secondary"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            <div>
+              <label className="block text-sm font-medium text-[var(--app-text)]">
+                Password {!editUser && '(required)'}
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(event) =>
+                  setFormData((current) => ({ ...current, password: event.target.value }))
+                }
+                className="input-shell mt-1"
+                placeholder={editUser ? 'Leave blank to keep current' : ''}
+                required={!editUser}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--app-text)]">Role</label>
+              <select
+                value={formData.role}
+                onChange={(event) => setFormData((current) => ({ ...current, role: event.target.value }))}
+                className="select-shell mt-1"
               >
-                Previous
+                <option value="MEMBER">Member</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className="button-secondary flex-1" onClick={() => setShowForm(false)}>
+                Cancel
               </button>
-              <button
-                type="button"
-                className="button-secondary"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              >
-                Next
+              <button type="submit" className="button-primary flex-1">
+                {editUser ? 'Save' : 'Create'}
               </button>
             </div>
-          </div>
-        </Surface>
+          </form>
+        </div>
+      )}
 
-        <Surface tone={panelOpen ? 'highlight' : 'muted'} className="rounded-[2rem] p-6">
-          <SectionHeader
-            eyebrow="Editor"
-            title={panelOpen ? (mode === 'create' ? 'Create user' : 'Edit user') : 'Select an action'}
-            description={
-              panelOpen
-                ? 'Use controlled fields so role changes and credential updates stay explicit.'
-                : 'Open the panel to create a new user or edit an existing account.'
-            }
-          />
-
-          {panelOpen ? (
-            <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-              <Field htmlFor="admin-name" label="Name">
-                <input
-                  id="admin-name"
-                  type="text"
-                  className="input-shell"
-                  value={formData.name}
-                  onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
-                  required
-                />
-              </Field>
-
-              <Field htmlFor="admin-email" label="Email address">
-                <input
-                  id="admin-email"
-                  type="email"
-                  className="input-shell"
-                  value={formData.email}
-                  onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
-                  required
-                />
-              </Field>
-
-              <Field
-                htmlFor="admin-password"
-                label={mode === 'create' ? 'Password' : 'New password'}
-                hint={mode === 'edit' ? 'Leave blank to keep the current password.' : null}
-              >
-                <input
-                  id="admin-password"
-                  type="password"
-                  className="input-shell"
-                  value={formData.password}
-                  onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
-                  required={mode === 'create'}
-                />
-              </Field>
-
-              <Field htmlFor="admin-role" label="Role">
-                <select
-                  id="admin-role"
-                  className="select-shell"
-                  value={formData.role}
-                  onChange={(event) => setFormData((current) => ({ ...current, role: event.target.value }))}
-                >
-                  <option value="MEMBER">Member</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </Field>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button type="button" className="button-secondary" onClick={() => setPanelOpen(false)}>
-                  Close
-                </button>
-                <button type="submit" className="button-primary">
-                  {mode === 'create' ? 'Create user' : 'Save changes'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="mt-6 space-y-4">
-              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/18 bg-emerald-400/10 text-emerald-300">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Admin safety</p>
-                    <p className="mt-2 text-sm leading-7 text-[var(--app-muted)]">
-                      Role changes are visible inline and destructive actions stay separate from form submission.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <button type="button" className="button-primary w-full" onClick={openCreatePanel}>
-                <Plus className="h-4 w-4" />
-                Create user
-              </button>
-            </div>
-          )}
-        </Surface>
+      <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)]">
+        {users.length === 0 ? (
+          <div className="p-8 text-center text-[var(--app-muted)]">No users</div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[var(--app-border)] text-left">
+                <th className="p-3 text-xs font-medium uppercase text-[var(--app-subtle)]">User</th>
+                <th className="p-3 text-xs font-medium uppercase text-[var(--app-subtle)]">Role</th>
+                <th className="p-3 text-xs font-medium uppercase text-[var(--app-subtle)]">Created</th>
+                <th className="p-3 text-right text-xs font-medium uppercase text-[var(--app-subtle)]">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="border-b border-[var(--app-border)]">
+                  <td className="p-3">
+                    <p className="text-sm font-medium text-[var(--app-text)]">{user.name}</p>
+                    <p className="text-xs text-[var(--app-muted)]">{user.email}</p>
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`text-xs ${
+                        user.role === 'ADMIN'
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-[var(--app-muted)]'
+                      }`}
+                    >
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="p-3 text-sm text-[var(--app-muted)]">{formatDate(user.created_at)}</td>
+                  <td className="p-3 text-right">
+                    <button
+                      type="button"
+                      className="mr-2 text-sm text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                      onClick={() => openEdit(user)}
+                    >
+                      <UserCog className="inline h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm text-red-600 hover:text-red-500"
+                      onClick={() => handleDeleteUser(user)}
+                    >
+                      <Trash2 className="inline h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
