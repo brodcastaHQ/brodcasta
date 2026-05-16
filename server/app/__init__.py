@@ -1,4 +1,4 @@
-from nexios import NexiosApp
+from nexios import NexiosApp, set_config, MakeConfig
 from nexios_contrib.tortoise import init_tortoise
 from nexios.routing.grouping import Group
 import config
@@ -8,8 +8,7 @@ from api.analytics.routes import router as analytics_router
 from api.messages.routes import router as messages_router
 from ws.gateway import router as ws_router
 from sse.routes import router as sse_router
-from nexios import MakeConfig
-from nexios.middleware.cors import CORSMiddleware,CorsConfig
+from nexios.middleware.cors import CORSMiddleware, CorsConfig
 from app.core.auth_backend import JWTAuthBackend
 from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
@@ -21,26 +20,27 @@ from services.analytics_tracker import AnalyticsTracker
 from scripts.create_superuser import create_superuser
 import os
 
+# Initialize global config before creating the app
+_config = MakeConfig(
+    secret_key=config.SECRET_KEY,
+    cors=CorsConfig(
+        allow_origins=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        allow_credentials=True,
+    )
+)
+set_config(_config)
+
 app = NexiosApp(
     title="Brodcasta",
     version="0.1.0",
     description="""
     Brodcasta
     """,
-    
-    config=MakeConfig(
-        secret_key=config.SECRET_KEY,
-        cors = CorsConfig(
-            allow_origins="*",
-            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            allow_headers=["*"],
-            allow_credentials=True,
-        )
-        
-    ),
     routes=[
         Group("/api", routes=[
-            Group(auth_router.prefix,auth_router),
+            Group(auth_router.prefix, auth_router),
             Group(projects_router.prefix, projects_router),
             Group(analytics_router.prefix, analytics_router),
             Group(messages_router.prefix, messages_router),
@@ -49,7 +49,7 @@ app = NexiosApp(
         Group("/ws", routes=[
             Group(ws_router.prefix, ws_router)
         ])
-    ] #type:ignore
+    ]
 )
 
 init_tortoise(app, 

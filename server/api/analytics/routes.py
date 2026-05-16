@@ -3,6 +3,7 @@ from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.auth.decorator import auth
+from nexios.parameters import Query
 from ._schema import (
     AnalyticsFilterParams,
     AnalyticsEventResponse,
@@ -23,9 +24,16 @@ router = Router(prefix="/analytics", tags=["analytics"])
            summary="Get project analytics overview",
            responses=AnalyticsOverviewResponse)
 @auth()
-async def get_analytics_overview(request: Request, response: Response):
+async def get_analytics_overview(
+    request: Request, response: Response,
+    filter_type: str = Query("day"),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    room_id: Optional[str] = Query(None),
+    event_types: Optional[str] = Query(None)
+):
     """Get comprehensive analytics overview for a project"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     # Verify project ownership
     project = await Project.get_or_none(
@@ -40,14 +48,12 @@ async def get_analytics_overview(request: Request, response: Response):
             status_code=status.HTTP_404_NOT_FOUND
         )
     
-    # Parse query parameters
-    query_params = request.query_params
     filter_params = AnalyticsFilterParams(
-        filter_type=query_params.get('filter_type', 'day'),
-        start_date=_parse_date(query_params.get('start_date')),
-        end_date=_parse_date(query_params.get('end_date')),
-        room_id=query_params.get('room_id'),
-        event_types=_parse_event_types(query_params.get('event_types'))
+        filter_type=filter_type,
+        start_date=_parse_date(start_date),
+        end_date=_parse_date(end_date),
+        room_id=room_id,
+        event_types=_parse_event_types(event_types)
     )
     
     # Get current stats based on filter
@@ -104,9 +110,16 @@ async def get_analytics_overview(request: Request, response: Response):
            summary="Get project analytics events",
            responses=list[AnalyticsEventResponse])
 @auth()
-async def get_analytics_events(request: Request, response: Response):
+async def get_analytics_events(
+    request: Request, response: Response,
+    filter_type: str = Query("day"),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    room_id: Optional[str] = Query(None),
+    event_types: Optional[str] = Query(None)
+):
     """Get analytics events for a project with filtering"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     # Verify project ownership
     project = await Project.get_or_none(
@@ -121,14 +134,12 @@ async def get_analytics_events(request: Request, response: Response):
             status_code=status.HTTP_404_NOT_FOUND
         )
     
-    # Parse query parameters
-    query_params = request.query_params
     filter_params = AnalyticsFilterParams(
-        filter_type=query_params.get('filter_type', 'day'),
-        start_date=_parse_date(query_params.get('start_date')),
-        end_date=_parse_date(query_params.get('end_date')),
-        room_id=query_params.get('room_id'),
-        event_types=_parse_event_types(query_params.get('event_types'))
+        filter_type=filter_type,
+        start_date=_parse_date(start_date),
+        end_date=_parse_date(end_date),
+        room_id=room_id,
+        event_types=_parse_event_types(event_types)
     )
     
     # Get filtered events
@@ -162,9 +173,14 @@ async def get_analytics_events(request: Request, response: Response):
            summary="Get project analytics statistics",
            responses=AnalyticsStatsResponse)
 @auth()
-async def get_analytics_stats(request: Request, response: Response):
+async def get_analytics_stats(
+    request: Request, response: Response,
+    filter_type: str = Query("day"),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
     """Get aggregated statistics for a project"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     # Verify project ownership
     project = await Project.get_or_none(
@@ -179,18 +195,15 @@ async def get_analytics_stats(request: Request, response: Response):
             status_code=status.HTTP_404_NOT_FOUND
         )
     
-    # Parse query parameters
-    query_params = request.query_params
-    filter_type = query_params.get('filter_type', 'day')
-    start_date = _parse_date(query_params.get('start_date'))
-    end_date = _parse_date(query_params.get('end_date'))
+    parsed_start = _parse_date(start_date)
+    parsed_end = _parse_date(end_date)
     
     # Get aggregated stats
     stats = await ProjectAnalytics.get_aggregated_stats(
         project_id=project_id,
         filter_type=filter_type,
-        start_date=start_date,
-        end_date=end_date
+        start_date=parsed_start,
+        end_date=parsed_end
     )
     
     return AnalyticsStatsResponse(**stats)
@@ -200,10 +213,15 @@ async def get_analytics_stats(request: Request, response: Response):
            summary="Get chart data for analytics",
            responses=ChartDataResponse)
 @auth()
-async def get_chart_data(request: Request, response: Response):
+async def get_chart_data(
+    request: Request, response: Response,
+    filter_type: str = Query("day"),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
     """Get chart data for different analytics views"""
-    project_id = request.path_params.project_id
-    chart_type = request.path_params.chart_type
+    project_id = request.path_params["project_id"]
+    chart_type = request.path_params["chart_type"]
     
     # Verify project ownership
     project = await Project.get_or_none(
@@ -218,18 +236,15 @@ async def get_chart_data(request: Request, response: Response):
             status_code=status.HTTP_404_NOT_FOUND
         )
     
-    # Parse query parameters
-    query_params = request.query_params
-    filter_type = query_params.get('filter_type', 'day')
-    start_date = _parse_date(query_params.get('start_date'))
-    end_date = _parse_date(query_params.get('end_date'))
+    parsed_start = _parse_date(start_date)
+    parsed_end = _parse_date(end_date)
     
     # Get events
     events = await ProjectAnalytics.get_filtered(
         project_id=project_id,
         filter_type=filter_type,
-        start_date=start_date,
-        end_date=end_date
+        start_date=parsed_start,
+        end_date=parsed_end
     )
     
     # Generate chart data based on chart type

@@ -2,6 +2,7 @@ from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.auth.decorator import auth
+from nexios.parameters import Query
 from tortoise.exceptions import DoesNotExist
 from typing import Optional
 import logging
@@ -17,15 +18,15 @@ logger = logging.getLogger(__name__)
            summary="Get messages for a project",
            responses=dict)
 @auth()
-async def get_project_messages(request: Request, response: Response, project_id: str):
+async def get_project_messages(
+    request: Request, response: Response, project_id: str,
+    room_id: Optional[str] = Query(None),
+    message_type: Optional[str] = Query(None),
+    limit: int = Query(50),
+    offset: int = Query(0)
+):
     """Get messages for a specific project"""
     try:
-        # Get query parameters
-        room_id = request.query_params.get("room_id")
-        message_type = request.query_params.get("message_type")
-        limit = int(request.query_params.get("limit", 50))
-        offset = int(request.query_params.get("offset", 0))
-        
         # Validate limit
         if limit < 1 or limit > 1000:
             return response.json(
@@ -119,11 +120,12 @@ async def get_project_rooms(request: Request, response: Response, project_id: st
            summary="Delete messages for a project",
            responses=dict)
 @auth()
-async def delete_project_messages(request: Request, response: Response, project_id: str):
+async def delete_project_messages(
+    request: Request, response: Response, project_id: str,
+    room_id: Optional[str] = Query(None)
+):
     """Delete messages for a project (or specific room)"""
     try:
-        # Get query parameters
-        room_id = request.query_params.get("room_id")
         
         # Verify project belongs to current user
         project = await Project.get_or_none(id=project_id, account_id=request.user.identity)

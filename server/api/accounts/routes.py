@@ -2,6 +2,7 @@ import os
 from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
+from nexios.parameters import Query
 from tortoise.exceptions import IntegrityError
 from ._schema import UserCreate, UserLogin, UserResponse, TokenResponse, UserUpdate, AdminUserCreate, UsersListResponse
 from models.accounts import Account, Role
@@ -98,7 +99,7 @@ async def login(request: Request,response: Response):
     
     # Check password
     if not await user.check_password(login_data.password):
-        return Response.json(
+        return response.json(
             {"detail": "Invalid credentials"},
             status_code=status.HTTP_401_UNAUTHORIZED
         )
@@ -222,7 +223,7 @@ async def get_user(request: Request,response: Response):
 @router.get("/admin/users", 
             summary="Get all users (Admin only)",
             responses=UsersListResponse)
-async def get_all_users(request: Request, response: Response):
+async def get_all_users(request: Request, response: Response, page: int = Query(1), per_page: int = Query(10)):
     """Get all users with pagination (Admin only)"""
     user = request.user
     
@@ -232,10 +233,6 @@ async def get_all_users(request: Request, response: Response):
             {"detail": "Admin access required"},
             status_code=status.HTTP_403_FORBIDDEN
         )
-    
-    # Get pagination parameters
-    page = int(request.query_params.get("page", 1))
-    per_page = int(request.query_params.get("per_page", 10))
     
     # Get users with pagination
     offset = (page - 1) * per_page

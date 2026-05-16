@@ -70,7 +70,7 @@ async def get_user_projects(request: Request, response: Response):
 @auth()
 async def get_project(request: Request, response: Response):
     """Get a specific project by ID"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     project = await Project.get_or_none(
         id=project_id, 
@@ -94,7 +94,7 @@ async def get_project(request: Request, response: Response):
 @auth()
 async def update_project(request: Request, response: Response):
     """Update a project"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     data = await request.json
     update_data = ProjectUpdate(**data)
     
@@ -129,7 +129,7 @@ async def update_project(request: Request, response: Response):
 @auth()
 async def delete_project(request: Request, response: Response):
     """Soft delete a project"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     project = await Project.get_or_none(
         id=project_id, 
@@ -154,7 +154,7 @@ async def delete_project(request: Request, response: Response):
 @auth()
 async def rotate_project_secret(request: Request, response: Response):
     """Generate a new project secret"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     project = await Project.get_or_none(
         id=project_id, 
@@ -182,7 +182,7 @@ async def rotate_project_secret(request: Request, response: Response):
 @auth()
 async def get_project_secret(request: Request, response: Response):
     """Get the current project secret (show only once)"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     project = await Project.get_or_none(
         id=project_id, 
@@ -208,7 +208,7 @@ async def get_project_secret(request: Request, response: Response):
 @auth()
 async def get_project_stats(request: Request, response: Response):
     """Get real-time statistics for a project"""
-    project_id = request.path_params.project_id
+    project_id = request.path_params["project_id"]
     
     project = await Project.get_or_none(
         id=project_id, 
