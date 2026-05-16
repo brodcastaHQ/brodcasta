@@ -5,27 +5,28 @@ from enum import Enum
 from nexios.auth.users.simple import SimpleUser
 from typing import Optional
 
+
 class Role(str, Enum):
     ADMIN = "ADMIN"
     MEMBER = "MEMBER"
 
 
-class Account(BaseModel,SimpleUser):
+class Account(BaseModel, SimpleUser):
     name = fields.CharField(max_length=100)
     email = fields.CharField(max_length=255, unique=True)
     password = fields.CharField(max_length=255)
-    role = fields.CharEnumField(Role,max_length=10,default=Role.ADMIN)
+    role = fields.CharEnumField(Role, max_length=10, default=Role.ADMIN)
+
     class Meta:
         table = "accounts"
 
     @classmethod
-    async def create_user(cls, name: str, email: str, password: str, role: Role = Role.MEMBER):
+    async def create_user(
+        cls, name: str, email: str, password: str, role: Role | None = Role.MEMBER
+    ):
         hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         return await cls.create(
-            name=name,
-            email=email,
-            password=hashed_pw.decode("utf-8"),
-            role=role
+            name=name, email=email, password=hashed_pw.decode("utf-8"), role=role
         )
 
     @classmethod
@@ -39,6 +40,7 @@ class Account(BaseModel,SimpleUser):
         hashed_pw = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
         self.password = hashed_pw.decode("utf-8")
         await self.save()
+
     @classmethod
     async def load_user(cls, identity: str):
         return await cls.get_or_none(id=identity)
