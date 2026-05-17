@@ -2,6 +2,10 @@ from tortoise import fields
 from ._base import BaseModel
 from enum import Enum
 import secrets
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
 
 
 class AuthType(str, Enum):
@@ -13,9 +17,12 @@ class AuthType(str, Enum):
 class Project(BaseModel):
     name = fields.CharField(max_length=100)
     project_secret = fields.CharField(max_length=64, unique=True, index=True)
-    account = fields.ForeignKeyField("models.Account", related_name="projects", on_delete=fields.CASCADE)
+    account = fields.ForeignKeyField(
+        "models.Account", related_name="projects", on_delete=fields.CASCADE
+    )
     history_enabled = fields.BooleanField(default=True)
     auth_type = fields.CharEnumField(AuthType, default=AuthType.NONE)
+    account_id: str
 
     class Meta:
         table = "projects"
@@ -25,8 +32,8 @@ class Project(BaseModel):
         cls,
         name: str,
         account_id: str,
-        history_enabled: bool = True,
-        auth_type: AuthType = AuthType.NONE
+        history_enabled: bool | None = True,
+        auth_type: AuthType | None = AuthType.NONE,
     ):
         project_secret = secrets.token_urlsafe(32)
         return await cls.create(
@@ -34,7 +41,7 @@ class Project(BaseModel):
             project_secret=project_secret,
             account_id=account_id,
             history_enabled=history_enabled,
-            auth_type=auth_type
+            auth_type=auth_type,
         )
 
     @classmethod
@@ -59,5 +66,5 @@ class Project(BaseModel):
             "history_enabled": self.history_enabled,
             "auth_type": self.auth_type,
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "updated_at": self.updated_at.isoformat(),
         }

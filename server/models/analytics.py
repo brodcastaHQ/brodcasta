@@ -1,3 +1,4 @@
+from typing import Literal
 from tortoise import fields
 from ._base import BaseModel
 from enum import Enum
@@ -24,23 +25,30 @@ class ConnectionType(str, Enum):
 
 class ProjectAnalytics(BaseModel):
     """Single analytics model for all project events with filtering capabilities"""
-    project = fields.ForeignKeyField("models.Project", related_name="analytics", on_delete=fields.CASCADE)
+
+    project = fields.ForeignKeyField(
+        "models.Project", related_name="analytics", on_delete=fields.CASCADE
+    )
     event_type = fields.CharEnumField(EventType)
     connection_type = fields.CharEnumField(ConnectionType, null=True)
     room_id = fields.CharField(max_length=255, null=True)
     client_id = fields.CharField(max_length=255, null=True)
     message_size = fields.IntField(null=True)  # Size in bytes
     event_data = fields.JSONField(default=dict)  # Additional event metadata
-    
+
     # Timestamps for filtering
     created_at = fields.DatetimeField(auto_now_add=True)
     event_date = fields.DateField(default=date.today)
     event_hour = fields.IntField(default=lambda: datetime.now().hour)  # 0-23
-    event_day_of_week = fields.IntField(default=lambda: datetime.now().weekday())  # 0-6 (Monday=0)
-    event_week = fields.IntField(default=lambda: datetime.now().isocalendar()[1])  # ISO week
+    event_day_of_week = fields.IntField(
+        default=lambda: datetime.now().weekday()
+    )  # 0-6 (Monday=0)
+    event_week = fields.IntField(
+        default=lambda: datetime.now().isocalendar()[1]
+    )  # ISO week
     event_month = fields.IntField(default=lambda: datetime.now().month)
     event_year = fields.IntField(default=lambda: datetime.now().year)
-    
+
     class Meta:
         table = "project_analytics"
         indexes = [
@@ -54,7 +62,7 @@ class ProjectAnalytics(BaseModel):
             ("event_hour",),
             ("event_day_of_week",),
         ]
-    
+
     @classmethod
     async def track_event(
         cls,
@@ -64,7 +72,7 @@ class ProjectAnalytics(BaseModel):
         room_id: str = None,
         client_id: str = None,
         message_size: int = None,
-        event_data: dict = None
+        event_data: dict = None,
     ):
         """Track an analytics event"""
         now = datetime.now()
@@ -81,25 +89,27 @@ class ProjectAnalytics(BaseModel):
             event_day_of_week=now.weekday(),
             event_week=now.isocalendar()[1],
             event_month=now.month,
-            event_year=now.year
+            event_year=now.year,
         )
-    
+
     @classmethod
     async def get_filtered(
         cls,
         project_id: str,
-        filter_type: str = "all",  # "hour", "day", "week", "month", "all"
-        start_date: date = None,
-        end_date: date = None,
-        event_types: list[EventType] = None,
-        room_id: str = None
+        filter_type: Literal[
+            "hour", "day", "week", "month", "all"
+        ] = "day",  # "hour", "day", "week", "month", "all"
+        start_date: date | None = None,
+        end_date: date | None = None,
+        event_types: list[EventType] | None = None,
+        room_id: str | None = None,
     ):
         """Get analytics with filtering"""
         query = cls.filter(project_id=project_id)
-        
+
         # Time-based filtering
         now = datetime.now()
-        
+
         if filter_type == "hour":
             query = query.filter(event_date=now.date(), event_hour=now.hour)
         elif filter_type == "day":
@@ -109,34 +119,34 @@ class ProjectAnalytics(BaseModel):
         elif filter_type == "month":
             query = query.filter(event_month=now.month, event_year=now.year)
         # "all" case - no time filtering applied
-        
+
         # Custom date range
         if start_date:
             query = query.filter(event_date__gte=start_date)
         if end_date:
             query = query.filter(event_date__lte=end_date)
-        
+
         # Event type filtering
         if event_types:
             query = query.filter(event_type__in=event_types)
-        
+
         # Room filtering
         if room_id:
             query = query.filter(room_id=room_id)
-        
-        return await query.order_by('-created_at').limit(1000)
-    
+
+        return await query.order_by("-created_at").limit(1000)
+
     @classmethod
     async def get_aggregated_stats(
         cls,
         project_id: str,
         filter_type: str = "day",
-        start_date: date = None,
-        end_date: date = None
+        start_date: date | None = None,
+        end_date: date | None = None,
     ):
         """Get aggregated statistics for charts"""
         query = cls.filter(project_id=project_id)
-        
+
         # Apply time filtering
         now = datetime.now()
         if filter_type == "hour":
@@ -148,36 +158,62 @@ class ProjectAnalytics(BaseModel):
         elif filter_type == "month":
             query = query.filter(event_month=now.month, event_year=now.year)
         # "all" case - no time filtering applied
-        
+
         if start_date:
             query = query.filter(event_date__gte=start_date)
         if end_date:
             query = query.filter(event_date__lte=end_date)
-        
+
         # Get aggregated counts
         events = await query.all()
-        
+
         stats = {
-            'total_events': len(events),
-            'messages_sent': len([e for e in events if e.event_type == EventType.MESSAGE_SENT]),
-            'messages_received': len([e for e in events if e.event_type == EventType.MESSAGE_RECEIVED]),
-            'broadcasts_sent': len([e for e in events if e.event_type == EventType.BROADCAST_SENT]),
-            'broadcasts_received': len([e for e in events if e.event_type == EventType.BROADCAST_RECEIVED]),
-            'direct_sent': len([e for e in events if e.event_type == EventType.DIRECT_SENT]),
-            'direct_received': len([e for e in events if e.event_type == EventType.DIRECT_RECEIVED]),
-            'connections': len([e for e in events if e.event_type == EventType.CLIENT_CONNECTED]),
-            'disconnections': len([e for e in events if e.event_type == EventType.CLIENT_DISCONNECTED]),
-            'rooms_joined': len([e for e in events if e.event_type == EventType.ROOM_JOINED]),
-            'rooms_left': len([e for e in events if e.event_type == EventType.ROOM_LEFT]),
-            'websocket_connections': len([e for e in events if e.connection_type == ConnectionType.WEBSOCKET]),
-            'sse_connections': len([e for e in events if e.connection_type == ConnectionType.SSE]),
-            'total_message_size': sum(e.message_size or 0 for e in events),
-            'avg_message_size': 0,
+            "total_events": len(events),
+            "messages_sent": len(
+                [e for e in events if e.event_type == EventType.MESSAGE_SENT]
+            ),
+            "messages_received": len(
+                [e for e in events if e.event_type == EventType.MESSAGE_RECEIVED]
+            ),
+            "broadcasts_sent": len(
+                [e for e in events if e.event_type == EventType.BROADCAST_SENT]
+            ),
+            "broadcasts_received": len(
+                [e for e in events if e.event_type == EventType.BROADCAST_RECEIVED]
+            ),
+            "direct_sent": len(
+                [e for e in events if e.event_type == EventType.DIRECT_SENT]
+            ),
+            "direct_received": len(
+                [e for e in events if e.event_type == EventType.DIRECT_RECEIVED]
+            ),
+            "connections": len(
+                [e for e in events if e.event_type == EventType.CLIENT_CONNECTED]
+            ),
+            "disconnections": len(
+                [e for e in events if e.event_type == EventType.CLIENT_DISCONNECTED]
+            ),
+            "rooms_joined": len(
+                [e for e in events if e.event_type == EventType.ROOM_JOINED]
+            ),
+            "rooms_left": len(
+                [e for e in events if e.event_type == EventType.ROOM_LEFT]
+            ),
+            "websocket_connections": len(
+                [e for e in events if e.connection_type == ConnectionType.WEBSOCKET]
+            ),
+            "sse_connections": len(
+                [e for e in events if e.connection_type == ConnectionType.SSE]
+            ),
+            "total_message_size": sum(e.message_size or 0 for e in events),
+            "avg_message_size": 0,
         }
-        
+
         # Calculate average message size
         message_events = [e for e in events if e.message_size is not None]
         if message_events:
-            stats['avg_message_size'] = sum(e.message_size for e in message_events) / len(message_events)
-        
+            stats["avg_message_size"] = sum(
+                e.message_size for e in message_events
+            ) / len(message_events)
+
         return stats

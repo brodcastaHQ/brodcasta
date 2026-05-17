@@ -1,27 +1,24 @@
-try:
-    import jwt
-except ImportError:
-    jwt = None
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from nexios.auth.model import AuthResult
-from nexios.config import get_config
-from nexios.http import Request, Response
+from nexios.http import Request
 from nexios.auth.backends.base import AuthenticationBackend
 from utils.auth import verify_token
 
 
 class JWTAuthBackend(AuthenticationBackend):
-    def __init__(self, identifier: str = "sub"):  # type:ignore
+    def __init__(
+        self,
+        identifier: str = "sub",
+        secret: Optional[str] = None,
+        algorithms: List[str] = ["HS256"],
+    ):
         self.identifier = identifier
+        self.secret = secret
+        self.algorithms = algorithms
 
-    async def authenticate(
-        self, request: Request, response: Response
-    ) -> Any:  # type:ignore
-        app_config = get_config()
-        self.secret = app_config.secret_key
-        self.algorithms = app_config.jwt_algorithms or ["HS256"]
+    async def authenticate(self, request: Request) -> Any:
+        self.algorithms = self.algorithms
 
         token = request.cookies.get("access_token")
         if not token:
@@ -30,6 +27,8 @@ class JWTAuthBackend(AuthenticationBackend):
         try:
             payload = verify_token(token)
         except ValueError as _:
+            return AuthResult(success=False, identity="", scope="")
+        if not payload:
             return AuthResult(success=False, identity="", scope="")
 
         return AuthResult(

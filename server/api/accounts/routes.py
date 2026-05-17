@@ -124,7 +124,13 @@ async def login(request: Request, response: Response):
         role=user.role,
         created_at=user.created_at.isoformat(),
     )
-
+    response.json(
+        {
+            "user": user_response,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+    )
     response.set_cookie(
         "access_token",
         access_token,
@@ -142,8 +148,6 @@ async def login(request: Request, response: Response):
         secure=os.getenv("ENV") == "production",
         samesite="strict",
     )
-
-    return {"user": user_response, "message": "Login successful"}
 
 
 @router.post(
