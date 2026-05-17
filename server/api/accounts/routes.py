@@ -4,7 +4,6 @@ from nexios import status
 from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.parameters import Query
-from tortoise.exceptions import IntegrityError
 from ._schema import (
     UserCreate,
     UserLogin,

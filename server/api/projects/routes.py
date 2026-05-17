@@ -46,7 +46,7 @@ async def create_project(request: Request, response: Response):
     )
 
 
-@router.get("/", summary="Get all projects for user", responses=list[ProjectResponse])  # ty:ignore[invalid-argument-type]
+@router.get("/", summary="Get all projects for user", responses=list[ProjectResponse])
 @auth()
 async def get_user_projects(request: Request, response: Response):
     """Get all projects belonging to the authenticated user"""
