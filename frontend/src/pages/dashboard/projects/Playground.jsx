@@ -89,7 +89,7 @@ const ProjectPlayground = () => {
   const cleanupRef = useRef([]);
 
   const apiBaseUrl = useMemo(
-    () => import.meta.env.VITE_API_URL || 'http://localhost:8041',
+    () => import.meta.env.VITE_API_URL || 'http://localhost:7012',
     []
   );
   const sdkBaseUrl = useMemo(() => apiBaseUrl.replace(/\/api\/?$/, ''), [apiBaseUrl]);
@@ -99,7 +99,7 @@ const ProjectPlayground = () => {
 
   const pushEventLog = (eventName, payload, roomId = null) => {
     const logEntry = { time: new Date(), event: eventName, data: payload, room: roomId };
-    
+
     setAllLogs((prev) => {
       const roomKey = roomId || 'global';
       const currentRoomLogs = prev[roomKey] || [];
@@ -109,7 +109,7 @@ const ProjectPlayground = () => {
         [roomKey]: nextLogs
       };
     });
-    
+
     // Only update displayed logs if this belongs to current room
     const activeRoom = room.trim();
     if (roomId === activeRoom || (!roomId && activeRoom === DEFAULT_ROOM)) {
@@ -159,7 +159,7 @@ const ProjectPlayground = () => {
       prefer,
       fallbackToSse: true,
       autoConnect: false,
-      
+
     });
 
     clientRef.current = client;
@@ -173,13 +173,13 @@ const ProjectPlayground = () => {
         console.log('message', event, data);
         const eventName = String(event);
         if (HIDDEN_EVENTS.has(eventName)) return;
-        
+
         // Extract room information from message data if available
         let messageRoom = null;
         if (data && typeof data === 'object') {
           messageRoom = data.room_id || data.room || null;
         }
-        
+
         pushEventLog(eventName, data, messageRoom);
       }),
     ];
@@ -223,7 +223,7 @@ const ProjectPlayground = () => {
   };
 
   const publish = async () => {
-    
+
     if (!clientRef.current || !connected) return;
 
     const text = message.trim();
@@ -523,11 +523,10 @@ const ProjectPlayground = () => {
                       <button
                         key={item}
                         type="button"
-                        className={`rounded-full border px-3 py-2 font-mono text-xs ${
-                          item === room.trim()
+                        className={`rounded-full border px-3 py-2 font-mono text-xs ${item === room.trim()
                             ? 'border-cyan-400/28 bg-cyan-400/10 text-cyan-100'
                             : 'border-white/8 bg-white/[0.03] text-[var(--app-muted)]'
-                        }`}
+                          }`}
                         onClick={() => switchRoom(item)}
                       >
                         {item}
