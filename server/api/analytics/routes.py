@@ -29,6 +29,7 @@ router = Router(prefix="/analytics", tags=["analytics"])
 async def get_analytics_overview(
     request: Request,
     response: Response,
+    project_id: str,
     filter_type: str = Query("day"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
@@ -36,7 +37,6 @@ async def get_analytics_overview(
     event_types: Optional[str] = Query(None),
 ):
     """Get comprehensive analytics overview for a project"""
-    project_id = request.path_params["project_id"]
 
     # Verify project ownership
     project = await Project.get_or_none(
@@ -115,6 +115,7 @@ async def get_analytics_overview(
 async def get_analytics_events(
     request: Request,
     response: Response,
+    project_id: str,
     filter_type: str = Query("day"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
@@ -122,7 +123,6 @@ async def get_analytics_events(
     event_types: Optional[str] = Query(None),
 ):
     """Get analytics events for a project with filtering"""
-    project_id = request.path_params["project_id"]
 
     # Verify project ownership
     project = await Project.get_or_none(
