@@ -3,7 +3,7 @@ FROM python:latest
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8041
+ENV PORT=7012
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -38,11 +38,11 @@ USER app
 RUN uv run aerich upgrade || true
 
 # Expose port
-EXPOSE 8041
+EXPOSE 7012
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8041/health || exit 1
+    CMD curl -f http://localhost:7012/health || exit 1
 
 # Start the application via UV
 CMD ["uv", "run", "main.py"]

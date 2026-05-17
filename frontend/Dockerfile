@@ -6,7 +6,8 @@ RUN apk add --no-cache git
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9
+RUN pnpm install 
 RUN pnpm install
 
 COPY . .
