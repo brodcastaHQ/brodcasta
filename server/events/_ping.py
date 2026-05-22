@@ -1,5 +1,8 @@
+from app.core.logging import get_logger
 from .emitter import emitter
 from app.core.channels.base import BaseChannel
+
+logger = get_logger("Events.Ping")
 
 @emitter.on("client.ping")
 async def handle_client_ping(channel: BaseChannel, project_id: str, data: dict[str, str]):
@@ -13,4 +16,4 @@ async def handle_client_ping(channel: BaseChannel, project_id: str, data: dict[s
             }
         })
     except Exception as e:
-        print(f"Error handling ping: {e}")
+        logger.error("Error handling ping: %s", e)

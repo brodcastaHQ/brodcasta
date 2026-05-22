@@ -1,10 +1,13 @@
 from nexios.websockets import WebSocket
 from nexios.websockets.channels import Channel
 from app.core.connection_store import ConnectionStore 
+from app.core.logging import get_logger
 from .emitter import emitter
 from app.core.connection_store import ConnectionStore
 from app.core.channels.base import BaseChannel
 from utils.client_token import generate_hmac_token
+
+logger = get_logger("Events.Connection")
 
 @emitter.on("client.connected")
 async def handle_client_connected(channel: BaseChannel, project_id: str):
@@ -32,7 +35,7 @@ async def handle_client_connected(channel: BaseChannel, project_id: str):
         })
         
     except Exception as e:
-        print(f"Error handling client connection: {e}")
+        logger.error("Error handling client connection: %s", e)
 
 
 @emitter.on("client.disconnected")
@@ -48,4 +51,4 @@ async def handle_client_disconnected(channel: BaseChannel, project_id: str):
 
         await ConnectionStore.remove_channel(channel, project_id)
     except Exception as e:
-        print(f"Error handling client disconnection: {e}")
+        logger.error("Error handling client disconnection: %s", e)

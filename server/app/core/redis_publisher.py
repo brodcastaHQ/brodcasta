@@ -1,34 +1,12 @@
 import json
-import logging
 from typing import Optional
 import redis.asyncio as redis
-
-
-class RedisPublisherLogger:
-    LOGGER_NAME = "RedisPublisher"
-    _logger = None
-
-    @classmethod
-    def get_logger(cls):
-        if cls._logger:
-            return cls._logger
-        
-        logger = logging.getLogger(cls.LOGGER_NAME)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
-        
-        cls._logger = logger
-        return logger
+from app.core.logging import get_logger
 
 
 class RedisPublisher:
     def __init__(self):
-        self.logger = RedisPublisherLogger.get_logger()
+        self.logger = get_logger("RedisPublisher")
         self._redis: Optional[redis.Redis] = None
         self._channel_prefix = "brodcasta_events"
     

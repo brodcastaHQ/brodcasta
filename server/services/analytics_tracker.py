@@ -2,9 +2,12 @@ import json
 import asyncio
 from typing import Optional, Dict, Any
 from datetime import datetime
+from app.core.logging import get_logger
 from events.emitter import emitter
 from models.analytics import ProjectAnalytics, EventType, ConnectionType
 from app.core.channels.base import BaseChannel
+
+logger = get_logger("AnalyticsTracker")
 
 
 class AnalyticsTracker:
@@ -68,7 +71,7 @@ class AnalyticsTracker:
                 event_data={"connected_at": datetime.now().isoformat()}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_client_disconnected(self, channel: BaseChannel, project_id: str):
         """Track client disconnected in background"""
@@ -83,7 +86,7 @@ class AnalyticsTracker:
                 event_data={"disconnected_at": datetime.now().isoformat()}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_room_joined(self, channel: BaseChannel, project_id: str, data: dict):
         """Track room joined in background"""
@@ -103,7 +106,7 @@ class AnalyticsTracker:
                 event_data={"joined_at": datetime.now().isoformat()}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_room_left(self, channel: BaseChannel, project_id: str, data: dict):
         """Track room left in background"""
@@ -123,7 +126,7 @@ class AnalyticsTracker:
                 event_data={"left_at": datetime.now().isoformat()}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_message_send(self, channel: BaseChannel, project_id: str, data: dict[str, str]):
         """Track message send in background"""
@@ -143,7 +146,7 @@ class AnalyticsTracker:
                 event_data={"message_preview": str(message_content)[:100] if message_content else ""}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_message_broadcast(self, channel: BaseChannel, project_id: str, data: dict[str, str]):
         """Track message broadcast in background"""
@@ -161,7 +164,7 @@ class AnalyticsTracker:
                 event_data={"message_preview": str(message_content)[:100] if message_content else ""}
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
     
     async def _track_message_direct(self, channel: BaseChannel, project_id: str, data: dict[str, str]):
         """Track message direct in background"""
@@ -183,7 +186,7 @@ class AnalyticsTracker:
                 }
             )
         except Exception as e:
-            print(f"Analytics tracking error: {e}")
+            logger.error("Analytics tracking error: %s", e)
 
 
 # Global analytics tracker instance

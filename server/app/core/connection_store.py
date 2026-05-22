@@ -1,28 +1,9 @@
-import logging
 from typing import Optional
 from collections import deque
 from nexios.events import AsyncEventEmitter
 from nexios.websockets import WebSocket
 from nexios.websockets.channels import ChannelBox, ChannelMessageDC, Channel, GroupSendStatusEnum
-
-# ---------------- Logger ----------------
-class ConnectionLogger:
-    LOGGER_NAME = "ConnectionStore"
-    _logger = None
-
-    @classmethod
-    def get_logger(cls):
-        if cls._logger:
-            return cls._logger
-        cls._logger = logging.getLogger(cls.LOGGER_NAME)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
-        )
-        handler.setFormatter(formatter)
-        cls._logger.addHandler(handler)
-        cls._logger.setLevel(logging.DEBUG)
-        return cls._logger
+from app.core.logging import get_logger
 
 
 # ---------------- Connection Store ----------------
@@ -36,7 +17,7 @@ class ConnectionStore(ChannelBox):
     get_history_hook = None
     flush_history_hook = None
 
-    logger = ConnectionLogger.get_logger()
+    logger = get_logger("ConnectionStore")
 
     @classmethod
     async def add_tenant(cls, tenant_id: str):

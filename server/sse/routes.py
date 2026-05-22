@@ -4,11 +4,14 @@ import json
 import asyncio
 from app.core.channels.sse import SSEChannel
 from app.core.connection_store import ConnectionStore
+from app.core.logging import get_logger
 from models import Project
 from models.projects import AuthType
 from events import emitter
 from utils.client_token import validate_hmac_token
 from somal.middleware import somal_middleware
+
+logger = get_logger("SSERoutes")
 
 
 router = Router(prefix="/sse", tags=["poll"])
@@ -43,7 +46,7 @@ async def poll_connect(request: Request, response: Response, project_id: str):
         # Wait for messages or timeout
         await channel.wait_and_send()
     except Exception as e:
-        print(f"Long poll error: {e}")
+        logger.error("Long poll error: %s", e)
     finally:
         # Clean up connection
         await ConnectionStore.remove_channel(channel, project_id)
@@ -113,7 +116,7 @@ async def poll_send(request: Request, response: Response, project_id: str):
         return response.json({"status": "sent", "event_type": event_type})
 
     except Exception as e:
-        print(f"Poll send error: {e}")
+        logger.error("Poll send error: %s", e)
         return response.json({"error": "Send failed"}, status_code=500)
 
 

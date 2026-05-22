@@ -1,7 +1,8 @@
-import logging
 from nexios.websockets import WebSocket
-
+from app.core.logging import get_logger
 from .base import BaseChannel
+
+logger = get_logger("WSChannel")
 
 
 class WebSocketChannel(BaseChannel):
@@ -27,6 +28,6 @@ class WebSocketChannel(BaseChannel):
             else:
                 await self.websocket.send(payload)
         except RuntimeError as e:
-            logging.debug(e)
+            logger.debug("WebSocket send error: %s", e)
 
         self.touch()

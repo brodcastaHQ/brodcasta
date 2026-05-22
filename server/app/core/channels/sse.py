@@ -3,7 +3,10 @@ import json
 import time
 from typing import Optional, AsyncGenerator
 from nexios.http import Response
+from app.core.logging import get_logger
 from .base import BaseChannel
+
+logger = get_logger("SSEChannel")
 
 
 class SSEChannel(BaseChannel):
@@ -41,10 +44,10 @@ class SSEChannel(BaseChannel):
                             self._event_queue.get(), 
                             timeout=None # Check expiration every second
                         )
-                        print("Received event:", payload)
+                        logger.debug("Received event: %s", payload)
                         # Format and send SSE event
                         event_data = self._format_sse_event(payload)
-                        print("Formatted event:", event_data)
+                        logger.debug("Formatted event: %s", event_data)
                         if event_data:
                             yield event_data
                             
@@ -57,7 +60,7 @@ class SSEChannel(BaseChannel):
                         break
 
             except asyncio.CancelledError:
-                print("Connection cancelled")
+                logger.info("SSE connection cancelled")
                 pass
             finally:
                 self._closed = True
@@ -70,7 +73,7 @@ class SSEChannel(BaseChannel):
 
         """Format payload as SSE event."""
 
-        print("Formatting event:", payload)
+        logger.debug("Formatting event: %s", payload)
         if not payload or "event_type" not in payload:
             return None
             
@@ -94,7 +97,7 @@ class SSEChannel(BaseChannel):
         """
         if self._closed:
             return
-        print("Sending payload:", payload)
+        logger.debug("Sending payload: %s", payload)
         try:
             await self._event_queue.put(payload)
         except asyncio.QueueFull:

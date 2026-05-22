@@ -4,12 +4,12 @@ from nexios.routing import Router
 from nexios.auth.decorator import auth
 from nexios.parameters import Query
 from typing import Optional
-import logging
 
+from app.core.logging import get_logger
 from models import Message, Project
 
 router = Router(prefix="/messages", tags=["messages"])
-logger = logging.getLogger(__name__)
+logger = get_logger("MessagesRoutes")
 
 
 @router.get(

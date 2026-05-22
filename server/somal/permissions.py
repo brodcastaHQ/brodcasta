@@ -7,6 +7,9 @@ Handles room-based permission validation and management.
 import re
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass
+from app.core.logging import get_logger
+
+logger = get_logger("SomalPermissions")
 
 
 @dataclass
@@ -59,7 +62,7 @@ class PermissionManager:
                 )
                 self.room_permissions.append(room_perm)
             except Exception as e:
-                print(f"Error parsing room permission for pattern '{pattern}': {e}")
+                logger.error("Error parsing room permission for pattern '%s': %s", pattern, e)
     
     def can_publish(self, room_name: str) -> bool:
         """

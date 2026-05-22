@@ -1,36 +1,14 @@
 import json
 import asyncio
-import logging
 from typing import Optional
 import redis.asyncio as redis
 from app.core.connection_store import ConnectionStore
-
-
-class RedisFanoutLogger:
-    LOGGER_NAME = "RedisFanout"
-    _logger = None
-
-    @classmethod
-    def get_logger(cls):
-        if cls._logger:
-            return cls._logger
-        
-        logger = logging.getLogger(cls.LOGGER_NAME)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
-        
-        cls._logger = logger
-        return logger
+from app.core.logging import get_logger
 
 
 class RedisFanout:
     def __init__(self):
-        self.logger = RedisFanoutLogger.get_logger()
+        self.logger = get_logger("RedisFanout")
         self._redis: Optional[redis.Redis] = None
         self._pubsub: Optional[redis.client.PubSub] = None
         self._listener_task: Optional[asyncio.Task] = None
@@ -40,7 +18,7 @@ class RedisFanout:
     # -------------------- CONNECTION --------------------
     
     async def connect(self, host, port, db, password=None):
-        print("Connecting to Redis...",host)
+        self.logger.info("Connecting to Redis at %s:%s", host, port)
         self._redis = redis.Redis(
             host=host,
             port=port,

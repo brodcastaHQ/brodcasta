@@ -14,7 +14,6 @@ user = quote(user)
 password = quote(password)
 
 DB_URL = f"postgres://{user}:{password}@{host}:{port}/{database}"
-print(DB_URL)
 
 # Tortoise ORM Configuration
 TORTOISE_ORM = {

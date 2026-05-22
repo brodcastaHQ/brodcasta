@@ -14,11 +14,14 @@ from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
 from app.core.redis_fanout import redis_fanout
 from app.core.redis_publisher import redis_publisher
+from app.core.logging import get_logger
 import asyncio
 from events import emitter as emitter
 from services.analytics_tracker import AnalyticsTracker
 from scripts.create_superuser import create_superuser
 import os
+
+logger = get_logger("Brodcasta")
 
 # Initialize global config before creating the app
 _config = MakeConfig(
@@ -88,7 +91,7 @@ async def startup():
         db=int(os.getenv("REDIS_DB", 0)),
     )
 
-    print("✅ Redis services started")
+    logger.info("Redis services started")
     await create_superuser()
 
 
@@ -96,7 +99,7 @@ async def startup():
 async def shutdown():
     await redis_fanout.disconnect()
     await redis_publisher.disconnect()
-    print("✅ Redis services stopped")
+    logger.info("Redis services stopped")
 
 
 # Initialize analytics tracker

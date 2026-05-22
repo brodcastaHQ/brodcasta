@@ -11,6 +11,10 @@ import sys
 # Add the current directory to Python path so we can import our modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from app.core.logging import get_logger
+
+logger = get_logger("Manage")
+
 # Import CLI command groups
 from cli.migrations import migrate
 from cli.db import db
@@ -46,10 +50,7 @@ def shell():
         # Import models for easy access
         from models import Account
         
-        print("Brodcasta Server Shell")
-        print("Available models: Account")
-        print("Database connection established")
-        print("Type 'exit()' to quit")
+        logger.info("Brodcasta Server Shell - models: Account, DB connected")
         
         # Start interactive shell
         import code
@@ -60,9 +61,9 @@ def shell():
     try:
         asyncio.run(init_shell())
     except KeyboardInterrupt:
-        print("\nShell exited")
+        logger.info("Shell exited")
     except Exception as e:
-        print(f"Error starting shell: {e}")
+        logger.error("Error starting shell: %s", e)
         sys.exit(1)
 
 

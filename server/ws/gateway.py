@@ -1,7 +1,7 @@
 from nexios.routing import Router
 from nexios.websockets import WebSocket
 from models import Project
-from nexios.logging import create_logger
+from app.core.logging import get_logger
 
 from app.core.channels.websocket import WebSocketChannel
 from events import emitter
@@ -12,7 +12,7 @@ from somal.middleware import somal_middleware
 router = Router(prefix="", tags=["websocket"])
 
 
-logger = create_logger(__name__)
+logger = get_logger("WSGateway")
 
 
 @router.ws_route("/{project_id}")
@@ -45,7 +45,7 @@ async def ws_gateway(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            print("_" * 100, data)
+            logger.debug("Received WebSocket data: %s", data)
             if "event_type" not in data:
                 continue
 
@@ -78,5 +78,5 @@ async def ws_gateway(websocket: WebSocket):
             emitter.emit(event_type.value, channel, project_id, event_data)
 
     except WebSocketDisconnect:
-        print("_" * 100, "something just snapped")
+        logger.info("WebSocket disconnected for project: %s", project_id)
         emitter.emit("client.disconnected", channel, project_id)

@@ -4,6 +4,7 @@ from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.auth.decorator import auth
 from nexios.parameters import Query
+from app.core.logging import get_logger
 from ._schema import (
     AnalyticsFilterParams,
     AnalyticsEventResponse,
@@ -16,6 +17,7 @@ from models.projects import Project
 from datetime import datetime, date, timedelta
 from collections import defaultdict
 
+logger = get_logger("AnalyticsRoutes")
 
 router = Router(prefix="/analytics", tags=["analytics"])
 
@@ -95,7 +97,7 @@ async def get_analytics_overview(
 
     # Get connection type distribution
     connection_type_chart_data = _generate_connection_type_chart(hourly_events)
-    print("connection type chart data", connection_type_chart_data)
+    logger.debug("Connection type chart data: %s", connection_type_chart_data)
 
     return AnalyticsOverviewResponse(
         current_stats=AnalyticsStatsResponse(**current_stats),

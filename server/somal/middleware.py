@@ -8,9 +8,12 @@ from typing import Optional, Dict, Any
 from app.core.channels.base import BaseChannel
 from app.core.channels.websocket import WebSocketChannel
 from app.core.channels.sse import SSEChannel
+from app.core.logging import get_logger
 from .jwt_validator import JWTValidator, JWTValidationError
 from .permissions import PermissionManager
 from models.projects import Project, AuthType
+
+logger = get_logger("SomalMiddleware")
 
 
 class SomalMiddleware:
@@ -57,7 +60,7 @@ class SomalMiddleware:
             elif project.auth_type == AuthType.ALL.value:
                 # Both publishing and subscribing require authentication
                 if not token:
-                    print(f"Token required for auth_type=ALL: {project.id}")
+                    logger.warning("Token required for auth_type=ALL on project %s", project.id)
                     return False
                 
                 payload = await self.jwt_validator.validate_token(token, project)
@@ -66,14 +69,14 @@ class SomalMiddleware:
                 return True
             
             else:
-                print(f"Unknown auth_type: {project.auth_type}")
+                logger.warning("Unknown auth_type: %s", project.auth_type)
                 return False
             
         except JWTValidationError as e:
-            print(f"JWT validation failed: {e}")
+            logger.warning("JWT validation failed: %s", e)
             return False
         except Exception as e:
-            print(f"Authentication error: {e}")
+            logger.error("Authentication error: %s", e)
             return False
     
     def _attach_permissions(self, channel: BaseChannel, 
