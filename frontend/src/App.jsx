@@ -14,6 +14,7 @@ import ProjectOverview from './pages/dashboard/projects/Overview';
 import ProjectPlayground from './pages/dashboard/projects/Playground';
 import ProjectSettings from './pages/dashboard/projects/Settings';
 import LandingPage from './pages/homepage/LandingPage';
+import PricingPage from './pages/pricing/PricingPage';
 import Login from './pages/login';
 import Signup from './pages/signup';
 
@@ -29,7 +30,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<LandingPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 

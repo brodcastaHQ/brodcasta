@@ -194,7 +194,10 @@ const LandingPage = () => {
               <span className="text-sm font-medium">Brodcasta</span>
             </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <Link to="/pricing" className="hidden sm:inline text-sm text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors">
+                Pricing
+              </Link>
               <Link to="/login" className="hidden sm:inline text-sm text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors">
                 Sign in
               </Link>
@@ -228,6 +231,12 @@ const LandingPage = () => {
           >
             ✕
           </button>
+          <Link to="/" className="text-[var(--app-muted)] text-lg" onClick={() => setMobileOpen(false)}>
+            Home
+          </Link>
+          <Link to="/pricing" className="text-[var(--app-muted)] text-lg" onClick={() => setMobileOpen(false)}>
+            Pricing
+          </Link>
           <Link to="/login" className="text-[var(--app-muted)] text-lg" onClick={() => setMobileOpen(false)}>
             Sign in
           </Link>
