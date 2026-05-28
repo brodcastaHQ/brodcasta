@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from nexios.routing import Router
 from nexios.websockets import WebSocket
 from models import Project
@@ -21,11 +22,20 @@ async def ws_gateway(websocket: WebSocket):
     # Get JWT token from query params (optional for some auth types)
     token = websocket.query_params.get("token")
 
-    project = await Project.get_or_none(id=project_id)
-    if not project:
-        logger.error(f"Project not found: {project_id}")
-        await websocket.close(code=4004, reason="Project not found")
-        return
+    # Allow "demo-client" project without a DB record — used by the landing page demo
+    if project_id == "demo-client":
+        project = SimpleNamespace(
+            id="demo-client",
+            auth_type="none",
+            project_secret="demo",
+            history_enabled=False,
+        )
+    else:
+        project = await Project.get_or_none(id=project_id)
+        if not project:
+            logger.error(f"Project not found: {project_id}")
+            await websocket.close(code=4004, reason="Project not found")
+            return
 
     await websocket.accept()
     channel = WebSocketChannel(websocket, payload_type="json", project=project)

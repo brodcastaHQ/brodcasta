@@ -6,7 +6,7 @@ from api.accounts.routes import router as auth_router
 from api.projects.routes import router as projects_router
 from api.analytics.routes import router as analytics_router
 from api.messages.routes import router as messages_router
-from api.demo.routes import router as demo_router
+from api.public.routes import router as public_router
 from ws.gateway import router as ws_router
 from sse.routes import router as sse_router
 from nexios.middleware.cors import CORSMiddleware, CorsConfig
@@ -43,7 +43,7 @@ app = NexiosApp(
                 Group(projects_router.prefix, projects_router),
                 Group(analytics_router.prefix, analytics_router),
                 Group(messages_router.prefix, messages_router),
-                Group(demo_router.prefix, demo_router),
+                Group(public_router.prefix, public_router),
             ],
         ),
         Group(sse_router.prefix, sse_router),

@@ -186,6 +186,8 @@ const LandingPage = () => {
   /* ─── Demo live-ticker ─── */
   const [demoMessages, setDemoMessages] = useState([]);
   const [demoConnected, setDemoConnected] = useState(false);
+  const [demoRoomReady, setDemoRoomReady] = useState(false);
+  const [demoRoomId] = useState(() => crypto.randomUUID());
   const wsRef = useRef(null);
   const demoContainerRef = useRef(null);
   const copyBtnRef = useRef(null);
@@ -198,7 +200,7 @@ const LandingPage = () => {
     let cancelled = false;
 
     const connect = () => {
-      ws = new WebSocket(`${WS_BASE}/api/demo/listen`);
+      ws = new WebSocket(`${WS_BASE}/ws/demo-client`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -207,6 +209,7 @@ const LandingPage = () => {
       };
       ws.onclose = () => {
         setDemoConnected(false);
+        setDemoRoomReady(false);
         if (cancelled) return;
         reconnectTimer = setTimeout(connect, 3000);
       };
@@ -214,13 +217,30 @@ const LandingPage = () => {
         if (cancelled) return;
         try {
           const payload = JSON.parse(event.data);
-          if (payload.event === 'demo.message') {
+          const eventType = payload.event_type;
+
+          if (eventType === 'connection.established') {
+            ws.send(
+              JSON.stringify({
+                event_type: 'room.subscribe',
+                data: { room_id: demoRoomId },
+              })
+            );
+            return;
+          }
+
+          if (eventType === 'room.subscribe.ok') {
+            setDemoRoomReady(true);
+            return;
+          }
+
+          if (eventType === 'message.received') {
             const msg = payload.data;
             setDemoMessages((prev) =>
               prev.concat({
                 id: Date.now(),
                 text: msg.message,
-                time: new Date(msg.timestamp * 1000).toLocaleTimeString([], {
+                time: new Date().toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit',
                 }),
@@ -242,7 +262,7 @@ const LandingPage = () => {
         ws.close();
       }
     };
-  }, [WS_BASE]);
+  }, [WS_BASE, demoRoomId]);
 
   useEffect(() => {
     if (demoContainerRef.current) {
@@ -251,7 +271,7 @@ const LandingPage = () => {
   }, [demoMessages]);
 
   const handleCopy = async () => {
-    const cmd = `curl -X POST ${API_BASE}/api/demo/echo \\\n  -H "Content-Type: application/json" \\\n  -d '{"message":"Hello from Brodcasta!"}'`;
+    const cmd = `curl -X POST ${API_BASE}/api/public/demo-client/messages \\\n  -H "Content-Type: application/json" \\\n  -d '{"room_id":"${demoRoomId}","message":"Hello from Brodcasta!"}'`;
     try {
       await navigator.clipboard.writeText(cmd);
       if (copyBtnRef.current) {
@@ -587,9 +607,9 @@ const LandingPage = () => {
                   </button>
                 </div>
                 <pre className="p-5 text-sm font-mono leading-relaxed text-[var(--app-muted)] overflow-x-auto">
-                  <span className="text-[var(--app-subtle)]">$ </span>curl -X POST {API_BASE}/api/demo/echo \<br />
+                  <span className="text-[var(--app-subtle)]">$ </span>curl -X POST {API_BASE}/api/public/demo-client/messages \<br />
                   <span className="text-[var(--app-subtle)]">  </span>-H <span className="text-[var(--app-text)]">"Content-Type: application/json"</span> \<br />
-                  <span className="text-[var(--app-subtle)]">  </span>-d <span className="text-[var(--app-text)]">{'{"message":"Hello from Brodcasta!"}'}</span>
+                  <span className="text-[var(--app-subtle)]">  </span>-d <span className="text-[var(--app-text)]">{'{"room_id":"'}{demoRoomId}{'","message":"Hello from Brodcasta!"}'}</span>
                 </pre>
               </div>
             </div>
@@ -597,14 +617,25 @@ const LandingPage = () => {
             {/* Chat box */}
             <div className="lg:col-span-2">
               <div className="border border-[var(--app-border)] overflow-hidden flex flex-col h-64">
-                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)]">Messages</span>
-                  <span className={`inline-block w-2 h-2 rounded-full ${demoConnected ? 'bg-green-500' : 'bg-amber-500'}`} />
+                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)] shrink-0">Messages</span>
+                    {demoRoomReady && (
+                      <span className="text-[10px] font-mono text-[var(--app-subtle)] truncate" title={demoRoomId}>
+                        {demoRoomId.slice(0, 8)}…
+                      </span>
+                    )}
+                  </div>
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${demoRoomReady ? 'bg-green-500' : 'bg-amber-500'}`} />
                 </div>
                 <div ref={demoContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                   {demoMessages.length === 0 && (
                     <p className="text-xs text-[var(--app-subtle)] text-center pt-8">
-                      {demoConnected ? 'Waiting for a message…' : 'Connecting…'}
+                      {demoRoomReady
+                        ? 'Waiting for a message…'
+                        : demoConnected
+                          ? 'Joining room…'
+                          : 'Connecting…'}
                     </p>
                   )}
                   {demoMessages.map((msg) => (
