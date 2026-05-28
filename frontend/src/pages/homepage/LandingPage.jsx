@@ -90,22 +90,19 @@ const TESTIMONIALS = [
     quote: 'We dropped in the brodcasta-sdk and had real-time messaging working in under an hour. The WebSocket-to-SSE fallback means we never lose a connection, even on spotty networks.',
     name: 'Alex Chen',
     position: 'CTO, Streamline',
-    initials: 'AC',
-    avatar: '👨‍💼',
+    image: 'https://i.pravatar.cc/300?img=11',
   },
   {
     quote: 'Room-based messaging simplified our multi-tenant architecture. Each customer gets isolated channels without any extra infrastructure — it just works out of the box.',
     name: 'Sarah Mitchell',
     position: 'Engineering Lead, Dataview',
-    initials: 'SM',
-    avatar: '👩‍💼',
+    image: 'https://i.pravatar.cc/300?img=32',
   },
   {
     quote: 'The analytics dashboard gives us real-time visibility into every message and connection. Debugging production issues went from hours to minutes after switching to Brodcasta.',
     name: 'Priya Kapoor',
     position: 'VP Engineering, Nexa',
-    initials: 'PK',
-    avatar: '👩‍💻',
+    image: 'https://i.pravatar.cc/300?img=23',
   },
 ];
 
@@ -153,6 +150,123 @@ const FallingStars = () => {
   }, []);
 
   return <div className="lp-cta-stars-layer absolute inset-0 pointer-events-none overflow-hidden" ref={layerRef} />;
+};
+
+const StatPulse = () => {
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+    const glows = [];
+
+    for (let i = 0; i < 2; i++) {
+      const g = document.createElement('div');
+      g.className = 'lp-stat-pulse';
+      g.style.width = (300 + Math.random() * 400) + 'px';
+      g.style.height = g.style.width;
+      g.style.left = (5 + Math.random() * 50) + '%';
+      g.style.top = (10 + Math.random() * 50) + '%';
+      g.style.animationDuration = (8 + i * 4) + 's';
+      g.style.animationDelay = (i * 3) + 's';
+      layer.appendChild(g);
+      glows.push(g);
+    }
+
+    return () => {
+      glows.forEach((g) => g.remove());
+    };
+  }, []);
+
+  return <div className="absolute inset-0 pointer-events-none overflow-hidden" ref={layerRef} />;
+};
+
+const AmbientFog = () => {
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+    const blobs = [];
+
+    for (let i = 0; i < 3; i++) {
+      const blob = document.createElement('div');
+      blob.className = 'lp-fog-blob';
+      const size = 200 + Math.random() * 400;
+      blob.style.width = size + 'px';
+      blob.style.height = size + 'px';
+      blob.style.left = (10 + Math.random() * 60) + '%';
+      blob.style.top = (10 + Math.random() * 60) + '%';
+      blob.style.animationDuration = (30 + i * 15) + 's';
+      blob.style.animationDelay = (i * 8) + 's';
+      blob.style.opacity = '0.03';
+      layer.appendChild(blob);
+      blobs.push(blob);
+    }
+
+    return () => {
+      blobs.forEach((b) => b.remove());
+    };
+  }, []);
+
+  return <div className="absolute inset-0 pointer-events-none overflow-hidden" ref={layerRef} />;
+};
+
+const SignalWaves = () => {
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+    const particles = [];
+
+    // Small floating data particles (packets)
+    for (let i = 0; i < 20; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'lp-demo-particle';
+      const size = 2 + Math.random() * 3;
+      dot.style.width = size + 'px';
+      dot.style.height = size + 'px';
+      dot.style.left = Math.random() * 100 + '%';
+      dot.style.bottom = '0';
+      dot.style.animationDuration = (6 + Math.random() * 10) + 's';
+      dot.style.animationDelay = Math.random() * 8 + 's';
+      layer.appendChild(dot);
+      particles.push(dot);
+    }
+
+    // Signal rings expanding outward
+    for (let i = 0; i < 3; i++) {
+      const ring = document.createElement('div');
+      ring.className = 'lp-demo-ring';
+      ring.style.width = ring.style.height = (40 + Math.random() * 80) + 'px';
+      ring.style.left = (10 + Math.random() * 60) + '%';
+      ring.style.top = (10 + Math.random() * 60) + '%';
+      ring.style.animationDuration = (3 + i * 1.5) + 's';
+      ring.style.animationDelay = (i * 1.2) + 's';
+      layer.appendChild(ring);
+      particles.push(ring);
+    }
+
+    // Orbiting dots
+    for (let i = 0; i < 4; i++) {
+      const orb = document.createElement('div');
+      orb.className = 'lp-demo-orb';
+      const dirs = ['right', 'down', 'left', 'up'];
+      orb.dataset.dir = dirs[i];
+      orb.style.width = orb.style.height = (4 + Math.random() * 4) + 'px';
+      orb.style.animationDuration = (10 + Math.random() * 8) + 's';
+      orb.style.animationDelay = (i * 2.5) + 's';
+      layer.appendChild(orb);
+      particles.push(orb);
+    }
+
+    return () => {
+      particles.forEach((p) => p.remove());
+    };
+  }, []);
+
+  return <div className="absolute inset-0 pointer-events-none overflow-hidden" ref={layerRef} />;
 };
 
 const LandingPage = () => {
@@ -431,6 +545,7 @@ const LandingPage = () => {
 
       {/* ─── Live Demo ─── */}
       <section className="relative overflow-hidden py-24 lg:py-32">
+        <SignalWaves />
         <div className="mx-auto max-w-4xl px-6">
           <div className="text-center mb-12">
             <div className="section-eyebrow justify-center mb-4">Try it live</div>
@@ -587,6 +702,7 @@ const LandingPage = () => {
 
       {/* ─── How It Works ─── */}
       <section className="relative overflow-hidden py-24 lg:py-32">
+        <AmbientFog />
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
@@ -620,11 +736,15 @@ const LandingPage = () => {
 
       {/* ─── Stats ─── */}
       <section className="relative overflow-hidden py-24 lg:py-32">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {STATS.map((stat) => (
-              <div key={stat.value} className="text-center">
-                <div className="lp-stat-value text-4xl sm:text-5xl lg:text-6xl font-bold mb-2">
+        <StatPulse />
+        <div className="relative z-10 mx-auto max-w-6xl px-6">
+          <div className="border border-[var(--app-border)] grid grid-cols-4">
+            {STATS.map((stat, i) => (
+              <div
+                key={stat.value}
+                className={`p-6 sm:p-8 text-center ${i < 3 ? 'border-r border-[var(--app-border)]' : ''}`}
+              >
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--app-text)] mb-1">
                   {stat.value}
                 </div>
                 <p className="text-sm text-[var(--app-muted)]">
@@ -650,48 +770,59 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto">
-            {/* Quote */}
-            <div className="relative">
-              <blockquote className="text-lg sm:text-xl leading-relaxed mb-6">
-                &ldquo;{TESTIMONIALS[testimonialIndex].quote}&rdquo;
-              </blockquote>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[var(--app-surface-2)] border border-[var(--app-border)] flex items-center justify-center text-xs font-bold">
-                  {TESTIMONIALS[testimonialIndex].initials}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">{TESTIMONIALS[testimonialIndex].name}</div>
-                  <div className="text-xs text-[var(--app-muted)]">{TESTIMONIALS[testimonialIndex].position}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center gap-4 mt-8">
-              <button
-                className="w-9 h-9 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] flex items-center justify-center text-sm hover:bg-[var(--app-surface-2)] transition-colors"
-                onClick={prevSlide}
-                aria-label="Previous"
-              >
-                ←
-              </button>
-              <div className="flex flex-1 gap-2">
-                {TESTIMONIALS.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`lp-testimonial-dot${i === testimonialIndex ? ' is-active' : ''}`}
-                    onClick={() => handleDotClick(i)}
+          <div className="mx-auto max-w-4xl">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+              {/* Left — image */}
+              <div className="lg:col-span-2 flex justify-center lg:justify-end">
+                <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64">
+                  <img
+                    src={TESTIMONIALS[testimonialIndex].image}
+                    alt={TESTIMONIALS[testimonialIndex].name}
+                    className="w-full h-full object-cover rounded-2xl grayscale contrast-125"
                   />
-                ))}
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
+                </div>
               </div>
-              <button
-                className="w-9 h-9 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] flex items-center justify-center text-sm hover:bg-[var(--app-surface-2)] transition-colors"
-                onClick={nextSlide}
-                aria-label="Next"
-              >
-                →
-              </button>
+
+              {/* Right — quote, name, controls */}
+              <div className="lg:col-span-3">
+                <blockquote className="text-lg sm:text-xl leading-relaxed mb-6 text-[var(--app-text)]">
+                  &ldquo;{TESTIMONIALS[testimonialIndex].quote}&rdquo;
+                </blockquote>
+                <div className="flex items-center gap-3 mb-8">
+                  <div>
+                    <div className="text-sm font-semibold text-[var(--app-text)]">{TESTIMONIALS[testimonialIndex].name}</div>
+                    <div className="text-xs text-[var(--app-muted)]">{TESTIMONIALS[testimonialIndex].position}</div>
+                  </div>
+                </div>
+
+                {/* Controls — left-aligned under text */}
+                <div className="flex items-center gap-3">
+                  <button
+                    className="w-8 h-8 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] flex items-center justify-center text-xs hover:bg-[var(--app-surface-2)] transition-colors cursor-pointer"
+                    onClick={prevSlide}
+                    aria-label="Previous"
+                  >
+                    ←
+                  </button>
+                  <div className="flex gap-2">
+                    {TESTIMONIALS.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`lp-testimonial-dot${i === testimonialIndex ? ' is-active' : ''}`}
+                        onClick={() => handleDotClick(i)}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    className="w-8 h-8 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] flex items-center justify-center text-xs hover:bg-[var(--app-surface-2)] transition-colors cursor-pointer"
+                    onClick={nextSlide}
+                    aria-label="Next"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

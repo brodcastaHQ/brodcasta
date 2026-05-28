@@ -19,10 +19,7 @@
   70% { background-position: 40% 60%; }
   100% { background-position: 0% 0%; }
 }
-@keyframes dot-fill {
-  from { width: 0%; }
-  to { width: 100%; }
-}
+
 @keyframes falling-star {
   0% { opacity: 0; transform: translateY(-10px); }
   10% { opacity: 1; }
@@ -93,6 +90,78 @@
   opacity: 1; transform: translateY(-70px);
 }
 
+/* Stats — slow expanding pulse glow */
+@keyframes pulse-glow {
+  0% { transform: scale(0.5); opacity: 0.08; }
+  50% { transform: scale(1.5); opacity: 0.02; }
+  100% { transform: scale(0.5); opacity: 0.08; }
+}
+.lp-stat-pulse {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--app-primary-strong, rgba(0,165,239,0.6)) 0%, transparent 70%);
+  filter: blur(100px);
+  animation: pulse-glow ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* How it works — ambient fog blobs */
+@keyframes fog-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(40px, -20px) scale(1.1); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(30px, -10px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.lp-fog-blob {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--app-primary-strong, rgba(0,165,239,0.8)) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: fog-drift ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Demo section — data particles floating upward */
+@keyframes particle-rise {
+  0% { opacity: 0; transform: translateY(0) translateX(0); }
+  10% { opacity: 1; }
+  90% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-600px) translateX(40px); }
+}
+.lp-demo-particle {
+  position: absolute;
+  background: var(--app-primary-strong, rgba(0,165,239,0.7));
+  border-radius: 50%;
+  animation: particle-rise linear infinite;
+  filter: blur(1.5px);
+}
+
+/* Signal rings — expanding circles */
+@keyframes ring-expand {
+  0% { transform: scale(0.3); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
+}
+.lp-demo-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--app-primary-strong, rgba(0,165,239,0.3));
+  animation: ring-expand ease-out infinite;
+  pointer-events: none;
+}
+
+/* Orbiting dots */
+.lp-demo-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--app-primary-strong, rgba(0,165,239,0.4));
+  filter: blur(2px);
+}
+.lp-demo-orb[data-dir="right"] { animation: orbRight ease-in-out infinite; }
+.lp-demo-orb[data-dir="down"]  { animation: orbDown ease-in-out infinite; }
+.lp-demo-orb[data-dir="left"]  { animation: orbLeft ease-in-out infinite; }
+.lp-demo-orb[data-dir="up"]    { animation: orbUp ease-in-out infinite; }
+
 /* Falling stars */
 .lp-cta-star {
   position: absolute; top: 0;
@@ -133,17 +202,47 @@
 .lp-testimonial-slide[data-index="2"] { transform-origin: right center; }
 
 .lp-testimonial-dot {
-  flex: 1; height: 1px;
-  background: var(--app-border, #e4e4e7);
-  cursor: pointer; position: relative; transition: all 0.3s;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.3s;
+  z-index: 0;
 }
-.lp-testimonial-dot.is-active { background: transparent; }
-.lp-testimonial-dot.is-active::after {
-  content: ''; position: absolute; top: 0; left: 0; height: 1px;
+/* inactive dot */
+.lp-testimonial-dot::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--app-border, #e4e4e7);
+  transition: background 0.3s;
+}
+.lp-testimonial-dot:hover::before {
   background: var(--app-text, #18181b);
-  animation: dot-fill 8s linear forwards;
+}
+/* active dot — ring loader around it */
+.lp-testimonial-dot.is-active::before {
+  background: transparent;
+}
+.lp-testimonial-dot.is-active {
+  background: conic-gradient(var(--app-text, #18181b) var(--dot-progress, 0%), transparent 0%);
+  border-radius: 50%;
+  mask: radial-gradient(farthest-side, transparent 4px, #fff 4px);
+  -webkit-mask: radial-gradient(farthest-side, transparent 4px, #fff 4px);
+  animation: dot-timer 8s linear forwards;
+}
+@keyframes dot-timer {
+  from { --dot-progress: 0%; }
+  to   { --dot-progress: 100%; }
+}
+@property --dot-progress {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
 }
 @media (prefers-color-scheme: dark) {
-  .lp-testimonial-dot.is-active::after { background: #00a5ef; }
+  .lp-testimonial-dot.is-active { background: conic-gradient(#00a5ef var(--dot-progress, 0%), transparent 0%); }
   .lp-cta-star { background: linear-gradient(to top, rgba(0,165,239,0.9), transparent); }
 }
