@@ -7,6 +7,7 @@ from nexios.routing import Router
 from nexios.auth.decorator import auth
 from models.accounts import Account
 from models.subscriptions import Subscription
+from app.core.idempotency import idempotency, IDEMPOTENCY_TTL
 
 router = Router(prefix="/payments", tags=["payments"])
 
@@ -47,48 +48,73 @@ async def initialize_payment(request: Request, response: Response):
     if not PAYSTACK_SECRET:
         return response.json({"detail": "Paystack not configured on the server."}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    callback_url = data.get("callback_url")
-    paystack_payload = {
-        "email": user.email,
-        "amount": amount,
-        "metadata": {
-            "plan_type": plan_type,
-            "account_id": str(user.id),
-        },
-    }
-    if callback_url:
-        paystack_payload["callback_url"] = callback_url
-
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{PAYSTACK_BASE}/transaction/initialize",
-            json=paystack_payload,
-            headers={"Authorization": f"Bearer {PAYSTACK_SECRET}", "Content-Type": "application/json"},
+    # --- Idempotency lock ---
+    # Key derived from user + plan so the same person can't init two payments
+    # for the same plan within the TTL window.
+    lock_key = f"payment:init:{user.id}:{plan_type}"
+    if not await idempotency.try_lock(lock_key, ttl=IDEMPOTENCY_TTL["payment_init"]):
+        # Another request is already processing — return its cached result
+        cached = await idempotency.get_cached(lock_key)
+        if cached:
+            return cached
+        # Lock held but no cached result yet (still in-flight) — tell client to retry
+        return response.json(
+            {"detail": "A payment initialization for this plan is already in progress. Please wait."},
+            status_code=status.HTTP_409_CONFLICT,
         )
 
-        data = resp.json()
+    try:
+        callback_url = data.get("callback_url")
+        paystack_payload = {
+            "email": user.email,
+            "amount": amount,
+            "metadata": {
+                "plan_type": plan_type,
+                "account_id": str(user.id),
+            },
+        }
+        if callback_url:
+            paystack_payload["callback_url"] = callback_url
 
-        if not data.get("status"):
-            return response.json(
-                {"detail": "Payment initialization failed", "paystack_message": data.get("message")},
-                status_code=status.HTTP_400_BAD_REQUEST,
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{PAYSTACK_BASE}/transaction/initialize",
+                json=paystack_payload,
+                headers={"Authorization": f"Bearer {PAYSTACK_SECRET}", "Content-Type": "application/json"},
             )
 
-        paystack_data = data["data"]
+            paystack_resp = resp.json()
 
-        await Subscription.create(
-            account=user,
-            plan_type=plan_type,
-            status="pending",
-            paystack_reference=paystack_data["reference"],
-            amount=amount,
-        )
+            if not paystack_resp.get("status"):
+                return response.json(
+                    {"detail": "Payment initialization failed", "paystack_message": paystack_resp.get("message")},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
 
-        return {
-            "access_code": paystack_data["access_code"],
-            "reference": paystack_data["reference"],
-            "authorization_url": paystack_data["authorization_url"],
-        }
+            paystack_data = paystack_resp["data"]
+
+            await Subscription.create(
+                account=user,
+                plan_type=plan_type,
+                status="pending",
+                paystack_reference=paystack_data["reference"],
+                amount=amount,
+            )
+
+            result = {
+                "access_code": paystack_data["access_code"],
+                "reference": paystack_data["reference"],
+                "authorization_url": paystack_data["authorization_url"],
+            }
+
+        # Cache the result so duplicate requests get the same response
+        await idempotency.cache_result(lock_key, result, ttl=IDEMPOTENCY_TTL["payment_init"])
+        return result
+
+    except Exception:
+        # Release lock on failure so the user can retry
+        await idempotency.release(lock_key)
+        raise
 
 
 @router.get("/verify")
@@ -105,40 +131,62 @@ async def verify_payment(request: Request, response: Response):
     if not PAYSTACK_SECRET:
         return response.json({"detail": "Paystack not configured on the server."}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"{PAYSTACK_BASE}/transaction/verify/{reference}",
-            headers={"Authorization": f"Bearer {PAYSTACK_SECRET}"},
+    # --- Idempotency lock ---
+    # The Paystack reference is naturally unique — use it as the
+    # idempotency key so the same reference is never verified twice.
+    lock_key = f"payment:verify:{reference}:{user.id}"
+    if not await idempotency.try_lock(lock_key, ttl=IDEMPOTENCY_TTL["payment_verify"]):
+        cached = await idempotency.get_cached(lock_key)
+        if cached:
+            return cached
+        return response.json(
+            {"detail": "Verification already in progress for this reference."},
+            status_code=status.HTTP_409_CONFLICT,
         )
 
-        data = resp.json()
-
-        if not data.get("status"):
-            return response.json(
-                {"detail": "Verification failed", "paystack_message": data.get("message")},
-                status_code=status.HTTP_400_BAD_REQUEST,
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{PAYSTACK_BASE}/transaction/verify/{reference}",
+                headers={"Authorization": f"Bearer {PAYSTACK_SECRET}"},
             )
 
-        paystack_data = data["data"]
+            data = resp.json()
 
-        if paystack_data["status"] != "success":
-            return response.json(
-                {"detail": "Payment was not successful", "status": paystack_data["status"]},
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
+            if not data.get("status"):
+                return response.json(
+                    {"detail": "Verification failed", "paystack_message": data.get("message")},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
 
-    sub = await Subscription.get_or_none(paystack_reference=reference, account=user)
-    if not sub:
-        return response.json({"detail": "Subscription record not found"}, status_code=status.HTTP_404_NOT_FOUND)
+            paystack_data = data["data"]
 
-    sub.status = "active"
-    await sub.save()
+            if paystack_data["status"] != "success":
+                return response.json(
+                    {"detail": "Payment was not successful", "status": paystack_data["status"]},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
 
-    return {
-        "status": "success",
-        "plan_type": sub.plan_type,
-        "message": f"{sub.plan_type.title()} plan activated successfully",
-    }
+        sub = await Subscription.get_or_none(paystack_reference=reference, account=user)
+        if not sub:
+            return response.json({"detail": "Subscription record not found"}, status_code=status.HTTP_404_NOT_FOUND)
+
+        if sub.status != "active":
+            sub.status = "active"
+            await sub.save()
+
+        result = {
+            "status": "success",
+            "plan_type": sub.plan_type,
+            "message": f"{sub.plan_type.title()} plan activated successfully",
+        }
+
+        await idempotency.cache_result(lock_key, result, ttl=IDEMPOTENCY_TTL["payment_verify"])
+        return result
+
+    except Exception:
+        await idempotency.release(lock_key)
+        raise
 
 
 @router.get("/subscription")
