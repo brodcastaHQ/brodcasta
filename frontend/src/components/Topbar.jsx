@@ -6,7 +6,7 @@ const routeLabels = {
   dashboard: 'Dashboard',
   new: 'New Project',
   admin: 'Admin',
-  users: 'Users',
+
   settings: 'Settings',
   analytics: 'Analytics',
   'api-keys': 'API Keys',
