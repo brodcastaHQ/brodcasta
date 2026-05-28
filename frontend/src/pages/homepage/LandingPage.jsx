@@ -183,6 +183,86 @@ const LandingPage = () => {
     autoplayRef.current = setInterval(nextSlide, 8000);
   };
 
+  /* ─── Demo live-ticker ─── */
+  const [demoMessages, setDemoMessages] = useState([]);
+  const [demoConnected, setDemoConnected] = useState(false);
+  const wsRef = useRef(null);
+  const demoContainerRef = useRef(null);
+  const copyBtnRef = useRef(null);
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7012';
+  const WS_BASE = API_BASE.replace('http://', 'ws://').replace('https://', 'wss://');
+
+  useEffect(() => {
+    let ws;
+    let reconnectTimer;
+    let cancelled = false;
+
+    const connect = () => {
+      ws = new WebSocket(`${WS_BASE}/api/demo/listen`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        if (cancelled) return;
+        setDemoConnected(true);
+      };
+      ws.onclose = () => {
+        setDemoConnected(false);
+        if (cancelled) return;
+        reconnectTimer = setTimeout(connect, 3000);
+      };
+      ws.onmessage = (event) => {
+        if (cancelled) return;
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.event === 'demo.message') {
+            const msg = payload.data;
+            setDemoMessages((prev) =>
+              prev.concat({
+                id: Date.now(),
+                text: msg.message,
+                time: new Date(msg.timestamp * 1000).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })
+            );
+          }
+        } catch {
+          /* ignore malformed frames */
+        }
+      };
+    };
+
+    connect();
+    return () => {
+      cancelled = true;
+      clearTimeout(reconnectTimer);
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+    };
+  }, [WS_BASE]);
+
+  useEffect(() => {
+    if (demoContainerRef.current) {
+      demoContainerRef.current.scrollTop = demoContainerRef.current.scrollHeight;
+    }
+  }, [demoMessages]);
+
+  const handleCopy = async () => {
+    const cmd = `curl -X POST ${API_BASE}/api/demo/echo \\\n  -H "Content-Type: application/json" \\\n  -d '{"message":"Hello from Brodcasta!"}'`;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      if (copyBtnRef.current) {
+        copyBtnRef.current.textContent = 'Copied!';
+        setTimeout(() => { if (copyBtnRef.current) copyBtnRef.current.textContent = 'Copy'; }, 2000);
+      }
+    } catch {
+      /* clipboard not available */
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--app-text)]">
       {/* ─── Top Bar ─── */}
@@ -474,6 +554,72 @@ const LandingPage = () => {
                   <p className="text-sm text-[var(--app-muted)] leading-relaxed">{tool.text}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Live Demo ─── */}
+      <section className="relative overflow-hidden py-24 lg:py-32">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="text-center mb-12">
+            <div className="section-eyebrow justify-center mb-4">Try it live</div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+              Real-time in action
+            </h2>
+            <p className="section-copy text-lg max-w-xl mx-auto">
+              Copy the curl command, paste it in your terminal, and watch the message appear here instantly.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Curl command */}
+            <div className="lg:col-span-3">
+              <div className="border border-[var(--app-border)] overflow-hidden">
+                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)]">Terminal</span>
+                  <button
+                    ref={copyBtnRef}
+                    onClick={handleCopy}
+                    className="text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors cursor-pointer"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="p-5 text-sm font-mono leading-relaxed text-[var(--app-muted)] overflow-x-auto">
+                  <span className="text-[var(--app-subtle)]">$ </span>curl -X POST {API_BASE}/api/demo/echo \<br />
+                  <span className="text-[var(--app-subtle)]">  </span>-H <span className="text-[var(--app-text)]">"Content-Type: application/json"</span> \<br />
+                  <span className="text-[var(--app-subtle)]">  </span>-d <span className="text-[var(--app-text)]">{'{"message":"Hello from Brodcasta!"}'}</span>
+                </pre>
+              </div>
+            </div>
+
+            {/* Chat box */}
+            <div className="lg:col-span-2">
+              <div className="border border-[var(--app-border)] overflow-hidden flex flex-col h-64">
+                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)]">Messages</span>
+                  <span className={`inline-block w-2 h-2 rounded-full ${demoConnected ? 'bg-green-500' : 'bg-amber-500'}`} />
+                </div>
+                <div ref={demoContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {demoMessages.length === 0 && (
+                    <p className="text-xs text-[var(--app-subtle)] text-center pt-8">
+                      {demoConnected ? 'Waiting for a message…' : 'Connecting…'}
+                    </p>
+                  )}
+                  {demoMessages.map((msg) => (
+                    <div key={msg.id} className="flex items-start gap-3 text-sm">
+                      <span className="shrink-0 w-6 h-6 rounded-full bg-[var(--app-surface-2)] border border-[var(--app-border)] flex items-center justify-center text-xs">
+                        ⌨
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[var(--app-text)] break-words">{msg.text}</p>
+                        <p className="text-[10px] text-[var(--app-subtle)] mt-0.5">{msg.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
