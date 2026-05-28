@@ -5,7 +5,7 @@ import DashboardLayout from './layout/DashboardLayout';
 import ProjectDashboardLayout from './layout/ProjectDashboardLayout';
 import Dashboard from './pages/dashboard';
 import AccountSettings from './pages/dashboard/AccountSettings';
-import AdminUsers from './pages/dashboard/AdminUsers';
+
 import NewProject from './pages/dashboard/new';
 import ProjectAnalytics from './pages/dashboard/projects/Analytics';
 import ProjectApiKeys from './pages/dashboard/projects/ApiKeys';
@@ -13,6 +13,7 @@ import ProjectMessages from './pages/dashboard/projects/Messages';
 import ProjectOverview from './pages/dashboard/projects/Overview';
 import ProjectPlayground from './pages/dashboard/projects/Playground';
 import ProjectSettings from './pages/dashboard/projects/Settings';
+import LandingPage from './pages/homepage/LandingPage';
 import Login from './pages/login';
 import Signup from './pages/signup';
 
@@ -27,8 +28,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/pricing" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/pricing" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
@@ -36,7 +37,7 @@ function App() {
           <Route element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewProject />} />
-            <Route path="admin/users" element={<AdminUsers />} />
+
             <Route path="settings" element={<AccountSettings />} />
             <Route
               path="*"

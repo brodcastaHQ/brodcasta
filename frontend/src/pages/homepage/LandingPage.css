@@ -1,0 +1,149 @@
+/* Keyframes & effects only — layout uses Tailwind + app theme */
+
+@keyframes chip-glow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes sticky-sweep {
+  0% { background-position: 100% 0%; }
+  100% { background-position: 0% 0%; }
+}
+@keyframes liquid-glass {
+  0% { background-position: 0% 0%; }
+  20% { background-position: 60% 40%; }
+  45% { background-position: 100% 100%; }
+  70% { background-position: 40% 60%; }
+  100% { background-position: 0% 0%; }
+}
+@keyframes dot-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+@keyframes falling-star {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(calc(100% + 800px)); }
+}
+@keyframes orbRight {
+  0% { opacity: 0; left: -4rem; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; left: calc(100% + 4rem); }
+}
+@keyframes orbDown {
+  0% { opacity: 0; top: -4rem; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; top: calc(100% + 4rem); }
+}
+@keyframes orbLeft {
+  0% { opacity: 0; left: calc(100% + 4rem); }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; left: -4rem; }
+}
+@keyframes orbUp {
+  0% { opacity: 0; top: calc(100% + 4rem); }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; top: -4rem; }
+}
+
+/* Hero grid bg */
+.lp-hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(24,24,27,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24,24,27,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+@media (prefers-color-scheme: dark) {
+  .lp-hero-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  }
+}
+
+/* Marquee */
+.lp-marquee-track {
+  display: flex; gap: 3rem; width: max-content;
+  animation: marquee-scroll 60s linear infinite;
+}
+.lp-marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0% 5%, #000 40% 80%, transparent 95% 100%);
+  mask-image: linear-gradient(90deg, transparent 0% 5%, #000 40% 80%, transparent 95% 100%);
+  overflow: hidden;
+}
+
+/* Step card hover effect */
+.lp-step-hover-image {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 0;
+  height: 500px; opacity: 0; transform: translateY(-50px);
+  transition: all 2.5s ease; transition-delay: 50ms;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; font-size: 4rem;
+}
+.lp-step-card:hover .lp-step-hover-image {
+  opacity: 1; transform: translateY(-70px);
+}
+
+/* Falling stars */
+.lp-cta-star {
+  position: absolute; top: 0;
+  background: linear-gradient(to top, var(--app-primary-strong, rgba(0,0,0,0.9)), transparent);
+  border-radius: 50%; filter: blur(1px);
+  animation: falling-star linear infinite;
+}
+
+/* Stats liquid-glass value */
+.lp-stat-value {
+  background: linear-gradient(135deg,
+    rgba(250,250,250,0.9) 0%, rgba(34,211,238,0.5) 20%, rgba(250,250,250,0.15) 30%,
+    rgba(34,211,238,0.55) 48%, rgba(250,250,250,0.85) 60%, rgba(34,211,238,0.35) 75%,
+    rgba(250,250,250,0.1) 88%, rgba(34,211,238,0.7) 100%);
+  -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+  background-size: 300% 300%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: liquid-glass 25s ease-in-out infinite;
+}
+@media (prefers-color-scheme: dark) {
+  .lp-stat-value {
+    background: linear-gradient(135deg,
+      rgba(255,255,255,0.9) 0%, rgba(0,165,239,0.5) 20%, rgba(255,255,255,0.15) 30%,
+      rgba(0,165,239,0.55) 48%, rgba(255,255,255,0.85) 60%, rgba(0,165,239,0.35) 75%,
+      rgba(255,255,255,0.1) 88%, rgba(0,165,239,0.7) 100%);
+  }
+}
+
+/* Testimonial slider */
+.lp-testimonial-slide {
+  opacity: 0.2; filter: blur(4px); transform: scale(0.92);
+  transition: all 0.7s ease;
+}
+.lp-testimonial-slide.is-active {
+  opacity: 1; filter: blur(0); transform: scale(1);
+}
+.lp-testimonial-slide[data-index="1"] { transform-origin: left center; }
+.lp-testimonial-slide[data-index="2"] { transform-origin: right center; }
+
+.lp-testimonial-dot {
+  flex: 1; height: 1px;
+  background: var(--app-border, #e4e4e7);
+  cursor: pointer; position: relative; transition: all 0.3s;
+}
+.lp-testimonial-dot.is-active { background: transparent; }
+.lp-testimonial-dot.is-active::after {
+  content: ''; position: absolute; top: 0; left: 0; height: 1px;
+  background: var(--app-text, #18181b);
+  animation: dot-fill 8s linear forwards;
+}
+@media (prefers-color-scheme: dark) {
+  .lp-testimonial-dot.is-active::after { background: #00a5ef; }
+  .lp-cta-star { background: linear-gradient(to top, rgba(0,165,239,0.9), transparent); }
+}

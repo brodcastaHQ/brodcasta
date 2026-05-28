@@ -9,10 +9,9 @@ import {
   KeyRound,
   Terminal,
   Settings,
-  Users,
   UserCog,
 } from 'lucide-react';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { cn } from '../utils/cn';
 import { createClient } from '../utils/client';
 
@@ -29,6 +28,7 @@ const sectionLabel = 'px-6 pt-5 pb-1.5 text-[11px] font-semibold uppercase track
 const Sidebar = ({ open = false, onClose = () => {} }) => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -51,9 +51,13 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
   const currentProject = projects.find((p) => p.id === projectId) || projects[0] || null;
 
   const handleProjectSelect = (project) => {
+    const base = '/dashboard/projects/';
+    const suffix = projectId
+      ? location.pathname.replace(`${base}${projectId}`, '')
+      : '';
     setDropdownOpen(false);
     onClose();
-    navigate(`/dashboard/projects/${project.id}`);
+    navigate(`${base}${project.id}${suffix}`);
   };
 
   return (
@@ -175,11 +179,7 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             </p>
           )}
 
-          <p className={sectionLabel}>Admin</p>
-          <NavLink to="/dashboard/admin/users" className={navLinkClassName} onClick={onClose}>
-            <Users className="h-4 w-4" />
-            Users
-          </NavLink>
+          <p className={sectionLabel}>Account</p>
           <NavLink to="/dashboard/settings" className={navLinkClassName} onClick={onClose}>
             <UserCog className="h-4 w-4" />
             Account Settings
