@@ -14,6 +14,7 @@ from ._schema import (
     UsersListResponse,
 )
 from models.accounts import Account, Role
+from models.subscriptions import Subscription
 from utils.auth import create_access_token, create_refresh_token, verify_token
 
 
@@ -47,6 +48,14 @@ async def signup(request: Request, response: Response):
         role=user_data.role,
     )
 
+    # Create free starter subscription
+    await Subscription.create(
+        account=user,
+        plan_type="starter",
+        status="active",
+        amount=0,
+    )
+
     # Create access token
     access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
 
@@ -62,7 +71,7 @@ async def signup(request: Request, response: Response):
         role=user.role,
         created_at=user.created_at.isoformat(),
     )
-
+    response.json({"user": user_response, "message": "Account created successfully"})
     response.set_cookie(
         "access_token",
         access_token,
@@ -81,7 +90,7 @@ async def signup(request: Request, response: Response):
         samesite="strict",
     )
 
-    return {"user": user_response, "message": "Account created successfully"}
+    return 
 
 
 @router.post(

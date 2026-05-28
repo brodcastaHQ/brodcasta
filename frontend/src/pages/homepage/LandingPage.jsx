@@ -780,9 +780,9 @@ const LandingPage = () => {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-[var(--app-subtle)] mb-4">Legal</h4>
               <ul className="flex flex-col gap-2 text-sm text-[var(--app-muted)]">
-                <li><a href="#" className="hover:text-[var(--app-text)] transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-[var(--app-text)] transition-colors">Conditions</a></li>
-                <li><a href="#" className="hover:text-[var(--app-text)] transition-colors">Privacy Policy</a></li>
+                <li><Link to="/terms" className="hover:text-[var(--app-text)] transition-colors">Terms</Link></li>
+                <li><Link to="/terms" className="hover:text-[var(--app-text)] transition-colors">Conditions</Link></li>
+                <li><Link to="/privacy" className="hover:text-[var(--app-text)] transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>

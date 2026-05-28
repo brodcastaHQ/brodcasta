@@ -165,10 +165,10 @@ const PricingPage = () => {
             You can start using all the features immediately.
           </p>
           <Link
-            to="/dashboard"
+            to="/dashboard/billing"
             className="button-primary px-6 py-2.5 text-sm rounded-full"
           >
-            Go to dashboard
+            Go to Billing
           </Link>
         </div>
       );
@@ -423,6 +423,10 @@ const PricingPage = () => {
               <img src="/logo.svg" alt="Brodcasta" className="h-5 w-5" />
               <span className="text-sm font-medium text-[var(--app-text)]">Brodcasta</span>
             </Link>
+            <div className="flex gap-6">
+              <Link to="/terms" className="hover:text-[var(--app-text)] transition-colors">Terms</Link>
+              <Link to="/privacy" className="hover:text-[var(--app-text)] transition-colors">Privacy</Link>
+            </div>
             <span>Brodcasta, all rights reserved 2026</span>
           </div>
         </div>

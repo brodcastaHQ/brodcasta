@@ -10,6 +10,7 @@ import {
   Terminal,
   Settings,
   UserCog,
+  CreditCard,
 } from 'lucide-react';
 import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { cn } from '../utils/cn';
@@ -180,6 +181,10 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
           )}
 
           <p className={sectionLabel}>Account</p>
+          <NavLink to="/dashboard/billing" className={navLinkClassName} onClick={onClose}>
+            <CreditCard className="h-4 w-4" />
+            Billing
+          </NavLink>
           <NavLink to="/dashboard/settings" className={navLinkClassName} onClick={onClose}>
             <UserCog className="h-4 w-4" />
             Account Settings

@@ -5,6 +5,7 @@ import DashboardLayout from './layout/DashboardLayout';
 import ProjectDashboardLayout from './layout/ProjectDashboardLayout';
 import Dashboard from './pages/dashboard';
 import AccountSettings from './pages/dashboard/AccountSettings';
+import Billing from './pages/dashboard/Billing';
 
 import NewProject from './pages/dashboard/new';
 import ProjectAnalytics from './pages/dashboard/projects/Analytics';
@@ -17,6 +18,8 @@ import LandingPage from './pages/homepage/LandingPage';
 import PricingPage from './pages/pricing/PricingPage';
 import Login from './pages/login';
 import Signup from './pages/signup';
+import Terms from './pages/legal/Terms';
+import Privacy from './pages/legal/Privacy';
 
 const PlaceholderPage = ({ title, copy }) => (
   <div className="surface-card mx-auto max-w-3xl p-10 text-center">
@@ -33,12 +36,15 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         <Route path="/dashboard" element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewProject />} />
 
+            <Route path="billing" element={<Billing />} />
             <Route path="settings" element={<AccountSettings />} />
             <Route
               path="*"
