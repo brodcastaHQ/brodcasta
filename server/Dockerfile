@@ -35,6 +35,7 @@ RUN useradd --create-home --shell /bin/bash app && \
 USER app
 
 # Run migrations (Aerich)
+RUN uv run aerich migrate || true
 RUN uv run aerich upgrade || true
 
 # Expose port

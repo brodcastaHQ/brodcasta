@@ -20,6 +20,7 @@ dependencies = [
     "granian==2.6.1",
     "h11==0.16.0",
     "httptools==0.7.1",
+    "httpx>=0.28.1",
     "idna==3.11",
     "iso8601==2.1.0",
     "itsdangerous==2.2.0",

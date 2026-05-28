@@ -1,4 +1,4 @@
-.PHONY: help build dev prod clean logs stop restart-backend restart-frontend restart-db restart-redis rebuild-backend rebuild-frontend rebuild-db rebuild-redis
+.PHONY: help build dev prod clean logs stop restart-backend restart-frontend restart-db restart-redis rebuild-backend rebuild-frontend rebuild-db rebuild-redis adminer logs-adminer
 
 # Default target
 help:
@@ -20,6 +20,8 @@ help:
 	@echo "  rebuild-frontend - Rebuild and restart frontend service"
 	@echo "  rebuild-db       - Rebuild and restart database service"
 	@echo "  rebuild-redis    - Rebuild and restart Redis service"
+	@echo "  adminer          - Start Adminer (database UI) at http://localhost:8080"
+	@echo "  logs-adminer     - Show Adminer logs"
 	@echo ""
 
 # Build all images
@@ -76,6 +78,9 @@ clean:
 
 # Database migrations
 migrate:
+	@echo "Running database migrations..."
+	docker compose exec backend aerich migrate
+upgrade:
 	@echo "Running database migrations..."
 	docker compose exec backend aerich upgrade
 
@@ -162,3 +167,13 @@ rebuild-redis:
 	@echo "Rebuilding and restarting Redis service..."
 	docker compose build --no-cache redis
 	docker compose up -d redis
+
+# Adminer (database management UI)
+adminer:
+	@echo "Starting Adminer at http://localhost:4040"
+	@echo "Login: brodcasta / brodcasta_password"
+	docker compose up -d postgres adminer
+	@echo "Adminer is running at http://localhost:4040"
+
+logs-adminer:
+	docker compose logs -f adminer

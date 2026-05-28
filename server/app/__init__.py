@@ -7,6 +7,7 @@ from api.projects.routes import router as projects_router
 from api.analytics.routes import router as analytics_router
 from api.messages.routes import router as messages_router
 from api.public.routes import router as public_router
+from api.payments.routes import router as payments_router
 from ws.gateway import router as ws_router
 from sse.routes import router as sse_router
 from nexios.middleware.cors import CORSMiddleware, CorsConfig
@@ -44,6 +45,7 @@ app = NexiosApp(
                 Group(analytics_router.prefix, analytics_router),
                 Group(messages_router.prefix, messages_router),
                 Group(public_router.prefix, public_router),
+                Group(payments_router.prefix, payments_router),
             ],
         ),
         Group(sse_router.prefix, sse_router),
