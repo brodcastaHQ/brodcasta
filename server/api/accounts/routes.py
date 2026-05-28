@@ -12,11 +12,17 @@ from ._schema import (
     UserUpdate,
     AdminUserCreate,
     UsersListResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
 )
 from models.accounts import Account, Role
 from models.subscriptions import Subscription
 from utils.auth import create_access_token, create_refresh_token, verify_token
+from app.core.redis_otp import redis_otp
+from nexios import status
 
+# Set by app/__init__.py at startup
+mail_client = None  # type: ignore[assignment]
 
 router = Router(prefix="/accounts", tags=["authentication"])
 
@@ -156,6 +162,67 @@ async def login(request: Request, response: Response):
         secure=os.getenv("ENV") == "production",
         samesite="strict",
     )
+
+
+@router.post(
+    "/forgot-password",
+    summary="Send OTP to email for password reset",
+    request_model=ForgotPasswordRequest,
+)
+async def forgot_password(request: Request, response: Response):
+    """Send a 6-digit OTP to the user's email for password reset."""
+    data = await request.json
+    body = ForgotPasswordRequest(**data)  # ty:ignore[invalid-argument-type]
+
+    user = await Account.get_by_email(body.email)
+    # Always return 200 to avoid email enumeration
+    if not user:
+        return response.json({"message": "If the email exists, an OTP has been sent."})
+
+    otp = await redis_otp.generate_and_store(body.email)
+
+    if mail_client:
+        await mail_client.send_email(
+            to=body.email,
+            subject="Your Brodcasta Password Reset Code",
+            html_body=f"""
+            <h2>Password Reset</h2>
+            <p>Use the following OTP to reset your password. It expires in 15 minutes.</p>
+            <p style="font-size:24px;font-weight:bold;letter-spacing:4px;text-align:center;padding:16px;background:#f4f4f5;border-radius:8px;">{otp}</p>
+            <p>If you didn't request this, you can ignore this email.</p>
+            """,
+        )
+
+    return response.json({"message": "If the email exists, an OTP has been sent."})
+
+
+@router.post(
+    "/reset-password",
+    summary="Reset password using OTP",
+    request_model=ResetPasswordRequest,
+)
+async def reset_password(request: Request, response: Response):
+    """Reset the user's password after verifying the OTP."""
+    data = await request.json
+    body = ResetPasswordRequest(**data)  # ty:ignore[invalid-argument-type]
+
+    user = await Account.get_by_email(body.email)
+    if not user:
+        return response.json(
+            {"detail": "Invalid or expired OTP."},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    valid = await redis_otp.verify(body.email, body.otp)
+    if not valid:
+        return response.json(
+            {"detail": "Invalid or expired OTP."},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    await user.set_password(body.password)
+
+    return response.json({"message": "Password reset successfully."})
 
 
 @router.post(

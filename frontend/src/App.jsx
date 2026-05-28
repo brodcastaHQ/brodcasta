@@ -18,6 +18,8 @@ import LandingPage from './pages/homepage/LandingPage';
 import PricingPage from './pages/pricing/PricingPage';
 import Login from './pages/login';
 import Signup from './pages/signup';
+import ForgotPassword from './pages/forgot-password';
+import ResetPassword from './pages/reset-password';
 import Terms from './pages/legal/Terms';
 import Privacy from './pages/legal/Privacy';
 
@@ -36,6 +38,8 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
 

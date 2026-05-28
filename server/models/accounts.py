@@ -45,6 +45,10 @@ class Account(BaseModel, SimpleUser):
     async def load_user(cls, identity: str):
         return await cls.get_or_none(id=identity)
 
+    @classmethod
+    async def get_by_email(cls, email: str):
+        return await cls.get_or_none(email=email)
+
     @property
     def display_name(self):
         return self.name

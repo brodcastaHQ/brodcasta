@@ -18,6 +18,15 @@ wheels = [
 ]
 
 [[package]]
+name = "aiosmtplib"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/ad/240a7ce4e50713b111dff8b781a898d8d4770e5d6ad4899103f84c86005c/aiosmtplib-5.1.0.tar.gz", hash = "sha256:2504a23b2b63c9de6bc4ea719559a38996dba68f73f6af4eb97be20ee4c5e6c4", size = 66176, upload-time = "2026-01-25T01:51:11.408Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/82/70f2c452acd7ed18c558c8ace9a8cf4fdcc70eae9a41749b5bdc53eb6f45/aiosmtplib-5.1.0-py3-none-any.whl", hash = "sha256:368029440645b486b69db7029208a7a78c6691b90d24a5332ddba35d9109d55b", size = 27778, upload-time = "2026-01-25T01:51:10.026Z" },
+]
+
+[[package]]
 name = "aiosqlite"
 version = "0.19.0"
 source = { registry = "https://pypi.org/simple" }
@@ -644,17 +653,20 @@ all = [
 
 [[package]]
 name = "nexios-contrib"
-version = "0.3.2"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nexios" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/79/2878abdda6e42ac4470e4060aab0fc4f75baf261ec103cb24d5811b63648/nexios_contrib-0.3.2.tar.gz", hash = "sha256:30485aa148cc719839223f9f5e77207fbb1df9e1014ff2447c14eb12db5bd034", size = 184654, upload-time = "2026-01-12T12:16:05.217Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a0/42/96d5518f55912c071da642e641d5b64b8928c14f0d0146866b1c495b80e7/nexios_contrib-0.5.0.tar.gz", hash = "sha256:a513b41458e80843d01c2b7f5d8fbf88daf32654545d502b91ce8571aecb33f3", size = 215679, upload-time = "2026-05-27T08:08:43.725Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/d1/74beacb12400865dc4bfcee28310fd9e2b2ad204442eaacc4f68bc6f38a5/nexios_contrib-0.3.2-py3-none-any.whl", hash = "sha256:0367e4b958ab7d556ee2e77c8c8e6ced3bd79ff28bfd4af79d06e06d06d330e2", size = 102460, upload-time = "2026-01-12T12:16:03.556Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/b1/80fde93d703228a75e4012b24962f6c78e9cac66ce5c3fe5ad356f7aba79/nexios_contrib-0.5.0-py3-none-any.whl", hash = "sha256:5559aa038160a84cc5cd873b81f0fec97b168d0fe405221688260f2909a7f81c", size = 126312, upload-time = "2026-05-27T08:08:42.657Z" },
 ]
 
 [package.optional-dependencies]
+mail = [
+    { name = "aiosmtplib" },
+]
 tortoise = [
     { name = "aiosqlite" },
     { name = "tortoise-orm" },
@@ -942,7 +954,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "markupsafe" },
     { name = "nexios", extra = ["all"] },
-    { name = "nexios-contrib", extra = ["tortoise"] },
+    { name = "nexios-contrib", extra = ["mail", "tortoise"] },
     { name = "pydantic" },
     { name = "pydantic-core" },
     { name = "pyjwt" },
@@ -987,7 +999,7 @@ requires-dist = [
     { name = "jinja2", specifier = "==3.1.6" },
     { name = "markupsafe", specifier = "==3.0.3" },
     { name = "nexios", extras = ["all"], specifier = ">=3.12.0" },
-    { name = "nexios-contrib", extras = ["tortoise"], specifier = "==0.3.2" },
+    { name = "nexios-contrib", extras = ["tortoise", "mail"], specifier = "==0.5.0" },
     { name = "pydantic", specifier = "==2.12.5" },
     { name = "pydantic-core", specifier = "==2.41.5" },
     { name = "pyjwt", specifier = "==2.10.1" },

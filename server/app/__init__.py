@@ -1,5 +1,6 @@
 from nexios import NexiosApp, MakeConfig
 from nexios_contrib.tortoise import init_tortoise
+from nexios_contrib.mail import setup_mail, MailConfig
 from nexios.routing.grouping import Group
 import config
 from api.accounts.routes import router as auth_router
@@ -16,6 +17,7 @@ from nexios.auth.middleware import AuthenticationMiddleware
 from models.accounts import Account
 from app.core.redis_fanout import redis_fanout
 from app.core.redis_publisher import redis_publisher
+from app.core.redis_otp import redis_otp
 from app.core.logging import get_logger
 import asyncio
 from events import emitter as emitter
@@ -60,6 +62,24 @@ init_tortoise(
     add_exception_handlers=True,
     generate_schemas=True,
 )
+# Set up mail client
+mail_client = setup_mail(
+    app,
+    config=MailConfig(
+        smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
+        smtp_port=int(os.getenv("SMTP_PORT", "587")),
+        smtp_username=os.getenv("SMTP_USERNAME", ""),
+        smtp_password=os.getenv("SMTP_PASSWORD", ""),
+        use_tls=os.getenv("SMTP_USE_TLS", "true").lower() == "true",
+        default_from=os.getenv("MAIL_FROM", "noreply@brodcasta.com"),
+    ),
+)
+
+# Expose mail client to routes via module-level import
+import api.accounts.routes as accounts_routes
+
+accounts_routes.mail_client = mail_client
+
 app.add_middleware(
     CORSMiddleware(
         config=CorsConfig(
@@ -95,6 +115,13 @@ async def startup():
         db=int(os.getenv("REDIS_DB", 0)),
     )
 
+    # Connect Redis OTP store
+    await redis_otp.connect(
+        host=os.getenv("REDIS_HOST", "localhost"),
+        port=int(os.getenv("REDIS_PORT", 6379)),
+        db=int(os.getenv("REDIS_DB", 0)),
+    )
+
     logger.info("Redis services started")
     await create_superuser()
 
@@ -103,6 +130,7 @@ async def startup():
 async def shutdown():
     await redis_fanout.disconnect()
     await redis_publisher.disconnect()
+    await redis_otp.disconnect()
     logger.info("Redis services stopped")
 
 
