@@ -184,13 +184,35 @@ const LandingPage = () => {
   };
 
   /* ─── Demo live-ticker ─── */
-  const [demoMessages, setDemoMessages] = useState([]);
+  const [demoMessages, setDemoMessages] = useState([
+    {
+      id: 0,
+      text: 'Hello from Brodcasta!',
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      sender: 'system',
+    },
+  ]);
   const [demoConnected, setDemoConnected] = useState(false);
   const [demoRoomReady, setDemoRoomReady] = useState(false);
-  const [demoRoomId] = useState(() => crypto.randomUUID());
+  const [demoRoomId] = useState(() => {
+    const cached = localStorage.getItem('brodcasta_demo_room');
+    if (cached) return cached;
+    const fresh = crypto.randomUUID();
+    localStorage.setItem('brodcasta_demo_room', fresh);
+    return fresh;
+  });
   const wsRef = useRef(null);
   const demoContainerRef = useRef(null);
   const copyBtnRef = useRef(null);
+  const notifEnabledRef = useRef(
+    typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  );
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7012';
   const WS_BASE = API_BASE.replace('http://', 'ws://').replace('https://', 'wss://');
 
@@ -236,6 +258,16 @@ const LandingPage = () => {
 
           if (eventType === 'message.received') {
             const msg = payload.data;
+            if (
+              notifEnabledRef.current &&
+              typeof Notification !== 'undefined' &&
+              Notification.permission === 'granted'
+            ) {
+              new Notification('Brodcasta', {
+                body: msg.message,
+                icon: '/logo.svg',
+              });
+            }
             setDemoMessages((prev) =>
               prev.concat({
                 id: Date.now(),
@@ -244,6 +276,7 @@ const LandingPage = () => {
                   hour: '2-digit',
                   minute: '2-digit',
                 }),
+                sender: msg.sender_id === 'demo-curl' ? 'user' : 'system',
               })
             );
           }
@@ -263,6 +296,24 @@ const LandingPage = () => {
       }
     };
   }, [WS_BASE, demoRoomId]);
+
+  const handleRequestNotification = async () => {
+    if (typeof Notification === 'undefined') return;
+    if (notifEnabledRef.current) {
+      notifEnabledRef.current = false;
+      setNotificationsEnabled(false);
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      notifEnabledRef.current = true;
+      setNotificationsEnabled(true);
+      return;
+    }
+    const result = await Notification.requestPermission();
+    const enabled = result === 'granted';
+    notifEnabledRef.current = enabled;
+    setNotificationsEnabled(enabled);
+  };
 
   useEffect(() => {
     if (demoContainerRef.current) {
@@ -374,6 +425,98 @@ const LandingPage = () => {
             <Link to="/login" className="button-secondary px-8 py-3 text-base">
               Sign in
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Live Demo ─── */}
+      <section className="relative overflow-hidden py-24 lg:py-32">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="text-center mb-12">
+            <div className="section-eyebrow justify-center mb-4">Try it live</div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+              Real-time in action
+            </h2>
+            <p className="section-copy text-lg max-w-xl mx-auto">
+              Copy the curl command, paste it in your terminal, and watch the message appear here instantly.
+            </p>
+          </div>
+
+          <div className="border border-[var(--app-border)] rounded-xl overflow-hidden">
+            {/* Terminal header */}
+            <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between bg-[var(--app-surface)]">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-500/60" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                <span className="w-3 h-3 rounded-full bg-green-500/60" />
+                <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)] ml-2">Terminal</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRequestNotification}
+                  className={`text-xs transition-colors cursor-pointer ${notificationsEnabled ? 'text-[var(--app-text)]' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'}`}
+                  title={notificationsEnabled ? 'Notifications on' : 'Enable notifications'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    {notificationsEnabled ? (
+                      <>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+                <button
+                  ref={copyBtnRef}
+                  onClick={handleCopy}
+                  className="text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors cursor-pointer"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            {/* Curl command */}
+            <pre className="p-5 text-sm font-mono leading-relaxed text-[var(--app-muted)] overflow-x-auto border-b border-[var(--app-border)]">
+              <span className="text-[var(--app-subtle)]">$ </span>curl -X POST {API_BASE}/api/public/demo-client/messages \<br />
+              <span className="text-[var(--app-subtle)]">  </span>-H <span className="text-[var(--app-text)]">"Content-Type: application/json"</span> \<br />
+              <span className="text-[var(--app-subtle)]">  </span>-d <span className="text-[var(--app-text)]">{'{"room_id":"'}{demoRoomId}{'","message":"Hello from Brodcasta!"}'}</span>
+            </pre>
+
+            {/* Chat messages */}
+            <div ref={demoContainerRef} className="h-72 overflow-y-auto p-5 space-y-4 bg-[var(--app-bg)]">
+              {demoMessages.map((msg) =>
+                msg.sender === 'user' ? (
+                  <div key={msg.id} className="flex justify-end">
+                    <div className="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 bg-[var(--app-text)] text-[var(--app-bg)]">
+                      <p className="text-sm break-words">{msg.text}</p>
+                      <p className="text-[10px] opacity-60 mt-1 text-right">{msg.time}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div key={msg.id} className="flex items-start gap-3">
+                    <span className="shrink-0 w-7 h-7 rounded-full bg-[var(--app-surface-2)] border border-[var(--app-border)] flex items-center justify-center text-xs">
+                      ⌨
+                    </span>
+                    <div className="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2.5 bg-[var(--app-surface-2)] border border-[var(--app-border)]">
+                      <p className="text-sm text-[var(--app-text)] break-words">{msg.text}</p>
+                      <p className="text-[10px] text-[var(--app-subtle)] mt-1">{msg.time}</p>
+                    </div>
+                  </div>
+                )
+              )}
+              {demoMessages.length === 1 && !demoRoomReady && (
+                <p className="text-xs text-[var(--app-subtle)] text-center pt-4">
+                  {demoConnected ? 'Joining room…' : 'Connecting…'}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -574,83 +717,6 @@ const LandingPage = () => {
                   <p className="text-sm text-[var(--app-muted)] leading-relaxed">{tool.text}</p>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Live Demo ─── */}
-      <section className="relative overflow-hidden py-24 lg:py-32">
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="text-center mb-12">
-            <div className="section-eyebrow justify-center mb-4">Try it live</div>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Real-time in action
-            </h2>
-            <p className="section-copy text-lg max-w-xl mx-auto">
-              Copy the curl command, paste it in your terminal, and watch the message appear here instantly.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Curl command */}
-            <div className="lg:col-span-3">
-              <div className="border border-[var(--app-border)] overflow-hidden">
-                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)]">Terminal</span>
-                  <button
-                    ref={copyBtnRef}
-                    onClick={handleCopy}
-                    className="text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors cursor-pointer"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <pre className="p-5 text-sm font-mono leading-relaxed text-[var(--app-muted)] overflow-x-auto">
-                  <span className="text-[var(--app-subtle)]">$ </span>curl -X POST {API_BASE}/api/public/demo-client/messages \<br />
-                  <span className="text-[var(--app-subtle)]">  </span>-H <span className="text-[var(--app-text)]">"Content-Type: application/json"</span> \<br />
-                  <span className="text-[var(--app-subtle)]">  </span>-d <span className="text-[var(--app-text)]">{'{"room_id":"'}{demoRoomId}{'","message":"Hello from Brodcasta!"}'}</span>
-                </pre>
-              </div>
-            </div>
-
-            {/* Chat box */}
-            <div className="lg:col-span-2">
-              <div className="border border-[var(--app-border)] overflow-hidden flex flex-col h-64">
-                <div className="px-5 py-3 border-b border-[var(--app-border)] flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs font-semibold uppercase tracking-widest text-[var(--app-subtle)] shrink-0">Messages</span>
-                    {demoRoomReady && (
-                      <span className="text-[10px] font-mono text-[var(--app-subtle)] truncate" title={demoRoomId}>
-                        {demoRoomId.slice(0, 8)}…
-                      </span>
-                    )}
-                  </div>
-                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${demoRoomReady ? 'bg-green-500' : 'bg-amber-500'}`} />
-                </div>
-                <div ref={demoContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {demoMessages.length === 0 && (
-                    <p className="text-xs text-[var(--app-subtle)] text-center pt-8">
-                      {demoRoomReady
-                        ? 'Waiting for a message…'
-                        : demoConnected
-                          ? 'Joining room…'
-                          : 'Connecting…'}
-                    </p>
-                  )}
-                  {demoMessages.map((msg) => (
-                    <div key={msg.id} className="flex items-start gap-3 text-sm">
-                      <span className="shrink-0 w-6 h-6 rounded-full bg-[var(--app-surface-2)] border border-[var(--app-border)] flex items-center justify-center text-xs">
-                        ⌨
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-[var(--app-text)] break-words">{msg.text}</p>
-                        <p className="text-[10px] text-[var(--app-subtle)] mt-0.5">{msg.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
