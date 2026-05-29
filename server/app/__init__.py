@@ -63,6 +63,7 @@ init_tortoise(
     generate_schemas=True,
 )
 # Set up mail client
+
 mail_client = setup_mail(
     app,
     config=MailConfig(

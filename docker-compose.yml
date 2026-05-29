@@ -60,6 +60,12 @@ services:
       CORS_ORIGINS: http://localhost:3000,http://localhost:5173
       PORT: 7012
       PAYSTACK_SECRET: sk_test_feff1cc71cb990bf38aaa6221e0a9acef07fec32
+      SMTP_HOST: "smtp.zoho.com"
+      SMTP_PORT: 587
+      SMTP_USERNAME: "nexioslabs@zohomail.com"
+      SMTP_PASSWORD: "J7NA3PCnBAWr"
+      SMTP_USE_TLS: true
+      MAIL_FROM: "Brodcasaa <nexioslabs@zohomail.com>"
     ports:
       - "7012:7012"
     volumes:

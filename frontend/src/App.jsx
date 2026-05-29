@@ -14,6 +14,7 @@ import ProjectMessages from './pages/dashboard/projects/Messages';
 import ProjectOverview from './pages/dashboard/projects/Overview';
 import ProjectPlayground from './pages/dashboard/projects/Playground';
 import ProjectSettings from './pages/dashboard/projects/Settings';
+import ConsentBanner from './components/ConsentBanner';
 import LandingPage from './pages/homepage/LandingPage';
 import PricingPage from './pages/pricing/PricingPage';
 import Login from './pages/login';
@@ -33,6 +34,7 @@ const PlaceholderPage = ({ title, copy }) => (
 function App() {
   return (
     <BrowserRouter>
+      <ConsentBanner />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
