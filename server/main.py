@@ -6,7 +6,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
-        port=4050,
+        port=7012,
         reload=True,
         log_config=None,  # Use our colored logging config instead of uvicorn's default
     )
