@@ -327,7 +327,7 @@ const LandingPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
   );
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7012';
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://adverse-celie-techwithdunamix-125d8784.koyeb.app';
   const WS_BASE = API_BASE.replace('http://', 'ws://').replace('https://', 'wss://');
 
   useEffect(() => {

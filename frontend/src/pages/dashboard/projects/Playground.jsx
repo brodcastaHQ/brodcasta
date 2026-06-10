@@ -89,7 +89,7 @@ const ProjectPlayground = () => {
   const cleanupRef = useRef([]);
 
   const apiBaseUrl = useMemo(
-    () => import.meta.env.VITE_API_URL || 'http://localhost:7012',
+    () => import.meta.env.VITE_API_URL || 'https://adverse-celie-techwithdunamix-125d8784.koyeb.app',
     []
   );
   const sdkBaseUrl = useMemo(() => apiBaseUrl.replace(/\/api\/?$/, ''), [apiBaseUrl]);

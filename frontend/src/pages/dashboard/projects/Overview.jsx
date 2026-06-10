@@ -6,7 +6,7 @@ import Loading from '../../../components/ui/Loading';
 import { createClient } from '../../../utils/client';
 import { formatAuthType, formatCount, formatDateTime, maskSecret } from '../../../utils/formatters';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7012';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://adverse-celie-techwithdunamix-125d8784.koyeb.app';
 
 const CopyButton = ({ text, label }) => {
   const [copied, setCopied] = useState(false);
