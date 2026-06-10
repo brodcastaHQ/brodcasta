@@ -10,14 +10,13 @@ router = Router(prefix="/public", tags=["public"])
 
 @router.post("/{project_id}/messages")
 async def send_public_message(request: Request, response: Response, project_id: str):
-    if project_id != "demo-client":
-        logger.info("NOt found")
-        return response.json({"error": "Not found"}, status_code=404)
+
 
     try:
         data = await request.json
     except Exception:
         return response.json({"error": "Invalid JSON body"}, status_code=400)
+    print(data)
 
     room_id = data.get("room_id", "").strip()
     message = data.get("message", "").strip()

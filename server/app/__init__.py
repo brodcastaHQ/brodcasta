@@ -75,7 +75,7 @@ mail_client = setup_mail(
         default_from=os.getenv("MAIL_FROM", "noreply@brodcasta.com"),
     ),
 )
-
+mail_client=None
 # Expose mail client to routes via module-level import
 import api.accounts.routes as accounts_routes
 
@@ -106,6 +106,7 @@ async def startup():
         host=os.getenv("REDIS_HOST", "localhost"),
         port=int(os.getenv("REDIS_PORT", 6379)),
         db=int(os.getenv("REDIS_DB", 0)),
+        password=os.getenv("REDIS_PASSWORD")
     )
     redis_fanout._listener_task = asyncio.create_task(redis_fanout.start_listening())
 
@@ -114,13 +115,15 @@ async def startup():
         host=os.getenv("REDIS_HOST", "localhost"),
         port=int(os.getenv("REDIS_PORT", 6379)),
         db=int(os.getenv("REDIS_DB", 0)),
+        password=os.getenv("REDIS_PASSWORD")
     )
 
     # Connect Redis OTP store
     await redis_otp.connect(
-        host=os.getenv("REDIS_HOST", "localhost"),
+       host=os.getenv("REDIS_HOST", "localhost"),
         port=int(os.getenv("REDIS_PORT", 6379)),
         db=int(os.getenv("REDIS_DB", 0)),
+        password=os.getenv("REDIS_PASSWORD")
     )
 
     logger.info("Redis services started")

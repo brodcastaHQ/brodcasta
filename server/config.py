@@ -15,6 +15,7 @@ password = quote(password)
 
 DB_URL = f"postgres://{user}:{password}@{host}:{port}/{database}"
 
+
 # Tortoise ORM Configuration
 TORTOISE_ORM = {
     "connections": {
@@ -28,6 +29,7 @@ TORTOISE_ORM = {
     },
     "use_tz": False,
     "timezone": "UTC"
+
 }
 
 SECRET_KEY = os.getenv("SECRET_KEY")

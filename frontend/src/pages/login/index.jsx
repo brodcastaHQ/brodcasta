@@ -34,7 +34,7 @@ const Login = () => {
 
       <div className="w-full max-w-sm">
         <Link to="/" className="flex items-center gap-2 pb-8">
-          <img src="/logo.svg" alt="Brodcasta" className="h-6 w-6" />
+          <img src="/logo.svg" alt="Brodcasta" className="h-12 w-12" />
         </Link>
 
         <h1 className="text-xl font-semibold text-[var(--app-text)]">Sign in</h1>

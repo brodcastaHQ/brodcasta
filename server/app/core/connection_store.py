@@ -65,15 +65,18 @@ class ConnectionStore(ChannelBox):
     async def group_send(cls, tenant_id: str, room_id: str, payload=None, save_history: bool = False) -> GroupSendStatusEnum:
         if payload is None:
             payload = {}
-
         if save_history:
+        
             msg = ChannelMessageDC(payload=payload)
             if cls.store_message_hook:
+
                 await cls.store_message_hook(tenant_id, room_id, msg)
             else:
-                await cls.add_room(tenant_id, room_id)
+                print("b")
                 cls.CHANNEL_GROUPS_HISTORY[tenant_id][room_id].append(msg)
             cls.logger.debug(f"Message stored in history: {tenant_id}/{room_id} -> {payload}")
+
+
 
         status = GroupSendStatusEnum.NO_SUCH_GROUP
         for channel in cls.CHANNEL_GROUPS.get(tenant_id, {}).get(room_id, {}):

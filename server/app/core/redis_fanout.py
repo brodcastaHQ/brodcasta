@@ -99,7 +99,6 @@ class RedisFanout:
             self.logger.debug(
                 f"Event [{event_type}] tenant={tenant_id} room={room_id}"
             )
-
             if event_type == "room_message":
                 await self._handle_room_message(tenant_id, room_id, data)
             elif event_type == "broadcast":

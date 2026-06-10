@@ -24,7 +24,7 @@ const Navbar = () => {
         <div className="mx-auto max-w-xl rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="Brodcasta" className="h-5 w-5" />
+              <img src="/logo.svg" alt="Brodcasta" className="h-15 w-15" />
               <p className="text-sm font-medium text-[var(--app-text)]">Brodcasta</p>
             </Link>
 
