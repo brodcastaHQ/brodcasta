@@ -78,13 +78,16 @@ async def signup(request: Request, response: Response):
         created_at=user.created_at.isoformat(),
     )
     response.json({"user": user_response, "message": "Account created successfully"})
+    is_production = os.getenv("ENV") == "production"
+
     response.set_cookie(
         "access_token",
         access_token,
         max_age=3600,
-        httponly=os.getenv("ENV") == "production",
-        secure=os.getenv("ENV") == "production",
-        samesite="lax",
+        httponly=True,
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+        path="/",
     )
 
     response.set_cookie(
@@ -92,10 +95,10 @@ async def signup(request: Request, response: Response):
         refresh_token,
         max_age=7 * 24 * 3600,  # 7 days
         httponly=True,
-        secure=os.getenv("ENV") == "production",
-        samesite="strict",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+        path="/",
     )
-
     return 
 
 
@@ -145,13 +148,16 @@ async def login(request: Request, response: Response):
             "refresh_token": refresh_token,
         }
     )
+    is_production = os.getenv("ENV") == "production"
+
     response.set_cookie(
         "access_token",
         access_token,
         max_age=3600,
-        httponly=os.getenv("ENV") == "production",
-        secure=os.getenv("ENV") == "production",
-        samesite="lax",
+        httponly=True,
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+        path="/",
     )
 
     response.set_cookie(
@@ -159,10 +165,10 @@ async def login(request: Request, response: Response):
         refresh_token,
         max_age=7 * 24 * 3600,  # 7 days
         httponly=True,
-        secure=os.getenv("ENV") == "production",
-        samesite="strict",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+        path="/",
     )
-
 
 @router.post(
     "/forgot-password",
