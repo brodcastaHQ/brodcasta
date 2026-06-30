@@ -67,7 +67,7 @@ class SSEChannel(BaseChannel):
                 yield "event: disconnect\ndata: {\"status\": \"disconnected\"}\n\n"
 
         # Stream the events
-        await self.response.stream(event_stream(), content_type="text/event-stream")
+        self.response.stream(event_stream(), content_type="text/event-stream")
 
     def _format_sse_event(self, payload: dict) -> Optional[str]:
 

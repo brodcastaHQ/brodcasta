@@ -1,6 +1,7 @@
+from nexios_contrib.mail import MailClient
 from typing import cast
 import os
-from nexios import status
+from nexios import status, Depend
 from nexios.http import Request, Response
 from nexios.routing import Router
 from nexios.parameters import Query
@@ -20,13 +21,13 @@ from models.subscriptions import Subscription
 from utils.auth import create_access_token, create_refresh_token, verify_token
 from app.core.redis_otp import redis_otp
 from nexios import status
-
+from app.core.logging import get_logger
+from app.core.mail_client import get_mail_client
 # Set by app/__init__.py at startup
-mail_client = None  # type: ignore[assignment]
 
 router = Router(prefix="/accounts", tags=["authentication"])
 
-
+logger = get_logger("account")
 @router.post(
     "/signup",
     summary="Create a new user account",
@@ -175,7 +176,7 @@ async def login(request: Request, response: Response):
     summary="Send OTP to email for password reset",
     request_model=ForgotPasswordRequest,
 )
-async def forgot_password(request: Request, response: Response):
+async def forgot_password(request: Request, response: Response,mail_client :MailClient = Depend(get_mail_client)):
     """Send a 6-digit OTP to the user's email for password reset."""
     data = await request.json
     body = ForgotPasswordRequest(**data)  # ty:ignore[invalid-argument-type]
@@ -187,17 +188,39 @@ async def forgot_password(request: Request, response: Response):
 
     otp = await redis_otp.generate_and_store(body.email)
 
-    if mail_client:
-        await mail_client.send_email(
-            to=body.email,
-            subject="Your Brodcasta Password Reset Code",
-            html_body=f"""
+    await mail_client.send_email(
+        to=body.email,
+        subject="Your Brodcasta Password Reset Code",
+        html_body=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            </head>
+            <body style="font-family: Arial, Helvetica, sans-serif; color:#333; line-height:1.6;">
             <h2>Password Reset</h2>
-            <p>Use the following OTP to reset your password. It expires in 15 minutes.</p>
-            <p style="font-size:24px;font-weight:bold;letter-spacing:4px;text-align:center;padding:16px;background:#f4f4f5;border-radius:8px;">{otp}</p>
-            <p>If you didn't request this, you can ignore this email.</p>
-            """,
-        )
+
+            <p>Use the following OTP to reset your password. It expires in <strong>15 minutes</strong>.</p>
+
+            <div style="
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:6px;
+                text-align:center;
+                padding:20px;
+                background:#f4f4f5;
+                border-radius:8px;
+                margin:24px 0;
+            ">
+                {otp}
+            </div>
+
+            <p>If you didn't request this password reset, you can safely ignore this email.</p>
+            </body>
+            </html>
+            """
+    )
+   
 
     return response.json({"message": "If the email exists, an OTP has been sent."})
 

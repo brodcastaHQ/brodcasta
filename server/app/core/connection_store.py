@@ -72,7 +72,6 @@ class ConnectionStore(ChannelBox):
 
                 await cls.store_message_hook(tenant_id, room_id, msg)
             else:
-                print("b")
                 cls.CHANNEL_GROUPS_HISTORY[tenant_id][room_id].append(msg)
             cls.logger.debug(f"Message stored in history: {tenant_id}/{room_id} -> {payload}")
 

@@ -1,6 +1,5 @@
 from nexios import NexiosApp, MakeConfig
 from nexios_contrib.tortoise import init_tortoise
-from nexios_contrib.mail import setup_mail, MailConfig
 from nexios.routing.grouping import Group
 import config
 from api.accounts.routes import router as auth_router
@@ -24,7 +23,10 @@ from events import emitter as emitter
 from services.analytics_tracker import AnalyticsTracker
 from scripts.create_superuser import create_superuser
 import os
+from app.core.mail_client import setup_mail
+from app.core.logging import configure_uvicorn_logging
 
+configure_uvicorn_logging()
 logger = get_logger("Brodcasta")
 
 # Initialize global config before creating the app
@@ -63,23 +65,7 @@ init_tortoise(
     generate_schemas=True,
 )
 # Set up mail client
-
-mail_client = setup_mail(
-    app,
-    config=MailConfig(
-        smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
-        smtp_port=int(os.getenv("SMTP_PORT", "587")),
-        smtp_username=os.getenv("SMTP_USERNAME", ""),
-        smtp_password=os.getenv("SMTP_PASSWORD", ""),
-        use_tls=os.getenv("SMTP_USE_TLS", "true").lower() == "true",
-        default_from=os.getenv("MAIL_FROM", "noreply@brodcasta.com"),
-    ),
-)
-mail_client=None
-# Expose mail client to routes via module-level import
-import api.accounts.routes as accounts_routes
-
-accounts_routes.mail_client = mail_client
+setup_mail(app)
 
 app.add_middleware(
     CORSMiddleware(

@@ -49,7 +49,7 @@ def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
     if name in _LOGGERS:
         return _LOGGERS[name]
 
-    logger = logging.getLogger(name)
+    logger = logging.Logger(name)
     logger.setLevel(_get_level(level))
 
     if not logger.handlers:
