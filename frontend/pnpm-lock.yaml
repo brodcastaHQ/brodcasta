@@ -18,8 +18,8 @@ importers:
         specifier: ^1.13.4
         version: 1.15.0
       brodcasta-sdk:
-        specifier: ^0.1.6
-        version: 0.1.6
+        specifier: link:../brodcasta-js-sdk
+        version: link:../brodcasta-js-sdk
       d3:
         specifier: ^7.9.0
         version: 7.9.0
@@ -687,9 +687,6 @@ packages:
 
   brace-expansion@1.1.13:
     resolution: {integrity: sha512-9ZLprWS6EENmhEOpjCYW2c8VkmOvckIJZfkr7rBW6dObmfgJ/L1GpSYW5Hpo9lDz4D1+n0Ckz8rU7FwHDQiG/w==}
-
-  brodcasta-sdk@0.1.6:
-    resolution: {integrity: sha512-bdFiMzh7S5d91I76BXbrD7yFzLV7pMbHH3+0lfG0Vh+7ozX/64pamkVbHbo4FnJjsgtl9JnYuTRUG6kLpquCgA==}
 
   browserslist@4.28.2:
     resolution: {integrity: sha512-48xSriZYYg+8qXna9kwqjIVzuQxi+KYWp2+5nCYnYKPTr0LvD89Jqk2Or5ogxz0NUMfIjhh2lIUX/LyX9B4oIg==}
@@ -1996,8 +1993,6 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
-
-  brodcasta-sdk@0.1.6: {}
 
   browserslist@4.28.2:
     dependencies:

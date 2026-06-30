@@ -139,6 +139,7 @@ class ConnectionStore(ChannelBox):
     async def get_channel_by_id(cls, tenant_id: str, client_id: str) -> Optional[Channel]:
         """Find a channel by its UUID string within a tenant"""
         tenant_rooms = cls.CHANNEL_GROUPS.get(tenant_id, {})
+        print("tenant_room", tenant_rooms)
         for channels in tenant_rooms.values():
             for channel in channels:
                 if str(channel.uuid) == client_id:

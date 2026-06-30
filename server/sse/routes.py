@@ -83,6 +83,7 @@ async def poll_send(request: Request, response: Response, project_id: str):
             return response.json({"error": "Invalid client_token"}, status_code=401)
 
         # Get the actual channel from connection store
+        print("client_id",client_id)
         channel = await ConnectionStore.get_channel_by_id(project_id, client_id)
         if not channel:
             return response.json({"error": "Client session not found"}, status_code=404)
